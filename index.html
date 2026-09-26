@@ -48,6 +48,7 @@ var A='assets/sprites/', AR='assets/sprites/art/', LG='assets/logo/';
 load('p1',A+'p1-saucer.png'); load('beam',A+'beam-green.png'); load('ring',A+'ground-ring.png');
 for(var i=0;i<6;i++) load('w'+i,A+'p1-warble-'+i+'.png');
 ['gnome','gnome_knife','gnome_pistol','gnome_smg','gnome_heavy','gp_vehicle','gp_bradley','gp_aa_gun','gp_banner','gp_wall','gp_wall_2',
+ 'gp_soldier_a','gp_soldier_b','gp_soldier_c','person','farmer',
  'barracks','bunker','radar','tower_a','tree','moon','jet','powerup'
 ].forEach(function(n){ load(n,AR+n+'.png'); });
 load('ck_logo',LG+'castle-killscreen-logo.png'); load('gnomania',A+'../broll/pax-gnomania.png');
@@ -94,6 +95,79 @@ var jetTimer=2, aaTimer=2;
 function newPlayer(){ var b=band(); return { tx:W*0.4, ty:(b.top+b.bot)/2, x:W*0.4, y:(b.top+b.bot)/2, vx:0,vy:0, bank:0, warbleU:-9, warbleCd:0, stun:0, invuln:0, lock:null }; }
 function flash(m,c,sec){ msg=m; msgColor=c||'#fff'; msgT=sec||1.0; }
 
+/* =====================================================================
+   THE GUNPOWDER HORROR — the DEFENSE mission.
+
+   This build carried the name for months while actually being a wander-and-
+   suck-up sandbox: gnomes milled about, you beamed them, nothing was at stake
+   but your own hull. The mission it is named after is a DEFENSE: Gunpowder, MD
+   has people and hardware on the ground, the legion marches in from the edges
+   and advances on them, and the only way to hold the town is to thin the swarm
+   faster than it closes. Ported here from the Python mission so the thing is
+   playable and testable in a browser.
+
+   Defense in depth, edges inward: HARDWARE soaks the first contact · WALLS are
+   cover · the PEOPLE sit safe in the middle and are what you are actually
+   saving. SOLDIERS are armed and fight back — and a gnome the soldiers kill
+   pays you NOTHING, so hiding behind the line is survivable and poor.
+
+   THE FALLBACK: four phases. Each one the swarm survives, the armed line gives
+   ground toward the civilians and the field scrolls harder. THE SURGE rides
+   with it so the retreat costs something — a line that merely contracts is a
+   defensive buff wearing a retreat's clothes (measured: it made the Python
+   mission EASIER, 90% -> 100% perfect, before the surge was added).
+   Phase 3 IS the Bradley onslaught.
+   ===================================================================== */
+var GP_WAVE_EVERY   = 2.6;          // reinforcements this often...
+var GP_WAVES_STOP   = 8.0;          // ...until this many seconds remain
+var GP_WAVE_SIZE    = 4;
+var GP_MAX_GNOMES   = 18;           // on-field cap — a SET force, perf-safe
+var GP_REACH        = 0.030;        // strike range, fraction of width
+var GP_ATTACK_CD    = 2.2;          // seconds between one gnome's strikes
+var GP_ADVANCE      = 0.028;        // closing speed, fraction of width per sec
+var GP_SOLDIER_RANGE= 0.11;         // how far down the line a defender reaches. Tuned, not guessed:
+                                    // at 0.20/1.7 the line held the town on its own for the whole
+                                    // level and the player was optional — the mildest setting where
+                                    // an untouched Gunpowder actually falls. The ?selftest asserts it.
+var GP_SOLDIER_CD   = 2.2;
+var GP_SOLDIER_HP   = 3;            // soldiers soak; civilians do not
+var GP_SAVE_BONUS   = 400;          // per survivor at the horn
+var GP_PHASE_AT     = [0.22,0.45,0.68];
+var GP_PHASE_SURGE  = [1.0,1.18,1.40,1.70];
+var GP_PHASE_SCROLL = [16,42,74,112];
+var GP_FALLBACK     = 0.055;        // ground given per phase, fraction of width
+var GP_VEHICLES_AT  = 0.45, GP_ARMOR_AT = 0.68, GP_BRADLEYS = 2;
+var GP_PHASE_BARK = ['',
+  "THEY'RE COMING IN WAVES — FALL BACK!",
+  'GIVE GROUND! KEEP THEM OFF THE CIVILIANS!',
+  'ARMOR! OUR OWN BRADLEYS — BRACE!'];
+
+// glyph-free defender model. armed=true -> returns fire. hp 0 -> indestructible cover.
+var DEFENDERS = [
+  { s:'gp_aa_gun',    fx:0.10, hp:3, w:0.075 },
+  { s:'gp_vehicle',   fx:0.20, hp:3, w:0.070 },
+  { s:'gp_wall',      fx:0.30, hp:0, w:0.080 },
+  { s:'gp_soldier_a', fx:0.37, hp:GP_SOLDIER_HP, w:0.030, armed:true },
+  { s:'gp_soldier_b', fx:0.43, hp:GP_SOLDIER_HP, w:0.030, armed:true },
+  { s:'person',       fx:0.48, hp:1, w:0.028, civ:true },
+  { s:'farmer',       fx:0.52, hp:1, w:0.028, civ:true },
+  { s:'person',       fx:0.56, hp:1, w:0.028, civ:true },
+  { s:'gp_soldier_c', fx:0.61, hp:GP_SOLDIER_HP, w:0.030, armed:true },
+  { s:'gp_soldier_a', fx:0.67, hp:GP_SOLDIER_HP, w:0.030, armed:true },
+  { s:'gp_wall_2',    fx:0.74, hp:0, w:0.080 },
+  { s:'gp_aa_gun',    fx:0.86, hp:3, w:0.075 }
+];
+var defenders=[], gpPhase=0, gpWaveT=0, gpVehicles=false, gpArmor=false;
+function gpPeople(){ var n=0; for(var i=0;i<defenders.length;i++){ var d=defenders[i]; if(d.alive&&d.hp>0&&(d.armed||d.civ)) n++; } return n; }
+function gpPeopleTotal(){ var n=0; for(var i=0;i<DEFENDERS.length;i++) if(DEFENDERS[i].armed||DEFENDERS[i].civ) n++; return n; }
+function buildDefenders(){
+  defenders=[];
+  for(var i=0;i<DEFENDERS.length;i++){ var d=DEFENDERS[i];
+    defenders.push({ s:d.s, x:W*d.fx, hp:d.hp, maxhp:d.hp, w:W*d.w, armed:!!d.armed, civ:!!d.civ,
+                     alive:true, vanish:0, fireCd:rnd(0,GP_SOLDIER_CD), hitT:0 });
+  }
+}
+
 /* ---------- the gnome legion ---------- */
 var TARGETKINDS={
   gnome:  { val:100, sprites:['gnome'],        wander:15, lock:0.9, meter:4 },
@@ -116,10 +190,20 @@ function pickKind(b){
 function curBias(){ return (mode==='campaign' && LEVELS[level])?LEVELS[level].bias:0.3; }
 function pickSpawnKind(){ var k=pickKind(curBias()); if(k==='vehicle' && countKind('vehicle')>=2) k='gnome'; return k; }
 function spawnTarget(kind){
-  if(targets.length>9) return;
+  // The sandbox capped at 9 and counted DEAD targets, which silently strangled the
+  // mission's waves — reinforcements simply never arrived. Count the living, and cap
+  // at the mission's own bounded number.
+  var liveN=0; for(var q=0;q<targets.length;q++) if(!targets[q].gone) liveN++;
+  if(liveN >= GP_MAX_GNOMES + GP_BRADLEYS) return;
+  if(targets.length > 240) targets = targets.filter(function(t){ return !t.gone; });
   kind = kind || pickSpawnKind();
   var def=TARGETKINDS[kind], sp=def.sprites[(Math.random()*def.sprites.length)|0];
-  targets.push({ kind:kind, def:def, sprite:sp, x:W*rnd(0.08,0.92), y:groundY(), vx:0,vy:0, dir:chance(.5)?1:-1, lock:0, lifting:false, gone:false, fireCd:rnd(1.5,3.5), isBoss:false });
+  // the legion MARCHES IN from the edges — it does not mill about in the middle
+  var fromWest = chance(0.5);
+  var ex = fromWest ? W*rnd(0.01,0.07) : W*rnd(0.93,0.99);
+  targets.push({ kind:kind, def:def, sprite:sp, x:ex, y:groundY(), vx:0,vy:0, dir:fromWest?1:-1,
+                 lock:0, lifting:false, gone:false, fireCd:rnd(1.5,3.5), isBoss:false,
+                 hp:(kind==='heavy'?2:kind==='vehicle'?3:1), strikeCd:rnd(0.3,1.2) });
 }
 function spawnBoss(){ targets.push({ kind:'heavy', def:{val:BOSS_BONUS,sprites:['gnome_heavy'],wander:7*0.5,lock:1.6,meter:8,shoots:true,fast:true}, sprite:'gnome_heavy',
   x:W*rnd(0.25,0.75), y:groundY(), vx:0,vy:0, dir:chance(.5)?1:-1, lock:0, lifting:false, gone:false, fireCd:rnd(0.7,1.2), isBoss:true });
@@ -132,8 +216,9 @@ function startLevel(idx){
   P=newPlayer(); targets=[]; jets=[]; shots=[]; fx=[]; shake=0;
   meter=8; stageClock=L.clock; levelLen=L.clock; jetTimer=2; aaTimer=1.8;
   runActive=false; bossTele=false; bossSpawned=false;
+  buildDefenders(); gpPhase=0; gpWaveT=GP_WAVE_EVERY; gpVehicles=false; gpArmor=false;
   scenery=[]; for(var i=0;i<L.props.length;i++) scenery.push({ x:W*(0.04+i*0.14+rnd(-0.02,0.02)), s:L.props[i], w:clamp(W*rnd(0.05,0.085),60,150) });
-  for(var k=0;k<6;k++) spawnTarget();
+  for(var k=0;k<7;k++) spawnTarget();   // the opening rush, already on the road
   state='play'; flash('FRONT '+(idx+1)+'  —  '+L.zone, TH.accent, 2.0);
 }
 function nextLevel(){ score+=2000; if(level+1<LEVELS.length) startLevel(level+1); else { state='clear'; flash('GUNPOWDER HELD  +2000','#9affc0',99); } }
@@ -209,7 +294,8 @@ function update(dt){
   pumpPlayer(); spring(P,P.tx,P.ty,dt); P.bank += (clamp(P.vx/190,-1,1)-P.bank)*Math.min(1,7*dt);
   if(mode!=='base') meter = clamp(meter + dt*1.9, 0, 100);
 
-  var worldSpeed=16;
+  var worldSpeed = (mode==='campaign' && defenders.length)
+      ? GP_PHASE_SCROLL[Math.min(gpPhase,GP_PHASE_SCROLL.length-1)] : 16;
   if(mode==='campaign' && elapsed>=L.scrollStart){
     if(!runActive){ runActive=true; flash('>>> THE LEGION ADVANCES <<<','#ff9d3a',1.4); }
     var ramp=clamp((elapsed-L.scrollStart)/Math.max(1,levelLen-L.scrollStart),0,1);
@@ -222,7 +308,19 @@ function update(dt){
     if(!bossSpawned && elapsed>=BOSS_APPEAR){ bossSpawned=true; spawnBoss(); }
   }
   if(mode==='base'){ if(stageClock<=0){ state='clear'; score+=3000; flash('THE SIEGE BROKEN  +3000','#9affc0',99); } }
-  else if(stageClock<=0){ flash(L.zone+' HELD','#9affc0',1.4); nextLevel(); }
+  else if(gpPeopleTotal() && gpPeople()===0){
+    // the town is gone — the mission is lost the moment the last person falls
+    state='over'; flash('THE LEGION TOOK GUNPOWDER…','#ff5d6c',99);
+  }
+  else if(stageClock<=0){
+    var saved=gpPeople(), total=gpPeopleTotal();
+    score += GP_SAVE_BONUS*saved;
+    if(saved===total){ score+=3000; flash(L.zone+' HELD — EVERY SOUL  +3000','#9affc0',1.8); }
+    else flash(L.zone+' HELD  '+saved+'/'+total+' saved  +'+(GP_SAVE_BONUS*saved),'#9affc0',1.8);
+    nextLevel();
+  }
+
+  gpMission(dt, elapsed);
 
   P.lock=null;
   if(planting && P.stun<=0){
@@ -235,7 +333,29 @@ function update(dt){
   for(var i=0;i<targets.length;i++){ var c=targets[i];
     if(c.gone){ if(c.respawn>1e8) continue; c.respawn-=dt; if(c.respawn<=0){ c.gone=false; c.lock=0; c.lifting=false; c.x=chance(.5)?W*0.03:W*0.97; c.y=groundY(); var nk=pickSpawnKind(); c.kind=nk; c.def=TARGETKINDS[nk]; c.sprite=c.def.sprites[(Math.random()*c.def.sprites.length)|0]; c.isBoss=false; } continue; }
     if(c.lifting && c.lock>0){ c.y = groundY() - (groundY()-(P.y+SAUCER_W()*0.18))*c.lock; }
-    else { c.y=groundY(); c.x += c.dir*c.def.wander*dt; if(c.x<W*0.04||c.x>W*0.96)c.dir*=-1; }
+    else {
+      c.y=groundY();
+      // ADVANCE on the nearest standing defender and strike in reach. This is the
+      // mission: the legion is not wandering, it is coming for the town.
+      var near=null, nd=1e9;
+      for(var q=0;q<defenders.length;q++){ var d=defenders[q];
+        if(!d.alive || d.hp<=0 || d.vanish>0) continue;
+        var dd=Math.abs(d.x-c.x); if(dd<nd){ nd=dd; near=d; } }
+      var surge = GP_PHASE_SURGE[Math.min(gpPhase,GP_PHASE_SURGE.length-1)];
+      if(near){
+        c.dir = near.x>c.x ? 1 : -1;
+        if(nd > W*GP_REACH){ c.x += c.dir*(W*GP_ADVANCE*surge)*dt; }
+        else {
+          c.strikeCd -= dt;
+          if(c.strikeCd<=0){ c.strikeCd = GP_ATTACK_CD;
+            near.hp -= (c.kind==='vehicle'||c.isBoss)?2:1; near.hitT=0.18;
+            addFx(near.x, groundY()-14, 'burst', '#ff7a3a', 0.4);
+            if(near.hp<=0){ near.vanish=0.5;
+              flash(near.civ?'A CIVILIAN IS DOWN':'THE LINE IS BREAKING','#ff5d6c',1.1); shake=6; }
+          }
+        }
+      } else { c.x += c.dir*c.def.wander*surge*dt; if(c.x<W*0.02||c.x>W*0.98)c.dir*=-1; }
+    }
     if(c.def.shoots && !c.lifting && stg>=1){ c.fireCd-=dt; if(c.fireCd<=0){ c.fireCd=c.def.fast?rnd(0.8,1.6):rnd(2.0,3.4);
       var dx=P.x-c.x, dy=P.y-(c.y-18), L2=Math.hypot(dx,dy)||1, sp=c.def.fast?460:360;
       shoot(c.x,c.y-22,dx/L2*sp,dy/L2*sp,'potshot', c.isBoss?'#ffd23f':'#ffe2a0'); addFx(c.x,c.y-22,'spark','#ffe2a0',0.2); } }
@@ -277,6 +397,117 @@ function update(dt){
     if(e.t>e.life) fx.splice(f,1);
   }
 }
+/* ---------- THE GUNPOWDER HORROR — mission tick ---------- */
+function gpMission(dt, elapsed){
+  if(mode!=='campaign' || !defenders.length) return;
+  var prog = clamp(elapsed/Math.max(1,levelLen), 0, 1);
+
+  // --- THE FALLBACK: phases turn on progress; the armed line gives ground ---
+  var want=0; for(var i=0;i<GP_PHASE_AT.length;i++) if(prog>=GP_PHASE_AT[i]) want++;
+  if(want>gpPhase){
+    gpPhase=want;
+    var mid=W*0.5, step=W*GP_FALLBACK;
+    for(var i=0;i<defenders.length;i++){ var d=defenders[i];
+      if(d.alive && d.hp>0 && d.armed){ d.x += (d.x<mid? step : -step); d.x=clamp(d.x,W*0.06,W*0.94); } }
+    if(GP_PHASE_BARK[gpPhase]) flash(GP_PHASE_BARK[gpPhase], gpPhase>=3?'#ff5d6c':'#ff9d3a', 1.6);
+    shake=Math.max(shake,5);
+  }
+
+  // --- reinforcements keep marching until the last killable wave ---
+  if(stageClock > GP_WAVES_STOP){
+    gpWaveT -= dt;
+    if(gpWaveT<=0){ gpWaveT = GP_WAVE_EVERY;
+      var live=0; for(var i=0;i<targets.length;i++) if(!targets[i].gone) live++;
+      for(var k=0; k<GP_WAVE_SIZE && live<GP_MAX_GNOMES; k++){ spawnTarget(); live++; }
+    }
+  }
+  // --- the set vehicle force, then the captured Bradleys for the climax ---
+  if(!gpVehicles && prog>=GP_VEHICLES_AT){ gpVehicles=true; spawnTarget('vehicle'); spawnTarget('vehicle');
+    flash('CARTS ON THE ROAD','#ffd23f',1.2); }
+  if(!gpArmor && prog>=GP_ARMOR_AT){ gpArmor=true;
+    for(var k=0;k<GP_BRADLEYS;k++) spawnBradley();
+    flash('BRADLEYS — THEY TOOK OUR OWN ARMOR','#ff5d6c',2.0); shake=10; }
+
+  // --- THE LINE SHOOTS BACK -------------------------------------------------
+  // A gnome the soldiers drop pays the player NOTHING. Hiding behind a working
+  // line is survivable and poor; the score is out in the swarm.
+  for(var i=0;i<defenders.length;i++){ var d=defenders[i];
+    if(d.vanish>0){ d.vanish-=dt; if(d.vanish<=0) d.alive=false; continue; }
+    if(d.hitT>0) d.hitT-=dt;
+    if(!d.alive || d.hp<=0 || !d.armed) continue;
+    d.fireCd-=dt; if(d.fireCd>0) continue;
+    var tgt=null, td=W*GP_SOLDIER_RANGE;
+    for(var q=0;q<targets.length;q++){ var c=targets[q];
+      if(c.gone||c.lifting) continue; var dd=Math.abs(c.x-d.x); if(dd<td){ td=dd; tgt=c; } }
+    if(!tgt) continue;
+    d.fireCd=GP_SOLDIER_CD;
+    shoot(d.x, groundY()-16, (tgt.x>d.x?1:-1)*420, -20, 'tracer', '#ffe6a0');
+    tgt.hp-=1;
+    if(tgt.hp<=0){ addFx(tgt.x, groundY()-16, 'burst', '#9affc0', 0.4); tgt.gone=true; tgt.respawn=1e9; }
+  }
+}
+
+function spawnBradley(){
+  var west = targets.length%2===0;
+  targets.push({ kind:'vehicle', def:TARGETKINDS.vehicle, sprite:'gp_bradley',
+    x: west? W*0.02 : W*0.98, y:groundY(), vx:0,vy:0, dir:west?1:-1, lock:0, lifting:false,
+    gone:false, fireCd:rnd(0.6,1.4), isBoss:true, hp:6, strikeCd:rnd(0.4,1.0) });
+}
+
+/* ---------- ?selftest — the mission, proven headless ------------------------
+   House convention (MERC ZEBRA selfTest, SUCK UP --selftest): verification lives
+   IN the artifact, not in a throwaway rig. "It loaded with no console errors" is
+   not a test — a page whose sprites 404 still boots, still paints, and still
+   reports clean. So this asserts PROOF OF LIFE: the line exists, the legion
+   closes on it, damage actually lands, waves keep arriving, and the phases turn.
+   Runs the real update() on a fixed dt — no rendering, no timers, no RNG seeding
+   needed because every assertion is about behaviour, not exact values.
+   Open: PAX GNOMANIA — AIRY.html?selftest
+   --------------------------------------------------------------------------- */
+function selfTest(){
+  var R=[], ok=function(n,c,d){ R.push({n:n,ok:!!c,d:d||''}); };
+  W=1280; H=860;
+  startCampaign();
+  ok('the line is built', defenders.length===DEFENDERS.length, defenders.length+' defenders');
+  ok('there are people to save', gpPeopleTotal()>0 && gpPeople()===gpPeopleTotal(),
+     gpPeople()+'/'+gpPeopleTotal());
+  ok('armed defenders exist (the line can fight back)',
+     defenders.filter(function(d){return d.armed;}).length>=3);
+  ok('the legion is on the field at kickoff', targets.filter(function(t){return !t.gone;}).length>0);
+
+  // the legion should start at the EDGES, not milling in the middle
+  var mid=0; for(var i=0;i<targets.length;i++) if(!targets[i].gone && Math.abs(targets[i].x-W*0.5)<W*0.25) mid++;
+  ok('the legion marches in from the edges', mid===0, mid+' spawned mid-field');
+
+  var hp0=0; for(i=0;i<defenders.length;i++) hp0+=Math.max(0,defenders[i].hp);
+  var g0=targets.filter(function(t){return !t.gone;}).length;
+  var dt=1/60, phasesSeen={};
+  for(var k=0;k<60*30;k++){ update(dt); phasesSeen[gpPhase]=1; }
+  var hp1=0; for(i=0;i<defenders.length;i++) hp1+=Math.max(0,defenders[i].hp);
+  var g1=targets.filter(function(t){return !t.gone;}).length;
+
+  ok('the legion reaches the line and does damage', hp1<hp0, hp0+' -> '+hp1+' line HP');
+  ok('reinforcements keep arriving', g1>0, g1+' on the field after 30s');
+  ok('the swarm stays BOUNDED (a set force, perf-safe)', g1<=GP_MAX_GNOMES+GP_BRADLEYS+2, g1+' vs cap '+GP_MAX_GNOMES);
+  ok('THE FALLBACK turns phases', gpPhase>0, 'reached phase '+gpPhase);
+  ok('the stage clock runs', stageClock<levelLen);
+
+  // the mission must be LOSABLE — an unbeatable or unloseable defense is not a mission
+  startCampaign();
+  for(k=0;k<60*Math.ceil(levelLen+2);k++) update(dt);
+  ok('an untouched town falls (the player is load-bearing)', gpPeople()<gpPeopleTotal(),
+     gpPeople()+'/'+gpPeopleTotal()+' left with no player help');
+
+  var pass=R.every(function(r){return r.ok;});
+  var html='<pre style="font:13px ui-monospace;color:#e9e0d6;background:#03020a;padding:18px;margin:0;min-height:100vh">'
+    +'<b style="font-size:18px;color:'+(pass?'#9affc0':'#ff5d6c')+'">PAX GNOMANIA — THE GUNPOWDER HORROR — SELF TEST: '+(pass?'PASS':'FAIL')+'</b>\n\n';
+  R.forEach(function(r){ html+=(r.ok?'  <span style="color:#9affc0">OK  </span>':'  <span style="color:#ff5d6c">FAIL</span>')+'  '+r.n+(r.d?'   <span style="color:#7a6f5f">'+r.d+'</span>':'')+'\n'; });
+  html+='</pre>';
+  document.body.innerHTML=html;
+  document.title='PAX SELFTEST '+(pass?'PASS':'FAIL');
+  return pass;
+}
+
 function spawnJet(stg){ var b=band(), dir=chance(.5)?1:-1;
   jets.push({ dir:dir, x:dir>0?-70:W+70, y:b.top-H*0.04, base:clamp(P.y+rnd(-40,40),b.top-H*0.04,b.bot), vy:0,
     amp:H*(0.03+Math.random()*0.05), spd:1.3+Math.random()*1.3, phase:rnd(0,6.28), vx:(170+stg*30+Math.random()*90)*dir, bank:0, fireCd:rnd(0.6,1.4) }); }
@@ -303,6 +534,26 @@ function drawBG(){
   ctx.fillStyle=TH.ground; ctx.fillRect(0,gy+8,W,H);
   ctx.strokeStyle=TH.edge+'88'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,gy+8); ctx.lineTo(W,gy+8); ctx.stroke();
 }
+function drawDefenders(){
+  // Drawn UNDER the legion so a gnome standing on a defender reads as overrun.
+  // Damage shows in the sprite itself — a hit flashes it and a wounded defender
+  // sits lower and dimmer — rather than in a bar, because the line is the readout.
+  for(var i=0;i<defenders.length;i++){ var d=defenders[i];
+    if(!d.alive) continue;
+    var im=IMG[d.s], ar=(im&&im.ok)? im.naturalWidth/im.naturalHeight : 1.0;
+    var w=d.w, h=w/ar;
+    var wounded = d.maxhp>0 ? (1 - d.hp/d.maxhp) : 0;
+    var a = d.vanish>0 ? clamp(d.vanish/0.5,0,1) : (1 - wounded*0.35);
+    if(d.hitT>0){ ctx.save(); ctx.globalCompositeOperation='lighter'; }
+    drawImg(d.s, d.x, groundY()+6-h/2 + wounded*h*0.10, w, 0, a, false, !!(d.armed||d.civ));
+    if(d.hitT>0) ctx.restore();
+    if(d.armed && d.alive && d.hp>0){        // a small standing mark so the armed line reads
+      ctx.fillStyle='rgba(154,255,192,'+(0.55*(d.hp/d.maxhp))+')';
+      ctx.fillRect(d.x-7, groundY()+9, 14, 2);
+    }
+  }
+}
+
 function drawTargets(){
   var order=[]; for(var i=0;i<targets.length;i++) if(!targets[i].gone) order.push(i);
   order.sort(function(a,b){ var ca=targets[a], cb=targets[b], la=ca.kind==='vehicle'?0:1, lb=cb.kind==='vehicle'?0:1; return la!==lb? la-lb : ca.y-cb.y; });
@@ -365,6 +616,14 @@ function drawHUD(){
   ctx.textAlign='center';
   var zoneName = mode==='base'?'THE SIEGE':(LEVELS[level]?LEVELS[level].zone:'');
   ctx.fillStyle='#9c8a6a'; ctx.font='800 13px system-ui'; ctx.fillText('FRONT '+(mode==='base'?'S':(level+1))+'  ·  '+zoneName, W/2, 22);
+  if(defenders.length){            // GUNPOWDER STANDING — the actual objective
+    var saved=gpPeople(), total=gpPeopleTotal();
+    ctx.font='800 15px system-ui';
+    ctx.fillStyle = saved===total? '#9affc0' : saved>total*0.5? '#ffe23a' : '#ff5d6c';
+    ctx.fillText('GUNPOWDER  '+saved+' / '+total, W/2, 78);
+    if(gpPhase>0){ ctx.font='700 11px system-ui'; ctx.fillStyle='#ff9d3a';
+      ctx.fillText(['','PRESSED','GIVING GROUND','ARMOR'][Math.min(gpPhase,3)], W/2, 94); }
+  }
   ctx.fillStyle= stageClock<10?'#ff5d6c':'#fff'; ctx.font='800 30px system-ui'; ctx.fillText(Math.max(0,Math.ceil(stageClock))+'', W/2, 52);
   if(runActive){ ctx.fillStyle='#ff9d3a'; ctx.font='800 14px system-ui'; ctx.globalAlpha=0.6+0.4*Math.sin(clock*9); ctx.fillText('>>> THE LEGION ADVANCES <<<', W/2, 74); ctx.globalAlpha=1; }
   var stg=stageOf(), mw=clamp(W*0.34,260,520), mx=(W-mw)/2, my=H-30;
@@ -393,7 +652,7 @@ function frame(ts){
   clock+=dt; update(dt);
   ctx.save(); if(shake>0) ctx.translate(rnd(-shake,shake),rnd(-shake,shake));
   drawBG();
-  if(state!=='title'){ drawTargets(); drawShots(); drawJets(); drawSaucer(); drawFx(); drawHUD(); }
+  if(state!=='title'){ drawDefenders(); drawTargets(); drawShots(); drawJets(); drawSaucer(); drawFx(); drawHUD(); }
   ctx.restore();
   drawBezel();
   if(state==='title') overlay('PAX GNOMANIA','SPACE = the fronts (Gunpowder Falls → Barracks → Fort)  ·  B = siege  ·  X = blitz');
@@ -401,7 +660,12 @@ function frame(ts){
   else if(state==='clear') overlay('PAX GNOMANIA','press SPACE / R to run it again');
   requestAnimationFrame(frame);
 }
-requestAnimationFrame(frame);
+// ?selftest runs the mission headless and prints a report instead of booting the game.
+// ?auto skips boot+title straight into the mission — the headless shot rig's entry,
+// so a screenshot shows the LINE under attack rather than a title card.
+if(/[?&]auto/.test(location.search)){ bootT=99; startCampaign(); }
+if(/[?&]selftest/.test(location.search)){ try{ selfTest(); }catch(e){ document.body.innerHTML='<pre style="color:#ff5d6c;padding:18px">SELFTEST THREW: '+e.message+'\n'+e.stack+'</pre>'; document.title='PAX SELFTEST FAIL'; } }
+else requestAnimationFrame(frame);
 })();
 </script>
 </body>
