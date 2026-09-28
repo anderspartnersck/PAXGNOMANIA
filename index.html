@@ -392,7 +392,11 @@ function abduct(tg){
   score+=tg.def.val; meter=clamp(meter+tg.def.meter,0,100); addFx(P.x,P.y,'snatch','#7fe9ff',0.5);
   if(tg.isBoss) flash('GENERAL TAKEN! +'+BOSS_BONUS,'#ffd23f',1.6);
   else if(tg.def.val>=350) flash('+'+tg.def.val,'#9affc0',0.7);
-  if(tg.isBoss){ tg.gone=true; tg.respawn=1e9; } else { tg.gone=true; tg.respawn=rnd(1.4,2.8); }
+  // On a FRONT a beamed gnome is GONE — exactly like one the soldiers drop, and like the Python
+  // mission ("sucking up a gnome removes an attacker"). The sandbox respawn used to survive here, so
+  // the beam never thinned the swarm, it only sent a gnome back to the edge 1.4-2.8s later while the
+  // soldiers' kills were the only permanent ones (tools/pax_sweep.mjs). THE SIEGE keeps the respawn.
+  tg.gone=true; tg.respawn = (tg.isBoss || mode==='campaign') ? 1e9 : rnd(1.4,2.8);
   tg.lock=0; tg.lifting=false;
 }
 
@@ -725,6 +729,11 @@ function selfTest(){
   ok('the stage clock runs', stageClock<levelLen);
 
   ok('a survival front has no stranded and no rope', friends.length===0 && !dropZone());
+
+  // the beam THINS the swarm: on a front a beamed gnome stays gone (the sandbox respawn only survives in THE SIEGE)
+  startMission(SURV); var foe0=targets.filter(function(t){return !t.gone && t.kind!=='vehicle';})[0];
+  abduct(foe0); for(k=0;k<60*4;k++){ hp=maxHP; update(dt); }
+  ok('a beamed gnome stays gone on a front (it does not march back in)', foe0.gone && foe0.respawn>1e8, 'respawn '+foe0.respawn);
 
   // the mission must be LOSABLE — an unbeatable or unloseable defense is not a mission.
   // Read the town at the moment THIS front ends (the next front builds its own line).
