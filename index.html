@@ -10,6 +10,12 @@
   sprites + height-keyed sizing as SUCK UP — AIRY CUT, reskinned to the gnome legion
   storming Gunpowder, MD. Suck up the gnomes before they take the town.
 
+  THE FRONTS (LEVELS[].kind): RESCUE · RESCUE · SURVIVAL · RESCUE · HOLD+EVACUATE.
+  RESCUE = rope/ladder the stranded friendly gnomes to the SAFE drop-off before the
+  clock; SURVIVAL = THE GUNPOWDER HORROR hold-the-line, untouched; BOTH = the two at
+  once. Friendly look = FRIENDLY_LOOK (one constant). ?selftest proves all of it;
+  ?auto&level=N drops straight into front N; 1-5 at the title picks a front.
+
   TWO CABS (?cab=…):  hyscore = CLASSICAL GNOMANIA (marble/green) · blacksite = RED LEGION.
   (Per Joe 2026-06-17: red = BLACKSITE, classical = HYSCORE.)
 -->
@@ -23,7 +29,7 @@
 </head>
 <body>
 <canvas id="c"></canvas>
-<div id="hint"><kbd>WASD</kbd>/<kbd>↑↓←→</kbd> fly · <kbd>SPACE</kbd> SUCK UP · <kbd>F</kbd> WARBLE · <kbd>B</kbd> siege · <kbd>X</kbd> blitz · <kbd>G</kbd> glide · <kbd>R</kbd> restart · <b>SANDBOX — no game files touched</b></div>
+<div id="hint"><kbd>WASD</kbd>/<kbd>↑↓←→</kbd> fly · <kbd>SPACE</kbd> SUCK UP · <kbd>F</kbd> WARBLE · <kbd>B</kbd> siege · <kbd>1</kbd>–<kbd>5</kbd> front · <kbd>X</kbd> blitz · <kbd>G</kbd> glide · <kbd>R</kbd> restart · <b>SANDBOX — no game files touched</b></div>
 
 <script>
 (function(){
@@ -77,12 +83,28 @@ function band(){ return {top:H*0.20, bot:H*0.70}; }
 function SAUCER_W(){ return clamp(W*0.085,90,180); }
 function sz(){ return { gnome:clamp(W*0.034,22,38), heavy:clamp(W*0.046,30,52), vehicle:clamp(W*0.05,32,56)*0.84 }; }
 
-/* ---------- the Gunpowder fronts ---------- */
+/* ---------- the Gunpowder fronts ----------
+   Every front has a KIND:
+     rescue   — stranded friendly gnomes, a SAFE drop-off, and a clock. Most fronts.
+     survival — THE GUNPOWDER HORROR hold-the-line, exactly as it was built.
+     both     — hold the line WHILE evacuating. The hardest.
+   rescue/both fields: friends = x-fractions of the stranded · need = how many must
+   reach safety · drop = x-fraction of the SAFE drop-off · ladders = scheduled
+   LADDER power-ups {at: seconds in, x: fraction}.                                   */
 var LEVELS=[
-  { zone:'GUNPOWDER FALLS', clock:68, bias:0.00, scrollStart:46, props:['gp_wall','barracks','gp_banner','bunker','tree','gp_wall','radar'], boss:true },
-  { zone:'THE BARRACKS',    clock:64, bias:0.22, scrollStart:38, props:['barracks','gp_wall','bunker','gp_banner','radar','barracks','gp_wall'] },
-  { zone:'FORT GUNPOWDER',  clock:66, bias:0.45, scrollStart:30, props:['bunker','radar','gp_wall','tower_a','gp_banner','barracks','bunker'] }
+  { kind:'rescue',   zone:'THE GOLF COURSE', clock:60, bias:0.00, scrollStart:44, props:['tree','gp_banner','tree','barracks','tree','radar','tree'],
+    friends:[0.22,0.34,0.70,0.82], need:3, drop:0.52, ladders:[{at:16,x:0.40}] },
+  { kind:'rescue',   zone:'THE WHITE HOUSE', clock:62, bias:0.12, scrollStart:40, props:['barracks','tree','gp_banner','tower_a','tree','gp_wall','tree'],
+    friends:[0.18,0.30,0.44,0.74,0.86], need:4, drop:0.60, ladders:[{at:12,x:0.30},{at:36,x:0.70}] },
+  { kind:'survival', zone:'GUNPOWDER FALLS', clock:68, bias:0.00, scrollStart:46, props:['gp_wall','barracks','gp_banner','bunker','tree','gp_wall','radar'], boss:true },
+  { kind:'rescue',   zone:'THE BARRACKS',    clock:64, bias:0.22, scrollStart:38, props:['barracks','gp_wall','bunker','gp_banner','radar','barracks','gp_wall'],
+    friends:[0.24,0.36,0.50,0.64,0.78,0.90], need:4, drop:0.12, ladders:[{at:10,x:0.55},{at:34,x:0.30}] },
+  { kind:'both',     zone:'FORT GUNPOWDER',  clock:66, bias:0.45, scrollStart:30, props:['bunker','radar','gp_wall','tower_a','gp_banner','barracks','bunker'],
+    friends:[0.25,0.34,0.65,0.80], need:3, drop:0.50, ladders:[{at:14,x:0.50}] }
 ];
+var KIND_NAME={ rescue:'RESCUE', survival:'SURVIVAL', both:'HOLD + EVACUATE' };
+function hasLine(L){ return L.kind==='survival' || L.kind==='both'; }
+function hasRescue(L){ return L.kind==='rescue' || L.kind==='both'; }
 var BOSS_TELE=40, BOSS_APPEAR=48, BOSS_BONUS=3000;
 
 /* ---------- state ---------- */
@@ -92,7 +114,7 @@ var P=null, targets=[], jets=[], shots=[], fx=[], scenery=[];
 var meter=0, score=0, hp=100, maxHP=100, stageClock=0, level=0, levelLen=68;
 var runActive=false, bossTele=false, bossSpawned=false;
 var jetTimer=2, aaTimer=2;
-function newPlayer(){ var b=band(); return { tx:W*0.4, ty:(b.top+b.bot)/2, x:W*0.4, y:(b.top+b.bot)/2, vx:0,vy:0, bank:0, warbleU:-9, warbleCd:0, stun:0, invuln:0, lock:null }; }
+function newPlayer(){ var b=band(); return { tx:W*0.4, ty:(b.top+b.bot)/2, x:W*0.4, y:(b.top+b.bot)/2, vx:0,vy:0, bank:0, warbleU:-9, warbleCd:0, stun:0, invuln:0, lock:null, gear:'rope', spd:0 }; }
 function flash(m,c,sec){ msg=m; msgColor=c||'#fff'; msgT=sec||1.0; }
 
 /* =====================================================================
@@ -168,6 +190,80 @@ function buildDefenders(){
   }
 }
 
+/* =====================================================================
+   PAX RESCUE — THE ROPE, THE LADDER, THE STRANDED.
+
+   THE ROPE hangs under the ornithopter. Its swing is RENDER-ONLY (a pendulum
+   spring in drawRope, the house airy-glide pattern); the LOGIC end of the rope
+   is always straight down from the hull, so every grab/hazard/delivery is
+   deterministic. Fly LOW and pass the rope's end within reach of a stranded
+   gnome's raised hands and they grab on. They HANG, they cannot climb. Fly them
+   to the SAFE drop-off and set them down low. Drag them through the legion, a
+   shot, a jet — or take a hit yourself — and they LET GO: a short drop is walked
+   off (and can be picked up again); a long fall is lost.
+
+   THE LADDER power-up replaces the rope for LADDER_SECS and holds LADDER_CAP.
+   Gnomes on the ladder CLIMB — but only while you HOVER — and are safe once
+   aboard. The choice: carry them to the drop-off, or hold still in danger long
+   enough for them to finish climbing. Climbers not yet aboard still let go on a
+   hit. The ladder is never pulled up with someone still on it.
+
+   FRIENDLIES CANNOT BE BEAMED. The beam only ever searches the legion array
+   (targets); the stranded live in their own array (friends), so beaming or
+   sucking up a friendly is impossible by construction, not by penalty. The
+   soldiers' fire is flagged ally and never knocks a gnome off the rope either.
+
+   HARD VISUAL RULE: the rope is a plain line ending in a wooden TOGGLE, never a
+   loop; the ladder is rails + rungs; hanging gnomes grip with their HANDS.
+   ===================================================================== */
+// THE FRIENDLY LOOK — the ONE place it lives. Joe hasn't picked it yet: change it here.
+// Set `sprite` to an IMG key (load() it above) and the sprite draws instead of the ASCII.
+var FRIENDLY_LOOK = {
+  sprite: null,
+  col:    '#6fd3ff',               // cyan — never the legion's painterly reds/browns
+  ink:    '#02121c',               // outline so it reads on any ground
+  stand:  ['\\o/', ' | ', '/ \\'], // waving on the ground (alternates with wave)
+  wave:   ['_o/',  ' | ', '/ \\'],
+  hang:   ['\\o/', ' | ', '/ \\'], // hands UP on the toggle — they grip with their hands
+  climbA: ['|o/',  ' | ', '/ \\'],
+  climbB: ['\\o|', ' | ', '/ \\'],
+  fall:   ['\\o/', ' | ', '/ \\'],
+  flag:   'HELP', flagCol:'#fff3a0', flagInk:'#1a2a3a'
+};
+var RESCUE_GRAB_R      = 0.026;  // fraction of W — rope end to a stranded gnome's raised hands
+var RESCUE_SAFE_FALL   = 0.12;   // fraction of H — a drop shorter than this is walked off; longer is lost
+var RESCUE_DELIVER_LOW = 0.07;   // fraction of H — feet this near the ground over the drop-off = delivered
+var RESCUE_DROP_W      = 0.10;   // drop-off width, fraction of W
+var RESCUE_BONUS       = 500, RESCUE_ALL_BONUS = 2500;
+var RESCUE_REGRAB      = 0.8;    // seconds before a dropped gnome can grab on again
+var RESCUE_LEGION_HUNTS= false;  // OFF: on a rescue front the CLOCK is the pressure; the legion patrols,
+                                 // shoots at you and fouls the rope, but leaves the stranded be. ON: it also
+                                 // marches on them and takes them (measured: an idle rescue front then fell
+                                 // to captures at ~12s — the clock never mattered). Joe's call.
+var RESCUE_PRESS       = 0.45;   // (hunts ON) the legion closes on the stranded at this fraction of line speed
+var RESCUE_WAVE_EVERY  = 3.4, RESCUE_WAVE_SIZE = 2, RESCUE_MAX_GNOMES = 10;
+var RESCUE_FALL_G      = 1400;   // px/s^2
+var LADDER_SECS = 16, LADDER_CAP = 3, LADDER_CLIMB = 3.0, LADDER_HOVER_V = 70, LADDER_PICK_TTL = 14;
+
+var friends=[], pickups=[], ladderT=0, ladderSpawned={}, overTitle='', lastResult=null;
+function buildFriends(L){
+  friends=[]; pickups=[]; ladderT=0; ladderSpawned={};
+  if(!hasRescue(L)) return;
+  for(var i=0;i<L.friends.length;i++)
+    friends.push({ friend:true, x:W*L.friends[i], y:groundY(), vy:0, st:'ground', cd:0, prog:0, fade:0, how:'', ph:i*1.7 });
+}
+function dropZone(){ var L=LEVELS[level]; return (mode==='campaign' && L && hasRescue(L)) ? { x:W*L.drop, w:W*RESCUE_DROP_W } : null; }
+function inDrop(x){ var d=dropZone(); return !!d && Math.abs(x-d.x) <= d.w/2; }
+function rescuedN(){ var n=0; for(var i=0;i<friends.length;i++) if(friends[i].st==='safe') n++; return n; }
+function lostN(){ var n=0; for(var i=0;i<friends.length;i++) if(friends[i].st==='lost') n++; return n; }
+function onRope(){ for(var i=0;i<friends.length;i++) if(friends[i].st==='rope') return friends[i]; return null; }
+function onLadder(){ var n=0; for(var i=0;i<friends.length;i++) if(friends[i].st==='ladder') n++; return n; }
+function friendH(){ return sz().gnome; }
+function ropeAnchorY(){ return P.y + SAUCER_W()*0.14; }
+// sized so that at the bottom of the flight band a hanging gnome's feet just skim the ground
+function ropeLen(){ return Math.max(24, groundY() - band().bot - SAUCER_W()*0.14 - friendH() - 2); }
+function ropeEndY(){ return ropeAnchorY() + ropeLen(); }
+
 /* ---------- the gnome legion ---------- */
 var TARGETKINDS={
   gnome:  { val:100, sprites:['gnome'],        wander:15, lock:0.9, meter:4 },
@@ -210,22 +306,38 @@ function spawnBoss(){ targets.push({ kind:'heavy', def:{val:BOSS_BONUS,sprites:[
   flash('THE GNOME GENERAL','#ffd23f',1.6); }
 
 /* ---------- starts ---------- */
-function startCampaign(){ score=0; hp=maxHP; clock=0; startLevel(0); }
+function startCampaign(){ startMission(0); }
+function startMission(idx){ score=0; hp=maxHP; clock=0; startLevel(idx); }
 function startLevel(idx){
   level=idx; mode='campaign'; var L=LEVELS[idx];
   P=newPlayer(); targets=[]; jets=[]; shots=[]; fx=[]; shake=0;
   meter=8; stageClock=L.clock; levelLen=L.clock; jetTimer=2; aaTimer=1.8;
   runActive=false; bossTele=false; bossSpawned=false;
-  buildDefenders(); gpPhase=0; gpWaveT=GP_WAVE_EVERY; gpVehicles=false; gpArmor=false;
+  if(hasLine(L)) buildDefenders(); else defenders=[];
+  gpPhase=0; gpWaveT=hasLine(L)?GP_WAVE_EVERY:RESCUE_WAVE_EVERY; gpVehicles=false; gpArmor=false;
+  buildFriends(L); overTitle='';
   scenery=[]; for(var i=0;i<L.props.length;i++) scenery.push({ x:W*(0.04+i*0.14+rnd(-0.02,0.02)), s:L.props[i], w:clamp(W*rnd(0.05,0.085),60,150) });
-  for(var k=0;k<7;k++) spawnTarget();   // the opening rush, already on the road
-  state='play'; flash('FRONT '+(idx+1)+'  —  '+L.zone, TH.accent, 2.0);
+  var rush = hasLine(L) ? 7 : 4;          // a rescue opens lighter — the clock is the pressure
+  for(var k=0;k<rush;k++) spawnTarget();   // the opening rush, already on the road
+  state='play'; flash('FRONT '+(idx+1)+'  —  '+L.zone+'  ·  '+KIND_NAME[L.kind], TH.accent, 2.0);
+}
+function endResult(passed, reason){
+  var L=LEVELS[level]||{};
+  lastResult={ idx:level, kind:L.kind, zone:L.zone, passed:passed, reason:reason, t:+(levelLen-stageClock).toFixed(2),
+               people:defenders.length?gpPeople():null, peopleTotal:defenders.length?gpPeopleTotal():null,
+               rescued:rescuedN(), lost:lostN(), need:L.need||0, stranded:friends.length };
+}
+function rescueClear(L){
+  var r=rescuedN(), bonus=(r===friends.length?RESCUE_ALL_BONUS:0);   // RESCUE_BONUS is paid per gnome, on delivery
+  score+=bonus;
+  flash(L.zone+'  —  '+r+'/'+friends.length+' BROUGHT OUT'+(bonus?'  +'+bonus:''),'#9affc0',1.8);
 }
 function nextLevel(){ score+=2000; if(level+1<LEVELS.length) startLevel(level+1); else { state='clear'; flash('GUNPOWDER HELD  +2000','#9affc0',99); } }
 function startSiege(){
   mode='base'; score=0; hp=maxHP; clock=0;
   P=newPlayer(); targets=[]; jets=[]; shots=[]; fx=[]; shake=0;
   meter=100; stageClock=30; levelLen=30; jetTimer=1.0; aaTimer=1.2; runActive=false; bossSpawned=true;
+  friends=[]; pickups=[]; overTitle='';
   scenery=[]; var bp=['gp_wall','barracks','bunker','radar','gp_banner','gp_wall','bunker'];
   for(var i=0;i<7;i++) scenery.push({ x:W*(0.04+i*0.14+rnd(-0.02,0.02)), s:bp[i%bp.length], w:clamp(W*rnd(0.05,0.085),60,150) });
   for(var k=0;k<7;k++) spawnTarget();
@@ -243,6 +355,7 @@ addEventListener('keydown',function(e){
   if(e.key===' '){ if(atMenu()) startCampaign(); else planting=true; e.preventDefault(); return; }
   var k=e.key.toLowerCase();
   if(k==='b' && atMenu()){ startSiege(); return; }
+  if(atMenu() && /^[1-9]$/.test(k) && +k<=LEVELS.length){ startMission(+k-1); return; }
   if(k==='x'){ stress=!stress; flash('BLITZ '+(stress?'ON':'off'), stress?'#ff5d6c':'#bdf2cf',0.8); return; }
   if(k==='g'){ GLIDE=!GLIDE; flash('GLIDE '+(GLIDE?'ON':'OFF'),'#bdf2cf',0.7); return; }
   if(k==='r'){ if(mode==='base') startSiege(); else startCampaign(); return; }
@@ -270,7 +383,8 @@ function addFx(x,y,kind,col,n){ if(fx.length>=MAX_FX) fx.shift(); fx.push({x:x,y
 function hitPlayer(){
   if(warbling()||P.invuln>0){ addFx(P.x,P.y,'spark','#9affc0',0.3); return; }
   hp-=34; P.stun=1.1; P.invuln=2.0; shake=18; addFx(P.x,P.y,'boom','#ff7a3a',0.6);
-  if(hp<=0){ hp=0; state='over'; flash('THE LEGION TOOK GUNPOWDER…','#ff5d6c',99); }
+  releaseAll('HIT! THEY LET GO');   // a real hit shakes everyone off the rope/ladder (not the aboard)
+  if(hp<=0){ hp=0; state='over'; flash('THE LEGION TOOK GUNPOWDER…','#ff5d6c',99); endResult(false,'hull'); }
 }
 function shoot(x,y,vx,vy,kind,col){ if(shots.length>=MAX_SHOTS) shots.shift(); shots.push({x:x,y:y,vx:vx,vy:vy,kind:kind,col:col,t:0,life:kind==='missile'?5:3}); }
 function abduct(tg){
@@ -291,7 +405,7 @@ function update(dt){
   clock+=dt; stageClock-=dt; if(msgT>0)msgT-=dt; if(shake>0)shake-=dt*40;
   if(P.stun>0)P.stun-=dt; if(P.invuln>0)P.invuln-=dt;
   var stg=stageOf(), L=LEVELS[level], elapsed=levelLen-stageClock;
-  pumpPlayer(); spring(P,P.tx,P.ty,dt); P.bank += (clamp(P.vx/190,-1,1)-P.bank)*Math.min(1,7*dt);
+  pumpPlayer(); var pox=P.x, poy=P.y; spring(P,P.tx,P.ty,dt); P.spd=Math.hypot(P.x-pox,P.y-poy)/Math.max(dt,1e-6); P.bank += (clamp(P.vx/190,-1,1)-P.bank)*Math.min(1,7*dt);
   if(mode!=='base') meter = clamp(meter + dt*1.9, 0, 100);
 
   var worldSpeed = (mode==='campaign' && defenders.length)
@@ -308,19 +422,36 @@ function update(dt){
     if(!bossSpawned && elapsed>=BOSS_APPEAR){ bossSpawned=true; spawnBoss(); }
   }
   if(mode==='base'){ if(stageClock<=0){ state='clear'; score+=3000; flash('THE SIEGE BROKEN  +3000','#9affc0',99); } }
-  else if(gpPeopleTotal() && gpPeople()===0){
+  else if(defenders.length && gpPeople()===0){
     // the town is gone — the mission is lost the moment the last person falls
-    state='over'; flash('THE LEGION TOOK GUNPOWDER…','#ff5d6c',99);
+    state='over'; flash('THE LEGION TOOK GUNPOWDER…','#ff5d6c',99); endResult(false,'town');
+  }
+  else if(friends.length && friends.length-lostN() < L.need){
+    // not enough of the stranded left alive to make the count — the rescue is over
+    state='over'; overTitle='LEFT BEHIND'; flash('TOO MANY LOST — '+L.zone+' ABANDONED','#ff5d6c',99); endResult(false,'lost');
+  }
+  else if(L.kind==='rescue' && rescuedN()>=L.need && rescuedN()+lostN()===friends.length){
+    // everyone who could be saved is safe — no need to wait for the horn
+    rescueClear(L); endResult(true,'all-resolved'); nextLevel();
   }
   else if(stageClock<=0){
-    var saved=gpPeople(), total=gpPeopleTotal();
-    score += GP_SAVE_BONUS*saved;
-    if(saved===total){ score+=3000; flash(L.zone+' HELD — EVERY SOUL  +3000','#9affc0',1.8); }
-    else flash(L.zone+' HELD  '+saved+'/'+total+' saved  +'+(GP_SAVE_BONUS*saved),'#9affc0',1.8);
-    nextLevel();
+    if(friends.length && rescuedN() < L.need){
+      state='over'; overTitle='LEFT BEHIND';
+      flash('THE CLOCK RAN OUT — '+rescuedN()+'/'+L.need+' SAFE','#ff5d6c',99); endResult(false,'clock');
+    } else {
+      if(defenders.length){
+        var saved=gpPeople(), total=gpPeopleTotal();
+        score += GP_SAVE_BONUS*saved;
+        if(saved===total){ score+=3000; flash(L.zone+' HELD — EVERY SOUL  +3000','#9affc0',1.8); }
+        else flash(L.zone+' HELD  '+saved+'/'+total+' saved  +'+(GP_SAVE_BONUS*saved),'#9affc0',1.8);
+      }
+      if(friends.length) rescueClear(L);
+      endResult(true,'horn'); nextLevel();
+    }
   }
 
   gpMission(dt, elapsed);
+  rescueTick(dt, elapsed);
 
   P.lock=null;
   if(planting && P.stun<=0){
@@ -341,13 +472,17 @@ function update(dt){
       for(var q=0;q<defenders.length;q++){ var d=defenders[q];
         if(!d.alive || d.hp<=0 || d.vanish>0) continue;
         var dd=Math.abs(d.x-c.x); if(dd<nd){ nd=dd; near=d; } }
+      if(RESCUE_LEGION_HUNTS) for(var q=0;q<friends.length;q++){ var fr=friends[q];   // ...and on the stranded
+        if(fr.st!=='ground') continue;
+        var dd=Math.abs(fr.x-c.x); if(dd<nd){ nd=dd; near=fr; } }
       var surge = GP_PHASE_SURGE[Math.min(gpPhase,GP_PHASE_SURGE.length-1)];
       if(near){
         c.dir = near.x>c.x ? 1 : -1;
-        if(nd > W*GP_REACH){ c.x += c.dir*(W*GP_ADVANCE*surge)*dt; }
+        if(nd > W*GP_REACH){ c.x += c.dir*(W*GP_ADVANCE*surge*(near.friend?RESCUE_PRESS:1))*dt; }
         else {
           c.strikeCd -= dt;
-          if(c.strikeCd<=0){ c.strikeCd = GP_ATTACK_CD;
+          if(c.strikeCd<=0 && near.friend){ c.strikeCd = GP_ATTACK_CD; loseFriend(near,'captured'); }
+          else if(c.strikeCd<=0){ c.strikeCd = GP_ATTACK_CD;
             near.hp -= (c.kind==='vehicle'||c.isBoss)?2:1; near.hitT=0.18;
             addFx(near.x, groundY()-14, 'burst', '#ff7a3a', 0.4);
             if(near.hp<=0){ near.vanish=0.5;
@@ -399,7 +534,14 @@ function update(dt){
 }
 /* ---------- THE GUNPOWDER HORROR — mission tick ---------- */
 function gpMission(dt, elapsed){
-  if(mode!=='campaign' || !defenders.length) return;
+  if(mode!=='campaign') return;
+  if(!defenders.length){          // a pure RESCUE front: lighter waves, no line, no armor
+    if(stageClock > GP_WAVES_STOP){ gpWaveT -= dt;
+      if(gpWaveT<=0){ gpWaveT = RESCUE_WAVE_EVERY;
+        var live=0; for(var i=0;i<targets.length;i++) if(!targets[i].gone) live++;
+        for(var k=0; k<RESCUE_WAVE_SIZE && live<RESCUE_MAX_GNOMES; k++){ spawnTarget(); live++; } } }
+    return;
+  }
   var prog = clamp(elapsed/Math.max(1,levelLen), 0, 1);
 
   // --- THE FALLBACK: phases turn on progress; the armed line gives ground ---
@@ -441,9 +583,93 @@ function gpMission(dt, elapsed){
       if(c.gone||c.lifting) continue; var dd=Math.abs(c.x-d.x); if(dd<td){ td=dd; tgt=c; } }
     if(!tgt) continue;
     d.fireCd=GP_SOLDIER_CD;
-    shoot(d.x, groundY()-16, (tgt.x>d.x?1:-1)*420, -20, 'tracer', '#ffe6a0');
+    shoot(d.x, groundY()-16, (tgt.x>d.x?1:-1)*420, -20, 'tracer', '#ffe6a0'); shots[shots.length-1].ally=true;
     tgt.hp-=1;
     if(tgt.hp<=0){ addFx(tgt.x, groundY()-16, 'burst', '#9affc0', 0.4); tgt.gone=true; tgt.respawn=1e9; }
+  }
+}
+
+/* ---------- PAX RESCUE — tick ---------- */
+function saveFriend(f, how){
+  if(f.st==='safe'||f.st==='lost') return;
+  f.st='safe'; f.how=how; f.prog=0; f.y=groundY(); score+=RESCUE_BONUS;
+  if(how==='drop'){ var d=dropZone(); if(d) f.x=clamp(f.x, d.x-d.w*0.4, d.x+d.w*0.4); }
+  addFx(f.x, how==='aboard'?P.y:groundY()-14, 'snatch', FRIENDLY_LOOK.col, 0.5);
+  flash(how==='aboard'?'ABOARD — SAFE  +'+RESCUE_BONUS:'SAFE!  +'+RESCUE_BONUS, FRIENDLY_LOOK.col, 0.9);
+}
+function loseFriend(f, how){
+  if(f.st==='safe'||f.st==='lost') return;
+  f.st='lost'; f.how=how; f.fade=1.0; f.y=groundY();
+  addFx(f.x, groundY()-10, 'smoke', '#9aa', 0.6);
+  flash(how==='captured'?'THE LEGION TOOK ONE OF OURS':'LOST IN THE FALL','#ff9d3a',1.1);
+}
+function releaseFriend(f, why){
+  if(f.st!=='rope' && f.st!=='ladder') return false;
+  f.st='fall'; f.vy=0; f.fallFrom=f.y; f.cd=RESCUE_REGRAB; f.prog=0;
+  if(why) flash(why,'#ffb347',0.9);
+  return true;
+}
+function releaseAll(why){ var any=false; for(var i=0;i<friends.length;i++) if(releaseFriend(friends[i])) any=true; if(any&&why) flash(why,'#ffb347',1.0); return any; }
+function giveLadder(){
+  P.gear='ladder'; ladderT=LADDER_SECS;
+  var r=onRope(); if(r){ r.st='ladder'; r.prog=0; }       // whoever is on the rope steps onto the bottom rung
+  flash('LADDER! HOVER TO LET THEM CLIMB · '+LADDER_CAP+' MAX', '#ffd23f', 1.4);
+}
+function rescueTick(dt, elapsed){
+  if(!friends.length) return;
+  var L=LEVELS[level];
+  // --- LADDER power-ups, on the level's schedule ---
+  for(var i=0;i<(L.ladders||[]).length;i++){ var ld=L.ladders[i];
+    if(!ladderSpawned[i] && elapsed>=ld.at){ ladderSpawned[i]=1; var b=band();
+      pickups.push({ x:W*ld.x, y:b.top+(b.bot-b.top)*0.45, ttl:LADDER_PICK_TTL }); flash('A LADDER DRIFTS IN','#ffd23f',1.0); } }
+  for(var i=pickups.length-1;i>=0;i--){ var pk=pickups[i]; pk.ttl-=dt;
+    if(Math.hypot(pk.x-P.x, pk.y-P.y) < SAUCER_W()*0.55){ pickups.splice(i,1); giveLadder(); continue; }
+    if(pk.ttl<=0) pickups.splice(i,1); }
+  if(P.gear==='ladder'){ ladderT-=dt;
+    if(ladderT<=0 && !onLadder()){ P.gear='rope'; ladderT=0; flash('LADDER STOWED — BACK ON THE ROPE','#bdf2cf',0.9); } }
+
+  var FH=friendH(), gy=groundY(), ex=P.x, ey=ropeEndY(), R=Math.max(22, W*RESCUE_GRAB_R);
+  var hovering = P.spd < LADDER_HOVER_V;
+  for(var i=0;i<friends.length;i++){ var f=friends[i];
+    if(f.cd>0) f.cd-=dt;
+    if(f.st==='lost'){ if(f.fade>0) f.fade-=dt*0.6; continue; }
+    if(f.st==='safe') continue;
+    if(f.st==='ground'){
+      if(f.cd>0 || P.stun>0) continue;
+      // hands are at the top of the figure; the rope's end must pass within reach of them
+      if(Math.hypot(f.x-ex, (gy-FH)-ey) < R){
+        if(P.gear==='rope' && !onRope()){ f.st='rope'; flash('GOT ONE — HANG ON! FLY THEM TO SAFE','#6fd3ff',1.0); }
+        else if(P.gear==='ladder' && ladderT>0 && onLadder()<LADDER_CAP){ f.st='ladder'; f.prog=0; flash('ON THE LADDER — HOVER SO THEY CAN CLIMB','#6fd3ff',1.0); }
+      }
+      continue;
+    }
+    if(f.st==='fall'){
+      f.vy += RESCUE_FALL_G*dt; f.y += f.vy*dt;
+      if(f.y>=gy){ f.y=gy; f.vy=0;
+        var drop=gy-f.fallFrom;
+        if(drop > H*RESCUE_SAFE_FALL) loseFriend(f,'fall');
+        else if(inDrop(f.x)) saveFriend(f,'drop');           // a short hop down INTO the camp counts
+        else { f.st='ground'; flash('SHORT DROP — THEY\'RE OK','#bdf2cf',0.8); }
+      }
+      continue;
+    }
+    // --- carried: rope (hangs, never climbs) or ladder (climbs while you hover) ---
+    f.x=P.x;
+    if(f.st==='ladder'){
+      if(hovering) f.prog += dt/LADDER_CLIMB;
+      if(f.prog>=1){ saveFriend(f,'aboard'); continue; }
+      f.y = ey - f.prog*(ropeLen()-6) + FH;
+    } else f.y = ey + FH;
+    // delivery: set them down LOW over the SAFE drop-off
+    if(f.y >= gy - H*RESCUE_DELIVER_LOW && inDrop(f.x)){ saveFriend(f,'drop'); continue; }
+    // hazards — anything that hits the hanging body shakes them off
+    var cx=f.x, cy=f.y-FH*0.5, hit=false;
+    for(var s=shots.length-1;s>=0;s--){ var sh=shots[s]; if(sh.harmless||sh.ally) continue;
+      if(Math.hypot(sh.x-cx, sh.y-cy) < FH*0.5){ shots.splice(s,1); hit=true; break; } }
+    if(!hit) for(var j=0;j<jets.length;j++) if(Math.hypot(jets[j].x-cx, jets[j].y-cy) < SAUCER_W()*0.35){ hit=true; break; }
+    if(!hit && f.y > gy-FH*0.5) for(var q=0;q<targets.length;q++){ var c=targets[q];
+      if(!c.gone && !c.lifting && Math.abs(c.x-f.x) < W*0.016){ hit=true; break; } }
+    if(hit){ addFx(cx,cy,'spark','#ffb347',0.3); releaseFriend(f,'DRAGGED THROUGH IT — THEY LET GO'); }
   }
 }
 
@@ -467,7 +693,13 @@ function spawnBradley(){
 function selfTest(){
   var R=[], ok=function(n,c,d){ R.push({n:n,ok:!!c,d:d||''}); };
   W=1280; H=860;
-  startCampaign();
+  var SURV=-1, BOTH=-1, RESC=[];
+  LEVELS.forEach(function(L,i){ if(L.kind==='survival'&&SURV<0) SURV=i; if(L.kind==='both'&&BOTH<0) BOTH=i; if(L.kind==='rescue') RESC.push(i); });
+  ok('the fronts are a MIX of kinds', LEVELS.map(function(L){return L.kind;}).join(',')==='rescue,rescue,survival,rescue,both',
+     LEVELS.map(function(L){return L.kind;}).join(' · '));
+
+  // ================= SURVIVAL — THE GUNPOWDER HORROR, unchanged =================
+  startMission(SURV);
   ok('the line is built', defenders.length===DEFENDERS.length, defenders.length+' defenders');
   ok('there are people to save', gpPeopleTotal()>0 && gpPeople()===gpPeopleTotal(),
      gpPeople()+'/'+gpPeopleTotal());
@@ -492,15 +724,105 @@ function selfTest(){
   ok('THE FALLBACK turns phases', gpPhase>0, 'reached phase '+gpPhase);
   ok('the stage clock runs', stageClock<levelLen);
 
-  // the mission must be LOSABLE — an unbeatable or unloseable defense is not a mission
-  startCampaign();
-  for(k=0;k<60*Math.ceil(levelLen+2);k++) update(dt);
-  ok('an untouched town falls (the player is load-bearing)', gpPeople()<gpPeopleTotal(),
-     gpPeople()+'/'+gpPeopleTotal()+' left with no player help');
+  ok('a survival front has no stranded and no rope', friends.length===0 && !dropZone());
+
+  // the mission must be LOSABLE — an unbeatable or unloseable defense is not a mission.
+  // Read the town at the moment THIS front ends (the next front builds its own line).
+  // The hull is pinned: an idle ship gets shot down ~21s in, which ended the old run
+  // with the town at 4/7 — it passed on the PLAYER dying, not the TOWN falling.
+  startMission(SURV); lastResult=null;
+  for(k=0;k<60*Math.ceil(levelLen+2) && state==='play' && level===SURV;k++){ hp=maxHP; update(dt); }
+  var lr=lastResult||{};
+  ok('an untouched town falls (the player is load-bearing)', lr.idx===SURV && lr.people<lr.peopleTotal,
+     lr.people+'/'+lr.peopleTotal+' left with no player help ('+lr.reason+' @ '+lr.t+'s)');
+
+  // ================= RESCUE — the rope, the ladder, the stranded =================
+  // A QUIET rig: the real update(), but no legion/jets/waves, so each rule is isolated.
+  var b, low, mid;
+  function quiet(idx){ startMission(idx); targets=[]; shots=[]; jets=[]; gpWaveT=1e9; pickups=[];
+    (LEVELS[idx].ladders||[]).forEach(function(_,i){ ladderSpawned[i]=1; });
+    b=band(); low=b.bot; mid=(b.top+b.bot)/2; }
+  function park(x,y){ P.x=P.tx=x; P.y=P.ty=y; P.vx=P.vy=0; }
+  function run(sec){ for(var n=0;n<Math.round(sec*60);n++){ meter=0; update(dt); } }
+  var R0=RESC[0];
+
+  quiet(R0);
+  var f0=friends[0], f1=friends[1], f2=friends[2];
+  ok('stranded friendlies are on the ground', friends.length===LEVELS[R0].friends.length && friends.every(function(f){return f.st==='ground';}),
+     friends.length+' stranded, need '+LEVELS[R0].need);
+  park(f2.x, mid); run(0.3);
+  ok('the rope does NOT reach from mid-band (you must fly low)', f2.st==='ground');
+  planting=true; run(1.0); planting=false;
+  ok('the beam cannot lift a friendly (impossible by construction)', f2.st==='ground' && P.lock===null);
+  park(f0.x, low); run(0.2);
+  ok('the rope grabs a friendly within reach', f0.st==='rope', 'rope end '+Math.round(ropeEndY())+' vs hands '+Math.round(groundY()-friendH()));
+  ok('...and only one — the rope holds one', friends.filter(function(f){return f.st==='rope';}).length===1 && f1.st==='ground');
+  var sc0=score; park(dropZone().x, low); run(0.2);
+  ok('a delivery at the drop-off counts', f0.st==='safe' && f0.how==='drop' && rescuedN()===1 && score-sc0===RESCUE_BONUS,
+     rescuedN()+' safe, +'+(score-sc0));
+
+  quiet(R0); f0=friends[0]; f1=friends[1]; f2=friends[2];
+  park(f0.x, low); run(0.2); park(f0.x+W*0.06, mid); run(0.3);
+  var wasRope=f0.st==='rope'; P.invuln=0; hitPlayer();
+  ok('a hit makes them let go', wasRope && f0.st==='fall');
+  run(1.5);
+  ok('...and a long fall is lost', f0.st==='lost', 'fell '+Math.round(groundY()-(f0.fallFrom||0))+'px vs safe '+Math.round(H*RESCUE_SAFE_FALL)+'px');
+  P.invuln=0; P.stun=0; hp=maxHP;
+  park(f1.x, low); run(0.2); var r1=f1.st==='rope'; P.invuln=0; hitPlayer(); run(0.5);
+  ok('...but a short drop is walked off (can be picked up again)', r1 && f1.st==='ground');
+  P.invuln=0; P.stun=0; hp=maxHP; f2.cd=0;
+  park(f2.x, low); run(0.2);
+  spawnTarget('gnome'); var foe=targets[targets.length-1]; foe.x=P.x; run(1/60);
+  ok('dragging them through the legion makes them let go', f2.st==='fall');
+  targets=[]; run(0.6); f2.cd=0; P.stun=0; run(0.1);
+  var g2=f2.st==='rope';
+  shoot(f2.x, f2.y-friendH()*0.5, 0,0,'tracer','#fff'); shots[shots.length-1].ally=true; run(1/60);
+  var allyOk=f2.st==='rope';
+  shoot(f2.x, f2.y-friendH()*0.5, 0,0,'potshot','#fff'); run(1/60);
+  ok('an enemy shot knocks them off; the soldiers\' ally fire never does', g2 && allyOk && f2.st==='fall');
+
+  // THE LADDER — caps at 3, climbers become safe once aboard (while you hover)
+  var RL=RESC[RESC.length-1]; quiet(RL);
+  var X=W*0.40; for(var i=0;i<4;i++){ friends[i].x=X; }
+  park(X, mid); pickups.push({x:P.x,y:P.y,ttl:5}); run(1/60);
+  ok('the LADDER pickup replaces the rope', P.gear==='ladder' && ladderT>0);
+  var maxOn=0; park(X, low);
+  for(var n=0;n<6;n++){ run(1/60); maxOn=Math.max(maxOn,onLadder()); }
+  ok('the ladder caps at 3', onLadder()===LADDER_CAP && friends.filter(function(f){return f.x===X&&f.st==='ground';}).length===1, onLadder()+' on, 1 waiting');
+  var p0=friends[0].prog; park(X, mid);
+  for(var n=0;n<30;n++){ P.tx=P.x+(n%2?-60:60); update(dt); P.ty=P.y; }   // jinking about — not hovering
+  var moved=friends[0].prog-p0;
+  park(X, mid); var aboard0=rescuedN();
+  for(var n=0;n<Math.round((LADDER_CLIMB+0.3)*60);n++){ update(dt); maxOn=Math.max(maxOn,onLadder()); }
+  var aboard=friends.filter(function(f){return f.how==='aboard';}).length;
+  ok('climbers only climb while you hover', moved < 30/60/LADDER_CLIMB*0.5, 'moving gained '+moved.toFixed(3)+' of a climb');
+  ok('climbers become safe once aboard', aboard===LADDER_CAP && rescuedN()-aboard0===LADDER_CAP && maxOn<=LADDER_CAP, aboard+' aboard, max on ladder '+maxOn);
+  park(X, low); run(0.1); var late=friends[3], lateOn=late.st==='ladder';
+  P.invuln=0; hitPlayer();
+  ok('a hit shakes a climber off, never the aboard', lateOn && late.st==='fall' && friends.filter(function(f){return f.how==='aboard'&&f.st==='safe';}).length===LADDER_CAP);
+  P.stun=0; P.invuln=0; hp=maxHP; late.cd=99; ladderT=0.05; park(X, mid); run(0.6);
+  ok('an empty, spent ladder is stowed back to the rope', P.gear==='rope');
+
+  // a RESCUE front is WINNABLE: bring them all out and it clears on its own
+  quiet(R0); lastResult=null;
+  for(var i=0;i<friends.length && state==='play' && level===R0;i++){ var fr=friends[i]; park(fr.x, low); run(0.2); park(dropZone().x, low); run(0.2); }
+  lr=lastResult||{};
+  ok('a rescue front is winnable (all brought out = cleared)', lr.idx===R0 && lr.passed===true, (lr.rescued)+'/'+(lr.stranded)+' · '+lr.reason);
+
+  // the player is NECESSARY: an untouched rescue front is failed by the clock
+  startMission(R0); lastResult=null;
+  for(k=0;k<60*Math.ceil(levelLen+3) && state==='play' && level===R0;k++){ hp=maxHP; update(dt); }
+  lr=lastResult||{};
+  ok('an untouched rescue front is FAILED by the clock (the player is necessary)', lr.idx===R0 && lr.passed===false && lr.rescued===0 && lr.reason==='clock',
+     lr.reason+' @ '+lr.t+'s · '+lr.rescued+' safe · '+lr.lost+' lost to the legion');
+
+  // BOTH — hold the line while evacuating
+  startMission(BOTH);
+  ok('the HOLD + EVACUATE front builds the line AND the stranded', defenders.length===DEFENDERS.length && friends.length===LEVELS[BOTH].friends.length && !!dropZone());
 
   var pass=R.every(function(r){return r.ok;});
   var html='<pre style="font:13px ui-monospace;color:#e9e0d6;background:#03020a;padding:18px;margin:0;min-height:100vh">'
-    +'<b style="font-size:18px;color:'+(pass?'#9affc0':'#ff5d6c')+'">PAX GNOMANIA — THE GUNPOWDER HORROR — SELF TEST: '+(pass?'PASS':'FAIL')+'</b>\n\n';
+    +'<b style="font-size:18px;color:'+(pass?'#9affc0':'#ff5d6c')+'">PAX GNOMANIA — THE FRONTS (rescue · survival · both) — SELF TEST: '+(pass?'PASS':'FAIL')+'</b>\n\n';
   R.forEach(function(r){ html+=(r.ok?'  <span style="color:#9affc0">OK  </span>':'  <span style="color:#ff5d6c">FAIL</span>')+'  '+r.n+(r.d?'   <span style="color:#7a6f5f">'+r.d+'</span>':'')+'\n'; });
   html+='</pre>';
   document.body.innerHTML=html;
@@ -552,6 +874,104 @@ function drawDefenders(){
       ctx.fillRect(d.x-7, groundY()+9, 14, 2);
     }
   }
+}
+
+/* ---------- PAX RESCUE — render (ASCII/procedural placeholders; sprites map over later) ---------- */
+// One figure-drawer for every friendly pose. topY = where the HANDS are (top of the figure).
+function drawFriendFig(x, topY, pose, alpha, rot){
+  var LK=FRIENDLY_LOOK, fh=friendH();
+  if(LK.sprite && ok(LK.sprite)){ drawImg(LK.sprite, x, topY+fh/2, fh*0.8, rot||0, alpha); return; }
+  ctx.save(); ctx.globalAlpha=alpha==null?1:alpha; ctx.translate(x, topY); if(rot) ctx.rotate(rot);
+  var lines=LK[pose]||LK.stand, lh=fh/3;
+  ctx.font='900 '+Math.round(lh*1.12)+'px ui-monospace,Menlo,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.lineJoin='round'; ctx.lineWidth=3.5; ctx.strokeStyle=LK.ink; ctx.fillStyle=LK.col;
+  for(var i=0;i<lines.length;i++){ ctx.strokeText(lines[i],0,i*lh-1); ctx.fillText(lines[i],0,i*lh-1); }
+  ctx.restore();
+}
+function drawHelpFlag(x, feetY, alpha){
+  var LK=FRIENDLY_LOOK, fh=friendH(), px=x+fh*0.55, top=feetY-fh*1.45, fw=fh*1.05, fl=fh*0.46, wv=Math.sin(t*5+x)*2;
+  ctx.save(); ctx.globalAlpha=alpha==null?1:alpha;
+  ctx.strokeStyle='#d9d2c0'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(px,feetY); ctx.lineTo(px,top); ctx.stroke();
+  ctx.fillStyle=LK.flagCol; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+fw,top+wv); ctx.lineTo(px+fw,top+fl+wv); ctx.lineTo(px,top+fl); ctx.closePath(); ctx.fill();
+  ctx.fillStyle=LK.flagInk; ctx.font='900 '+Math.round(fl*0.78)+'px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(LK.flag, px+fw/2, top+fl/2+wv/2);
+  ctx.restore();
+}
+function drawDropZone(){
+  var d=dropZone(); if(!d) return;
+  var gy=groundY(), fh=friendH();
+  ctx.save();
+  ctx.fillStyle='rgba(111,211,255,0.10)'; ctx.fillRect(d.x-d.w/2, gy-H*RESCUE_DELIVER_LOW, d.w, H*RESCUE_DELIVER_LOW+8);
+  ctx.strokeStyle='rgba(111,211,255,0.55)'; ctx.setLineDash([6,5]); ctx.lineWidth=1.5; ctx.strokeRect(d.x-d.w/2, gy-H*RESCUE_DELIVER_LOW, d.w, H*RESCUE_DELIVER_LOW+8); ctx.setLineDash([]);
+  // a tent — plain triangle — and a SAFE pennant on a pole
+  var tx=d.x-d.w*0.18, tw=fh*1.5, th=fh*1.1;
+  ctx.fillStyle='#2f5f4a'; ctx.beginPath(); ctx.moveTo(tx-tw/2,gy+6); ctx.lineTo(tx,gy+6-th); ctx.lineTo(tx+tw/2,gy+6); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#10231a'; ctx.beginPath(); ctx.moveTo(tx-tw*0.12,gy+6); ctx.lineTo(tx,gy+6-th*0.55); ctx.lineTo(tx+tw*0.12,gy+6); ctx.closePath(); ctx.fill();
+  var px=d.x+d.w*0.30, top=gy-fh*2.2, wv=Math.sin(t*4)*2;
+  ctx.strokeStyle='#d9d2c0'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(px,gy+6); ctx.lineTo(px,top); ctx.stroke();
+  ctx.fillStyle='#39d98a'; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+fh*1.4,top+fh*0.3+wv); ctx.lineTo(px,top+fh*0.6); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#032014'; ctx.font='900 '+Math.round(fh*0.34)+'px system-ui'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('SAFE', px+3, top+fh*0.3);
+  ctx.restore();
+}
+function drawFriends(){
+  if(!friends.length) return;
+  var gy=groundY(), fh=friendH();
+  for(var i=0;i<friends.length;i++){ var f=friends[i];
+    if(f.st==='ground'){
+      var pose = Math.sin(t*6+f.ph)>0 ? 'stand' : 'wave';
+      drawHelpFlag(f.x, gy+6, 1);
+      drawFriendFig(f.x, gy+6-fh, pose, f.cd>0?0.6:1);
+    } else if(f.st==='fall'){
+      drawFriendFig(f.x, f.y+6-fh, 'fall', 1, Math.sin(t*14)*0.4);
+    } else if(f.st==='safe' && f.how==='drop'){
+      drawFriendFig(f.x, gy+6-fh*0.8, Math.sin(t*5+f.ph)>0?'stand':'wave', 0.9, 0);
+    } else if(f.st==='lost' && f.fade>0){
+      drawFriendFig(f.x, gy+6-fh, 'fall', clamp(f.fade,0,1)*0.6, 1.3);
+    }
+  }
+}
+function drawPickups(){
+  for(var i=0;i<pickups.length;i++){ var pk=pickups[i], y=pk.y+Math.sin(t*2.4+i)*6, bw=34, bh=26;
+    var blink = pk.ttl<3 ? (Math.floor(t*8)%2?0.35:1) : 1;
+    ctx.save(); ctx.globalAlpha=blink; ctx.translate(pk.x,y);
+    ctx.fillStyle='#5a3c1c'; ctx.strokeStyle='#ffd23f'; ctx.lineWidth=2; roundRect(-bw/2,-bh/2,bw,bh,4); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle='#e6c68a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-7,-9); ctx.lineTo(-7,9); ctx.moveTo(7,-9); ctx.lineTo(7,9);
+    for(var r=-6;r<=6;r+=6){ ctx.moveTo(-7,r); ctx.lineTo(7,r); } ctx.stroke();
+    ctx.fillStyle='#ffd23f'; ctx.font='800 11px system-ui'; ctx.textAlign='center'; ctx.fillText('LADDER',0,-bh/2-5);
+    ctx.restore();
+  }
+}
+// THE ROPE's swing is RENDER-ONLY: a damped pendulum on a moving pivot, fed by how the
+// drawn hull moves. The logic end never swings, so nothing here can change the game.
+var ROPEVIS={ th:0, om:0, lx:null, pv:0 };
+function ropeSwing(dt){
+  if(ROPEVIS.lx===null){ ROPEVIS.lx=P.x; }
+  var vx = dt>0 ? (P.x-ROPEVIS.lx)/dt : 0; ROPEVIS.lx=P.x;
+  var ax = dt>0 ? (vx-ROPEVIS.pv)/dt : 0; ROPEVIS.pv=vx;
+  var Lp=Math.max(30, ropeLen());
+  var acc = -(1400/Lp)*Math.sin(ROPEVIS.th) - 3.2*ROPEVIS.om - (clamp(ax,-5000,5000)/Lp)*Math.cos(ROPEVIS.th);
+  ROPEVIS.om += acc*dt; ROPEVIS.th = clamp(ROPEVIS.th + ROPEVIS.om*dt, -0.75, 0.75);
+  if(Math.abs(ROPEVIS.th)>=0.75) ROPEVIS.om*=-0.3;
+}
+function drawRope(){
+  if(!friends.length) return;
+  var ax=P.x, ay=ropeAnchorY(), Lp=ropeLen(), th=ROPEVIS.th;
+  ctx.save(); ctx.translate(ax,ay); ctx.rotate(-th);  // pendulum angle at the hull: end at (L·sin th, L·cos th)
+  if(P.gear==='ladder'){
+    var lw=8, fade = ladderT<3 && !onLadder() ? (Math.floor(t*8)%2?0.45:1) : 1;
+    ctx.globalAlpha=fade; ctx.strokeStyle='#c8a46a'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(-lw,0); ctx.lineTo(-lw,Lp); ctx.moveTo(lw,0); ctx.lineTo(lw,Lp);
+    for(var r=10;r<=Lp;r+=10){ ctx.moveTo(-lw,r); ctx.lineTo(lw,r); } ctx.stroke(); ctx.globalAlpha=1;
+    for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.st!=='ladder') continue;
+      var along = Lp - f.prog*(Lp-6);
+      drawFriendFig(0, along, (Math.floor(f.prog*12)%2)?'climbA':'climbB', 1, 0); }
+  } else {
+    // a plain line ending in a wooden TOGGLE — a crossbar, never a loop
+    ctx.strokeStyle='#c8a46a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,Lp); ctx.stroke();
+    ctx.fillStyle='#8a5a2b'; ctx.strokeStyle='#3a2410'; ctx.lineWidth=1; ctx.fillRect(-9,Lp-2.5,18,5); ctx.strokeRect(-9,Lp-2.5,18,5);
+    if(onRope()) drawFriendFig(0, Lp-1, 'hang', 1, 0);
+  }
+  ctx.restore();
 }
 
 function drawTargets(){
@@ -615,7 +1035,7 @@ function drawHUD(){
   ctx.textAlign='right'; ctx.fillStyle='#9c8a6a'; ctx.font='700 11px system-ui'; ctx.fillText('HULL INTEGRITY', W-22, hby+30);
   ctx.textAlign='center';
   var zoneName = mode==='base'?'THE SIEGE':(LEVELS[level]?LEVELS[level].zone:'');
-  ctx.fillStyle='#9c8a6a'; ctx.font='800 13px system-ui'; ctx.fillText('FRONT '+(mode==='base'?'S':(level+1))+'  ·  '+zoneName, W/2, 22);
+  ctx.fillStyle='#9c8a6a'; ctx.font='800 13px system-ui'; ctx.fillText('FRONT '+(mode==='base'?'S':(level+1))+'  ·  '+zoneName+(mode==='base'?'':'  ·  '+KIND_NAME[LEVELS[level].kind]), W/2, 22);
   if(defenders.length){            // GUNPOWDER STANDING — the actual objective
     var saved=gpPeople(), total=gpPeopleTotal();
     ctx.font='800 15px system-ui';
@@ -623,6 +1043,15 @@ function drawHUD(){
     ctx.fillText('GUNPOWDER  '+saved+' / '+total, W/2, 78);
     if(gpPhase>0){ ctx.font='700 11px system-ui'; ctx.fillStyle='#ff9d3a';
       ctx.fillText(['','PRESSED','GIVING GROUND','ARMOR'][Math.min(gpPhase,3)], W/2, 94); }
+  }
+  if(friends.length){             // THE STRANDED — the rescue objective
+    var rs=rescuedN(), need=LEVELS[level].need, ry=defenders.length?112:78;
+    ctx.font='800 15px system-ui'; ctx.fillStyle = rs>=need? '#9affc0' : FRIENDLY_LOOK.col;
+    ctx.fillText('SAFE  '+rs+' / '+need+'   ·   stranded '+(friends.length-rs-lostN())+'   ·   lost '+lostN(), W/2, ry);
+    ctx.textAlign='left'; ctx.font='800 13px ui-monospace';
+    if(P.gear==='ladder'){ ctx.fillStyle='#ffd23f'; ctx.fillText('LADDER '+Math.max(0,Math.ceil(ladderT))+'s  ·  '+onLadder()+'/'+LADDER_CAP+(P.spd<LADDER_HOVER_V?'  CLIMBING':'  hover to climb'), 22, 60); }
+    else { ctx.fillStyle='#c8a46a'; ctx.fillText('ROPE  ·  '+(onRope()?'CARRYING — set them down on SAFE':'fly LOW to reach the stranded'), 22, 60); }
+    ctx.textAlign='center';
   }
   ctx.fillStyle= stageClock<10?'#ff5d6c':'#fff'; ctx.font='800 30px system-ui'; ctx.fillText(Math.max(0,Math.ceil(stageClock))+'', W/2, 52);
   if(runActive){ ctx.fillStyle='#ff9d3a'; ctx.font='800 14px system-ui'; ctx.globalAlpha=0.6+0.4*Math.sin(clock*9); ctx.fillText('>>> THE LEGION ADVANCES <<<', W/2, 74); ctx.globalAlpha=1; }
@@ -652,18 +1081,19 @@ function frame(ts){
   clock+=dt; update(dt);
   ctx.save(); if(shake>0) ctx.translate(rnd(-shake,shake),rnd(-shake,shake));
   drawBG();
-  if(state!=='title'){ drawDefenders(); drawTargets(); drawShots(); drawJets(); drawSaucer(); drawFx(); drawHUD(); }
+  if(state==='play' && P) ropeSwing(dt);
+  if(state!=='title'){ drawDropZone(); drawDefenders(); drawTargets(); drawFriends(); drawShots(); drawJets(); drawPickups(); drawRope(); drawSaucer(); drawFx(); drawHUD(); }
   ctx.restore();
   drawBezel();
-  if(state==='title') overlay('PAX GNOMANIA','SPACE = the fronts (Gunpowder Falls → Barracks → Fort)  ·  B = siege  ·  X = blitz');
-  else if(state==='over') overlay('GUNPOWDER FELL','press SPACE / R to hold the line again');
+  if(state==='title') overlay('PAX GNOMANIA','SPACE = the fronts ('+LEVELS.map(function(l){return KIND_NAME[l.kind];}).join(' → ')+')  ·  1–'+LEVELS.length+' = pick a front  ·  B = siege');
+  else if(state==='over') overlay(overTitle||'GUNPOWDER FELL','press SPACE / R to run the fronts again  ·  1–'+LEVELS.length+' = pick a front');
   else if(state==='clear') overlay('PAX GNOMANIA','press SPACE / R to run it again');
   requestAnimationFrame(frame);
 }
 // ?selftest runs the mission headless and prints a report instead of booting the game.
 // ?auto skips boot+title straight into the mission — the headless shot rig's entry,
 // so a screenshot shows the LINE under attack rather than a title card.
-if(/[?&]auto/.test(location.search)){ bootT=99; startCampaign(); }
+if(/[?&]auto/.test(location.search)){ bootT=99; var lv=+((location.search.match(/level=(\d+)/)||[])[1]||1); startMission(clamp(lv,1,LEVELS.length)-1); }
 if(/[?&]selftest/.test(location.search)){ try{ selfTest(); }catch(e){ document.body.innerHTML='<pre style="color:#ff5d6c;padding:18px">SELFTEST THREW: '+e.message+'\n'+e.stack+'</pre>'; document.title='PAX SELFTEST FAIL'; } }
 else requestAnimationFrame(frame);
 })();
