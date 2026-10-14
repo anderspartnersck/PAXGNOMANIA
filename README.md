@@ -1,68 +1,137 @@
-# PAX GNOMANIA
+<img src="art/plates/pax_presents.jpg" alt="PAX GNOMANIA — the history they didn't want you to know" width="560">
 
-The gnome legion storms Gunpowder, Maryland. You fly the saucer.
+## ▶ [PLAY IT IN YOUR BROWSER][play]
 
-## ▶ [PLAY IT IN YOUR BROWSER](https://anderspartnersck.github.io/PAXGNOMANIA/)
+*A TruthJunket TV special.*
 
-A Castle Killscreen game by **Anders & Partners**.
+Britannia, AD 122. For two hundred years, historians tell us, Rome enjoyed
+peace. Historians credit the legions.
 
-> ### ⚠︎ Working build — not a finished game
->
-> **This is a reskin riding on SUCK UP's art.** The gnome-specific sprites largely don't exist yet, so you're seeing SUCK UP's cast standing in. The engine underneath is a feel-proof sandbox, not a shipping vehicle.
->
-> The finished Castle Killscreen titles are **[SUCK UP](https://anderspartnersck.github.io/suck-up/)**
-> and **[ONE-TIMER: THE HIGH TABLE](https://anderspartnersck.github.io/high-table/)**. This repo
-> exists so the work can happen in the open, not because the work is done.
+**Dr. H. Wolfe** has other ideas.
 
-## About
+Tonight on TruthJunket TV, the occult historian of Peter University follows the
+record no one was supposed to keep: Hadrian's secret **Ornithopter Corps**,
+bronze flying machines built by gnome engineers, and the night the **Red Hat
+Legion** came up the white cliffs at Dover. It was the end of the Peace. It went
+all the way to the Wall.
 
-The lore reskin of [SUCK UP](https://anderspartnersck.github.io/suck-up/) — the
-Roman Ornithopter Corps against a gnome army, fought across three fronts. Same
-air-cushion flight, same shared pressure, different war.
+*"They had flight in AD 122. We do not. Are we, in fact, going backwards?"*
 
-*(Working title: HADRIAN'S ANCIENT AIR FORCE — the two names are the same game.)*
+---
 
-There are **two** Pax Gnomania builds and this is the web one. The other is a
-separate Python/pygame game living in the `HADRIAN'S ANCIENT AIR FORCE` tree,
-which has no web build at all.
+A Castle Killscreen arcade game by Anders & Partners LLC. Free, in your
+browser, nothing to install, and nothing leaves the page: no fonts, no
+trackers, no outside servers.
+
+You fly an ornithopter above a war you can't win. The Red Hat Legion advances
+underneath you and everybody it catches is left behind: villagers, Roman
+legionaries, gnome engineers, the garrison goats. You can't stop the war. You
+can bring people out of it, one at a time, on the end of a rope.
 
 ## How to play
 
-| | |
-|---|---|
-| **Move** | Arrow keys or **WASD** |
-| **Beam** | **SPACE** — hold it over a gnome to lift him |
-| **Start / continue / retry** | **SPACE** (or **R** to run it again) |
-| **B** | drop straight into the siege |
+Fly **low** and the end of your rope reaches the stranded. Pass it to their
+hands and they grab on and hang. Carry them to the **SAFE** flag (the camp, the
+stockade, the ridge, the milecastle) and set them down low. The rope holds one.
+Bring out enough before the horn and the front is held.
 
-**SPACE** from the menu runs the fronts in order: **Gunpowder Falls → Barracks → Fort**.
+- **THE RAY**: hold it over a red hat and a beam of light lifts him out of the
+  fight. You hover while it works.
+- **THE SCREW**: tap it and the ornithopter folds into the bronze aerial screw.
+  Fire passes through you and bolts bounce off. It has a short cooldown.
+- **LADDER CRATES** drift in now and then. The ladder carries three, and they
+  climb up while you hold still. Goats won't climb, so they go on the rope.
+- **Every danger warns you first.** A dotted aim line turns **red** before the
+  ballista fires. A red lane flashes before a taken thopter crosses it. A ring
+  marks where the catapult stone will land.
+- **A hit** costs hull, and whoever is on your rope lets go. A short drop they
+  walk off. A long fall, they're lost. Three hits and you're shot down.
 
-Two cabinets, by URL: [`?cab=hyscore`](?cab=hyscore) (classical) and
-[`?cab=blacksite`](?cab=blacksite) (red).
+### Controls
 
-## What still needs work
+| | Keyboard | Controller |
+|---|---|---|
+| Fly | arrows or **WASD** | stick / D-pad |
+| THE RAY (hold) | **SPACE** or **Z** | **A** |
+| THE SCREW | **F**, **X** or **SHIFT** | **B** |
+| Start / confirm | **SPACE** or **ENTER** | **A** / **START** |
+| Retry the front | **R** | **A** on the retry screen |
+| Title | **ESC** | **SELECT** |
+| Sound on/off | **M** | |
 
-- **Sprites are SUCK UP's.** Gnome-legion art is the main outstanding job.
-- The engine is the AIRY sandbox — built to prove the glide feel, never intended as the shipping renderer.
-- Ships the full SUCK UP asset set because the page builds every art path by concatenation; pruning can't be done safely.
+The game is laid out for a computer screen, 16:9.
 
-## Rebuilding this bundle
+## The fronts
 
-This repo is **generated** — never edit it directly. Everything here is built from the
-private Castle Killscreen tree:
+The campaign follows the Legion's march from Dover to Hadrian's Wall. Four
+fronts are playable now:
 
-```
-cd "ANDERS CASTLE KILLSCREEN/SUCK UP"
-python3 tools/build_pax_pages.py
-```
+1. **THE FALL OF DOVER**: dawn on the white cliffs, the tutorial. The sky is
+   still calm.
+2. **NOTTINGHAM HOODS**: travellers under the Sherwood canopy, and the Hoods,
+   who shoot at anything in the sky.
+3. **THE WELSH WASH**: the dam is broken. Legionaries stand in rising water
+   under a blood-red sun, with ballista bolts, catapult stones and gliders
+   coming at you all at once.
+4. **SEGEDUNUM — WALLSEND**: the first section of the Wall. The Legion raises
+   scaling ladders along the walkway, and you have to get the garrison down
+   before the red hats reach them.
 
-The bundler shrinks art by **resolution, not by pruning**: these engines build most asset
-paths by string concatenation, so a static scan can't see what's used, and a wrongly-cut
-sprite doesn't error — it just silently fails to draw.
+London, Liverpool, York and Wall sections W2 to W5 show on the map as
+**SEALED**. W5 ends with Hadrian and the Gnomean King on top of the Wall.
+
+## Ways to play
+
+- [PLAY][play]: boots like a cabinet. The TruthJunket special runs to the theme
+  and any key goes to the title.
+- [TITLE][title]: straight to the menu.
+- [THE CAMPAIGN][campaign]: the march from Dover.
+- [FRONT 1 · DOVER][f1] · [FRONT 2 · NOTTINGHAM][f2] ·
+  [FRONT 3 · WELSH WASH][f3] · [FRONT 4 · WALLSEND][f4]: one front on its own,
+  starting from its briefing card.
+- [CHOOSE A FRONT][select]: the map of the whole march.
+- [HOW TO FLY][howto]: the controls card.
+- [WATCH IT PLAY][demo]: the autopilot flies Dover.
+- [SELF TEST][selftest]: the game checks itself. Every front, every hazard
+  telegraph, the rope and ladder rules, and that a competent pilot can win
+  and an untouched front fails.
+
+## Status: working build
+
+Playable start to finish across the four fronts, with results, retry and the
+campaign map. Still to come:
+
+- **Sound.** The main theme, *Britannia*, plays on the attract and title.
+  Weapon clanks, menu sounds and music for each front are on the way. Until
+  they arrive the game plays small placeholder blips.
+- **The rest of the march.** London, Liverpool, York, Wall sections W2 to W5,
+  the climb and the summit duel are designed but not built.
+- **Art.** Commissioned art for the friendly gnome engineers, the wall faces and
+  the duel is still to come. The green-capped gnomes you rescue now are
+  recoloured red-hat figures standing in for it.
 
 ## Credits
 
 Created by **Joseph Coleman**, with Claude and ChatGPT.
-Anders & Partners.
+A Castle Killscreen game by Anders & Partners LLC.
 
-<sub>Generated from the private Castle Killscreen tree. Edit there, not here.</sub>
+Main theme: *Britannia — Theme from PAX GNOMANIA*.
+
+This bundle is built from the `HADRIAN'S ANCIENT AIR FORCE` repo
+(`tools/build_pages.py`). Edits go there, not here.
+
+---
+
+<sub>RESPEK LOGIC ART UREA</sub>
+
+[play]: https://anderspartnersck.github.io/PAXGNOMANIA/
+[title]: https://anderspartnersck.github.io/PAXGNOMANIA/?title
+[campaign]: https://anderspartnersck.github.io/PAXGNOMANIA/?campaign
+[f1]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=1
+[f2]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=2
+[f3]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=3
+[f4]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=4
+[select]: https://anderspartnersck.github.io/PAXGNOMANIA/?select
+[howto]: https://anderspartnersck.github.io/PAXGNOMANIA/?howto
+[demo]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=1&demo
+[selftest]: https://anderspartnersck.github.io/PAXGNOMANIA/?selftest

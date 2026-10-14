@@ -3,1108 +3,1384 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>PAX GNOMANIA — AIRY CUT (THE GUNPOWDER HORROR)</title>
+<link rel="icon" href="data:,">
+<title>PAX GNOMANIA</title>
 <!--
-  PAX GNOMANIA — AIRY CUT — STANDALONE, PLAYABLE browser feel-build. A sandbox; it
-  never imports or modifies suck_up.py. Same render-only air-cushion GLIDE + real
-  sprites + height-keyed sizing as SUCK UP — AIRY CUT, reskinned to the gnome legion
-  storming Gunpowder, MD. Suck up the gnomes before they take the town.
+  PAX GNOMANIA — the web game. Roman Britain, AD 122. You fly Hadrian's secret Ornithopter
+  Corps over the Red Hat gnome legion's advance and bring the stranded out on a rope.
 
-  THE FRONTS (LEVELS[].kind): RESCUE · RESCUE · SURVIVAL · RESCUE · HOLD+EVACUATE.
-  RESCUE = rope/ladder the stranded friendly gnomes to the SAFE drop-off before the
-  clock; SURVIVAL = THE GUNPOWDER HORROR hold-the-line, untouched; BOTH = the two at
-  once. Friendly look = FRIENDLY_LOOK (one constant). ?selftest proves all of it;
-  ?auto&level=N drops straight into front N; 1-5 at the title picks a front.
+  ITS OWN GAME. Not SUCK UP, not THE GUNPOWDER HORROR. Every picture on this page comes from
+  the HADRIAN'S ANCIENT AIR FORCE repo (web/art/, built by tools/build_web_art.py from
+  assets/). Code ideas are ported from SUCK UP's AIRY pages (the render-only air-cushion
+  glide, the rope/ladder rescue rules, the in-page ?selftest) — no art.
 
-  TWO CABS (?cab=…):  hyscore = CLASSICAL GNOMANIA (marble/green) · blacksite = RED LEGION.
-  (Per Joe 2026-06-17: red = BLACKSITE, classical = HYSCORE.)
+  Offline, single page, nothing off-box: no CDN, no web fonts, no analytics.
+
+  URL switches (all documented in the README):
+    (none)        the ATTRACT — the TruthJunket special, theme music, any key -> title
+    ?title        the title menu            ?campaign   the march from Dover
+    ?front=N      straight to front N (1-4) ?march      the campaign map
+    ?selftest     proof-of-life report      ?demo       autopilot (with ?front=N)
+    &go           skip the briefing card    &seed=N     fix the gameplay RNG
+    &ff=S         fast-forward S seconds of play under the autopilot (&idle = hands off)
+    &shot=win|fail  run the front to its results / failure screen (the screenshot rig)
 -->
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%;background:#03020a;overflow:hidden;cursor:none;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;color:#e9e0d6;-webkit-user-select:none;user-select:none}
-  #c{position:fixed;inset:0;display:block}
-  #hint{position:fixed;bottom:10px;left:12px;color:#7a6f5f;font-size:11px;z-index:5;pointer-events:none}
-  #hint b{color:#bfa46a} kbd{background:#241a10;border:1px solid #4a3a1e;border-radius:4px;padding:0 5px;color:#e6cf9a;font-size:11px}
+  html,body{height:100%;background:#000;overflow:hidden;color:#efe3c4;font:14px/1.4 Georgia,"Times New Roman",serif;-webkit-user-select:none;user-select:none}
+  #c{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:none}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div id="hint"><kbd>WASD</kbd>/<kbd>↑↓←→</kbd> fly · <kbd>SPACE</kbd> SUCK UP · <kbd>F</kbd> WARBLE · <kbd>B</kbd> siege · <kbd>1</kbd>–<kbd>5</kbd> front · <kbd>X</kbd> blitz · <kbd>G</kbd> glide · <kbd>R</kbd> restart · <b>SANDBOX — no game files touched</b></div>
-
 <script>
 (function(){
 "use strict";
+var NODE = typeof window.PAX_NODE !== 'undefined';
+var Q = NODE ? (window.PAX_NODE.search||'') : location.search;
+function qp(k){ var m=Q.match(new RegExp('[?&]'+k+'(?:=([^&]*))?(?:&|$)')); return m ? (m[1]===undefined?'':decodeURIComponent(m[1])) : null; }
+
+/* =====================================================================
+   SCREEN — one logical 1600x900 stage, letterboxed into any window.
+   Every coordinate below is in logical pixels (docs/PAX_LAYOUT_NOTES.md).
+   ===================================================================== */
+var LW=1600, LH=900;
 var cv=document.getElementById('c'), ctx=cv.getContext('2d');
-var W=0,H=0; function resize(){ W=cv.width=innerWidth; H=cv.height=innerHeight; } addEventListener('resize',resize); resize();
-function rnd(a,b){ return a+(b-a)*Math.random(); }
+var SC=1, OX=0, OY=0;
+function resize(){
+  if(NODE) return;
+  var d=Math.min(2, window.devicePixelRatio||1);
+  cv.width=Math.round(innerWidth*d); cv.height=Math.round(innerHeight*d);
+  SC=Math.min(cv.width/LW, cv.height/LH); OX=(cv.width-LW*SC)/2; OY=(cv.height-LH*SC)/2;
+}
+if(!NODE){ addEventListener('resize',resize); resize(); }
+
+/* ---------- RNG: gameplay draws ONLY from rng(); visuals use Math.random ---------- */
+var SEED = +(qp('seed')||0) || ((Math.random()*1e9)|0);
+var _s = SEED>>>0;
+function seed(n){ _s = n>>>0; }
+function rng(){ _s=(_s+0x6D2B79F5)|0; var t=Math.imul(_s^(_s>>>15),1|_s); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }
+function rr(a,b){ return a+(b-a)*rng(); }
+function vr(a,b){ return a+(b-a)*Math.random(); }
 function clamp(v,a,b){ return v<a?a:v>b?b:v; }
-function chance(p){ return Math.random()<p; }
+function lerp(a,b,u){ return a+(b-a)*u; }
+function ease(u){ u=clamp(u,0,1); return u*u*(3-2*u); }
 
-/* ---------- cab themes ---------- */
-var CABS={
-  hyscore:  { name:'HYSCORE · CLASSICAL GNOMANIA', edge:'#d6bd86', sky:['#0c1422','#0e1a18','#10231a','#07140d'], ground:'#0a1d12', accent:'#9affc0', title:'#e9e8d6' },
-  blacksite:{ name:'BLACKSITE · RED LEGION',       edge:'#ff5d6c', sky:['#1a0810','#230a12','#1c0a10','#120608'], ground:'#180a0c', accent:'#ff8a6a', title:'#ffd0c4' }
+/* =====================================================================
+   ART — every file is a literal path so asset_check.py can prove the set.
+   ===================================================================== */
+var ART={
+  thopter:'art/thopter.png', thopter_spin_0:'art/thopter_spin_0.png', thopter_spin_1:'art/thopter_spin_1.png',
+  thopter_spin_2:'art/thopter_spin_2.png', thopter_spin_3:'art/thopter_spin_3.png', thopter_spin_4:'art/thopter_spin_4.png',
+  thopter_spin_5:'art/thopter_spin_5.png', screw_rotor:'art/screw_rotor.png',
+  rope:'art/rope.png', ladder:'art/ladder.png',
+  friend_hang:'art/friend_hang.png', friend_stand:'art/friend_stand.png', friend_climb_a:'art/friend_climb_a.png', friend_climb_b:'art/friend_climb_b.png',
+  gnome_engineer:'art/gnome_engineer.png', villager_mother:'art/villager_mother.png', villager_hood:'art/villager_hood.png',
+  villager_man:'art/villager_man.png', villager_elder:'art/villager_elder.png', villager_runner:'art/villager_runner.png',
+  goat:'art/goat.png', sheep:'art/sheep.png', goat_piebald:'art/goat_piebald.png',
+  legionary_a:'art/legionary_a.png', legionary_b:'art/legionary_b.png', legionary_c:'art/legionary_c.png', signifer:'art/signifer.png', cornicen:'art/cornicen.png',
+  gnome_axe:'art/gnome_axe.png', gnome_spear:'art/gnome_spear.png', gnome_shield:'art/gnome_shield.png', gnome_charge:'art/gnome_charge.png',
+  gnome_crossbow:'art/gnome_crossbow.png', gnome_heavy:'art/gnome_heavy.png', gnome_general:'art/gnome_general.png', gnome_bannerman:'art/gnome_bannerman.png',
+  gnome_climber_a:'art/gnome_climber_a.png', gnome_climber_b:'art/gnome_climber_b.png',
+  bolt_crew:'art/bolt_crew.png', catapult_crew:'art/catapult_crew.png', stone:'art/stone.png', glider:'art/glider.png', glider_b:'art/glider_b.png',
+  taken_thopter:'art/taken_thopter.png', taken_thopter_b:'art/taken_thopter_b.png',
+  hood_axe:'art/hood_axe.png', hood_archer:'art/hood_archer.png', hood_archers:'art/hood_archers.png',
+  fireball:'art/fireball.png', smoke_puff:'art/smoke_puff.png', dust_burst:'art/dust_burst.png',
+  eagle_standard:'art/eagle_standard.png', red_war_banner:'art/red_war_banner.png', brazier:'art/brazier.png', boulders:'art/boulders.png',
+  wall_top:'art/wall_top.png', wall_thin:'art/wall_thin.png', wall_siege:'art/wall_siege.png', siege_tower:'art/siege_tower.png',
+  scaling_wall:'art/scaling_wall.png', fort_strip:'art/fort_strip.png', battle_frieze:'art/battle_frieze.png',
+  hz_dover:'art/hz_dover.png', hills_white_horse:'art/hills_white_horse.png', hills_b:'art/hills_b.png', forest_edge:'art/forest_edge.png',
+  forest_dense:'art/forest_dense.png', tree_line:'art/tree_line.png', bush_clump:'art/bush_clump.png', snow_hills:'art/snow_hills.png',
+  snow_siege:'art/snow_siege.png', camp_tents:'art/camp_tents.png', palisade_fort:'art/palisade_fort.png', watch_platform:'art/watch_platform.png',
+  villa:'art/villa.png', village_strip:'art/village_strip.png', ground_grass:'art/ground_grass.png', ground_dirt:'art/ground_dirt.png',
+  ground_flag:'art/ground_flag.png', chalk_boulder:'art/chalk_boulder.png',
+  wash_far_hills:'art/layers/wash_far_hills.png', wash_far_ruins:'art/layers/wash_far_ruins.png', wash_mid_camp:'art/layers/wash_mid_camp.png',
+  wash_near_wall:'art/layers/wash_near_wall.png', wash_battle_line:'art/layers/wash_battle_line.png',
+  vale_far_hills:'art/layers/vale_far_hills.png', vale_mid_ridge:'art/layers/vale_mid_ridge.png', vale_near_ruins:'art/layers/vale_near_ruins.png',
+  vale_supply:'art/layers/vale_supply.png',
+  ck_logo:'art/plates/ck_logo.png', pax_presents:'art/plates/pax_presents.jpg', pax_gnomania:'art/plates/pax_gnomania.jpg',
+  gnomean_legion:'art/plates/gnomean_legion.jpg', gnomania_2:'art/plates/gnomania_2.jpg', wall_for_them:'art/plates/wall_for_them.jpg',
+  turning_screw:'art/plates/turning_screw.jpg', legion_wolfe:'art/plates/legion_wolfe.jpg', pax_open:'art/plates/pax_open.jpg',
+  wolfe_1:'art/plates/wolfe_1.jpg', wolfe_2:'art/plates/wolfe_2.jpg', wolfe_4:'art/plates/wolfe_4.jpg', wolfe_6:'art/plates/wolfe_6.jpg'
 };
-var cab=(location.search.match(/cab=(\w+)/)||[])[1]; if(!CABS[cab]) cab='hyscore'; var TH=CABS[cab];
-
-/* ---------- sprites ---------- */
 var IMG={};
-function load(n,p){ var im=new Image(); im.onload=function(){im.ok=true;}; im.onerror=function(){im.ok=false;}; im.src=p; IMG[n]=im; }
-var A='assets/sprites/', AR='assets/sprites/art/', LG='assets/logo/';
-load('p1',A+'p1-saucer.png'); load('beam',A+'beam-green.png'); load('ring',A+'ground-ring.png');
-for(var i=0;i<6;i++) load('w'+i,A+'p1-warble-'+i+'.png');
-['gnome','gnome_knife','gnome_pistol','gnome_smg','gnome_heavy','gp_vehicle','gp_bradley','gp_aa_gun','gp_banner','gp_wall','gp_wall_2',
- 'gp_soldier_a','gp_soldier_b','gp_soldier_c','person','farmer',
- 'barracks','bunker','radar','tower_a','tree','moon','jet','powerup'
-].forEach(function(n){ load(n,AR+n+'.png'); });
-load('ck_logo',LG+'castle-killscreen-logo.png'); load('gnomania',A+'../broll/pax-gnomania.png');
-function ok(n){ var im=IMG[n]; return im&&im.ok; }
-function drawImg(n,x,y,w,rot,alpha,flip,smooth){
-  var im=IMG[n]; if(!im||!im.ok) return false;
-  var ar=im.naturalWidth/im.naturalHeight, h=w/ar;
-  ctx.save(); ctx.globalAlpha=alpha==null?1:alpha; ctx.imageSmoothingEnabled=smooth!==false;
-  ctx.translate(x,y); if(rot) ctx.rotate(rot); if(flip) ctx.scale(-1,1);
-  ctx.drawImage(im,-w/2,-h/2,w,h); ctx.restore(); return true;
+(function(){ for(var k in ART){ var im = NODE ? {} : new Image(); im.ok=false; im.bad=false;
+  if(!NODE){ im.onload=function(){ this.ok=true; }; im.onerror=function(){ this.bad=true; }; im.src=ART[k]; } IMG[k]=im; } })();
+function ok(n){ var im=IMG[n]; return !!(im&&im.ok); }
+function ar(n){ var im=IMG[n]; return ok(n) ? im.naturalWidth/im.naturalHeight : 1; }
+// draw a sprite by HEIGHT, anchored at its feet (x centre, y bottom). flip faces it left.
+function spr(n,x,yb,h,o){ o=o||{}; if(!ok(n)) return false; var w=h*ar(n);
+  ctx.save(); ctx.globalAlpha=(o.a==null?1:o.a); ctx.translate(x, yb-h/2); if(o.rot) ctx.rotate(o.rot); if(o.flip) ctx.scale(-1,1);
+  ctx.drawImage(IMG[n],-w/2,-h/2,w,h); ctx.restore(); return true; }
+// draw a sprite by WIDTH, centred
+function sprC(n,x,y,w,o){ o=o||{}; if(!ok(n)) return false; var h=w/ar(n);
+  ctx.save(); ctx.globalAlpha=(o.a==null?1:o.a); ctx.translate(x,y); if(o.rot) ctx.rotate(o.rot); if(o.flip) ctx.scale(-1,1); if(o.sc) ctx.scale(o.sc,o.sc);
+  ctx.drawImage(IMG[n],-w/2,-h/2,w,h); ctx.restore(); return true; }
+// TINT CACHE: silhouette recolour (sil) or atmospheric haze (haze 0..1 toward a colour)
+var TINT={};
+function tinted(n,col,amt,sil){
+  var key=n+'|'+col+'|'+amt+'|'+(sil?1:0); if(TINT[key]) return TINT[key]; if(!ok(n)||NODE) return null;
+  var im=IMG[n], c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight; var x=c.getContext('2d');
+  x.drawImage(im,0,0); x.globalCompositeOperation='source-atop'; x.globalAlpha=sil?1:amt; x.fillStyle=col; x.fillRect(0,0,c.width,c.height);
+  TINT[key]=c; return c;
 }
 
-/* ---------- glide ---------- */
-var GLIDE=true, accel=210, damp=27;
+/* =====================================================================
+   AUDIO — the theme is real (assets/audio/music/britannia-theme.mp3).
+   Everything else is a NAMED SLOT: drop  web/audio/sfx/<slot>.mp3  or
+   web/audio/music/<slot>.mp3  and it plays. A missing file falls back to a
+   tiny synthesized placeholder (sfx) or silence (music). Slots: SFX_SLOTS.
+   ===================================================================== */
+var MUSIC_THEME='audio/music/britannia-theme.mp3';
+var MUSIC_SLOTS=['front_dover','front_nottingham','front_wash','front_wall','results','failed'];   // + the theme
+var SFX_SLOTS={  // slot: synth placeholder [wave, f0, f1, seconds, volume, noise?]
+  menu_move:['square',660,660,0.05,0.10], menu_select:['square',520,1040,0.12,0.12], menu_back:['square',520,260,0.10,0.10],
+  coin:['triangle',880,1760,0.18,0.14], brief:['triangle',330,330,0.25,0.08],
+  ray_on:['sine',220,330,0.18,0.08], ray_take:['triangle',440,1320,0.22,0.12], spin:['sawtooth',300,900,0.22,0.06],
+  grab:['triangle',520,780,0.10,0.12], deliver:['triangle',660,1320,0.25,0.14], ladder_get:['triangle',392,784,0.30,0.12],
+  let_go:['sine',520,200,0.25,0.12], lost:['sine',300,120,0.5,0.12],
+  hit:['square',140,60,0.30,0.18,1], clank:['square',1800,900,0.08,0.10,1],
+  bolt_aim:['sine',900,900,0.08,0.05], bolt_lock:['square',1200,1200,0.10,0.06], bolt_fire:['sawtooth',220,80,0.18,0.14,1],
+  arrow_loose:['triangle',800,300,0.12,0.08,1], stone_launch:['sawtooth',120,60,0.30,0.14,1], stone_impact:['square',90,40,0.35,0.18,1],
+  thopter_warn:['square',700,700,0.12,0.07], thopter_pass:['sawtooth',180,90,0.6,0.08,1], glider_warn:['triangle',600,600,0.10,0.06],
+  ladders_up:['square',200,160,0.4,0.10,1], horn:['sawtooth',196,196,0.8,0.10],
+  win:['triangle',523,1046,0.6,0.14], fail:['sine',330,110,0.9,0.14], tally:['square',1320,1320,0.03,0.05]
+};
+var AU={ unlocked:false, blocked:false, muted:false, cur:null, curName:'', ac:null, st:{} };
+function musicPath(name){ return name==='theme' ? MUSIC_THEME : 'audio/music/'+name+'.mp3'; }
+function playMusic(name, vol){
+  if(NODE||AU.off||AU.curName===name) return; vol=vol==null?0.8:vol;
+  var old=AU.cur; AU.cur=null; AU.curName=name;
+  if(old){ fadeEl(old,0,600,true); }
+  if(!name) return;
+  var el=new Audio(musicPath(name)); el.loop=true; el.volume=0; el._v=vol;
+  el.onerror=function(){ if(AU.cur===el) AU.cur=null; };
+  AU.cur=el;
+  var p=el.play(); if(p&&p.then) p.then(function(){ AU.blocked=false; fadeEl(el, AU.muted?0:vol, 900); }).catch(function(){ AU.blocked=true; });
+}
+function fadeEl(el,to,ms,stop){ var from=el.volume, t0=performance.now(); (function step(){ var u=clamp((performance.now()-t0)/ms,0,1); try{ el.volume=from+(to-from)*u; }catch(e){}
+  if(u<1) requestAnimationFrame(step); else if(stop){ el.pause(); } })(); }
+function restartMusic(){ if(AU.cur){ try{ AU.cur.currentTime=0; }catch(e){} } }
+function unlockAudio(){
+  if(NODE||AU.unlocked) return; AU.unlocked=true;
+  try{ AU.ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+  if(AU.cur && AU.blocked){ var n=AU.curName; AU.curName=''; playMusic(n); }
+}
+function sfx(slot){
+  if(NODE||AU.off||!AU.unlocked||AU.muted) return;
+  var s=AU.st[slot];
+  if(s===undefined){ var el=new Audio('audio/sfx/'+slot+'.mp3'); AU.st[slot]={el:el,state:'pending'};
+    el.oncanplaythrough=function(){ AU.st[slot].state='ok'; }; el.onerror=function(){ AU.st[slot].state='missing'; }; el.load(); s=AU.st[slot]; }
+  if(s.state==='ok'){ try{ var c=s.el.cloneNode(); c.volume=0.9; c.play().catch(function(){}); }catch(e){} return; }
+  synth(slot);
+}
+function synth(slot){
+  var d=SFX_SLOTS[slot], ac=AU.ac; if(!d||!ac) return;
+  try{ var t=ac.currentTime, g=ac.createGain(); g.gain.setValueAtTime(d[4],t); g.gain.exponentialRampToValueAtTime(0.0008,t+d[3]); g.connect(ac.destination);
+    if(d[5]){ var len=Math.max(1,(ac.sampleRate*d[3])|0), buf=ac.createBuffer(1,len,ac.sampleRate), ch=buf.getChannelData(0);
+      for(var i=0;i<len;i++) ch[i]=(Math.random()*2-1)*(1-i/len); var nz=ac.createBufferSource(); nz.buffer=buf;
+      var bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=d[1]; nz.connect(bp); bp.connect(g); nz.start(t); }
+    var o=ac.createOscillator(); o.type=d[0]; o.frequency.setValueAtTime(d[1],t); o.frequency.exponentialRampToValueAtTime(Math.max(20,d[2]),t+d[3]);
+    var og=ac.createGain(); og.gain.value=d[5]?0.4:1; o.connect(og); og.connect(g); o.start(t); o.stop(t+d[3]+0.02);
+  }catch(e){}
+}
+
+/* =====================================================================
+   JOE'S OPEN CALLS (docs/PAX_LEVELS_1014.md §9) — the defaults this build
+   assumes. Each is ONE constant; change it here.
+   ===================================================================== */
+var D1_WHO_FIRES      = 'legion';   // D1: Legion-crewed captured Roman machines + gnome-crewed Roman siege engines.
+                                    //     'friendly' (Rome's own gunners as a W3 twist) is NOT built.
+var D2_WAR_ENDS_ON_WALL = true;     // D2: York is the gateway; the war ends on Hadrian's Wall (the march map shows it so).
+var D3_WALL_LEVELS    = ['W1 SEGEDUNUM — WALLSEND','W2 CILURNUM — THE TYNE BRIDGE','W3 VERCOVICIUM — THE CRAGS (CLIMB)',
+                         'W4 THE TURF WALL — IN FOG','W5 WINSHIELDS — THE SUMMIT (CLIMB + DUEL)'];   // D3: five, two vertical.
+var D4_WHO_FALLS      = 'A';        // D4: THE SCALES (save Romans -> Hadrian wins; gnomes -> the King). NOT BUILT (summit stubbed).
+var D5_GNOMEAN_KING   = 'the Gnomean General, crowned';   // D5: no new canon character; the General takes the crown. NOT BUILT.
+var D6_OWN_PAGE       = true;       // D6: this page, HADRIAN art only. (The Gunpowder-page probe was left alone.)
+var D7_FRIENDLY_LOOK  = { caps:'green', helpFlag:true, glow:true };   // D7: green caps + HELP flags + a soft cyan glow
+                                    //     (the glow because Romans/villagers/goats are stranded too, not only gnomes).
+var D8_BOLT_TRACK = 0.55, D8_BOLT_LOCK = 0.60, D8_THOPTER_TELE = 1.3, D8_SPIN_DEFLECTS = true;   // D8: telegraphs + spin.
+var D9_LEVER          = 'haul';     // D9: more work per rescue — far drop-offs, need near the total, rope carries ONE,
+                                    //     rising water / ladders on the Wall put a clock on each stranded.
+
+/* =====================================================================
+   THE FLIGHT — the house air-cushion glide (ported from SUCK UP AIRY):
+   input moves a TARGET in steps; the craft springs after it.
+   ===================================================================== */
+var GLIDE=true, ACCEL=210, DAMP=27, STEP=20, REPEAT=0.055, DELAY=0.11;
 function spring(o,tx,ty,dt){
   if(!GLIDE){ o.x=tx; o.y=ty; o.vx=o.vy=0; return; }
   var ox=o.x, oy=o.y;
-  o.vx += ((tx-o.x)*accel - o.vx*damp)*dt; o.vy += ((ty-o.y)*accel - o.vy*damp)*dt;
+  o.vx += ((tx-o.x)*ACCEL - o.vx*DAMP)*dt; o.vy += ((ty-o.y)*ACCEL - o.vy*DAMP)*dt;
   o.x += o.vx*dt; o.y += o.vy*dt;
   if((tx-ox)*(tx-o.x)<0){ o.x=tx; o.vx=0; } if((ty-oy)*(ty-o.y)<0){ o.y=ty; o.vy=0; }
 }
 
-/* ---------- world ---------- */
-function groundY(){ return H*0.84; }
-function band(){ return {top:H*0.20, bot:H*0.70}; }
-function SAUCER_W(){ return clamp(W*0.085,90,180); }
-function sz(){ return { gnome:clamp(W*0.034,22,38), heavy:clamp(W*0.046,30,52), vehicle:clamp(W*0.05,32,56)*0.84 }; }
+/* ---------- rules (all one-line knobs) ---------- */
+var HULL=100, HIT_DMG=34, HIT_STUN=0.7, HIT_INVULN=1.8;
+var SPIN_TIME=0.5, SPIN_CD=1.1;                 // the Daedalus Spin: fold into the screw = intangible
+var ANCHOR=22, ROPE_LEN=190, GRAB_R=34;         // rope hangs ROPE_LEN below the belly; GRAB_R = reach to the hands
+var BAND_TOP=130;
+var SAFE_FALL=110, DELIVER_LOW=46, FALL_G=1500, REGRAB=0.8;
+var LADDER_SECS=16, LADDER_CAP=3, LADDER_CLIMB=3.0, LADDER_HOVER_V=70, LADDER_PICK_TTL=14;
+var RAY_REACH=58;                               // the divine RAY: x-reach under the craft
+var RESCUE_PTS=500, ALL_BONUS=2500, TIME_PTS=40, HULL_PTS=15;
+var HORN_AFTER_NEED=12;                         // once `need` are safe, the horn sounds within this many seconds
+var CARRY_REACH=26;
+var CAPTURE_TIME=2.4;                            // a red hat must hold a stranded this long to take them — time to ray him off                             // a rider dragged this close past a red hat lets go
 
-/* ---------- the Gunpowder fronts ----------
-   Every front has a KIND:
-     rescue   — stranded friendly gnomes, a SAFE drop-off, and a clock. Most fronts.
-     survival — THE GUNPOWDER HORROR hold-the-line, exactly as it was built.
-     both     — hold the line WHILE evacuating. The hardest.
-   rescue/both fields: friends = x-fractions of the stranded · need = how many must
-   reach safety · drop = x-fraction of the SAFE drop-off · ladders = scheduled
-   LADDER power-ups {at: seconds in, x: fraction}.                                   */
-var LEVELS=[
-  { kind:'rescue',   zone:'THE GOLF COURSE', clock:60, bias:0.00, scrollStart:44, props:['tree','gp_banner','tree','barracks','tree','radar','tree'],
-    friends:[0.22,0.34,0.70,0.82], need:3, drop:0.52, ladders:[{at:16,x:0.40}] },
-  { kind:'rescue',   zone:'THE WHITE HOUSE', clock:62, bias:0.12, scrollStart:40, props:['barracks','tree','gp_banner','tower_a','tree','gp_wall','tree'],
-    friends:[0.18,0.30,0.44,0.74,0.86], need:4, drop:0.60, ladders:[{at:12,x:0.30},{at:36,x:0.70}] },
-  { kind:'survival', zone:'GUNPOWDER FALLS', clock:68, bias:0.00, scrollStart:46, props:['gp_wall','barracks','gp_banner','bunker','tree','gp_wall','radar'], boss:true },
-  { kind:'rescue',   zone:'THE BARRACKS',    clock:64, bias:0.22, scrollStart:38, props:['barracks','gp_wall','bunker','gp_banner','radar','barracks','gp_wall'],
-    friends:[0.24,0.36,0.50,0.64,0.78,0.90], need:4, drop:0.12, ladders:[{at:10,x:0.55},{at:34,x:0.30}] },
-  { kind:'both',     zone:'FORT GUNPOWDER',  clock:66, bias:0.45, scrollStart:30, props:['bunker','radar','gp_wall','tower_a','gp_banner','barracks','bunker'],
-    friends:[0.25,0.34,0.65,0.80], need:3, drop:0.50, ladders:[{at:14,x:0.50}] }
-];
-var KIND_NAME={ rescue:'RESCUE', survival:'SURVIVAL', both:'HOLD + EVACUATE' };
-function hasLine(L){ return L.kind==='survival' || L.kind==='both'; }
-function hasRescue(L){ return L.kind==='rescue' || L.kind==='both'; }
-var BOSS_TELE=40, BOSS_APPEAR=48, BOSS_BONUS=3000;
-
-/* ---------- state ---------- */
-var state='boot', bootT=0, clock=0, t=0, shake=0, msg='', msgColor='#fff', msgT=0;
-var mode='campaign', stress=false, fps=60, fpsAcc=0, fpsN=0;
-var P=null, targets=[], jets=[], shots=[], fx=[], scenery=[];
-var meter=0, score=0, hp=100, maxHP=100, stageClock=0, level=0, levelLen=68;
-var runActive=false, bossTele=false, bossSpawned=false;
-var jetTimer=2, aaTimer=2;
-function newPlayer(){ var b=band(); return { tx:W*0.4, ty:(b.top+b.bot)/2, x:W*0.4, y:(b.top+b.bot)/2, vx:0,vy:0, bank:0, warbleU:-9, warbleCd:0, stun:0, invuln:0, lock:null, gear:'rope', spd:0 }; }
-function flash(m,c,sec){ msg=m; msgColor=c||'#fff'; msgT=sec||1.0; }
-
-/* =====================================================================
-   THE GUNPOWDER HORROR — the DEFENSE mission.
-
-   This build carried the name for months while actually being a wander-and-
-   suck-up sandbox: gnomes milled about, you beamed them, nothing was at stake
-   but your own hull. The mission it is named after is a DEFENSE: Gunpowder, MD
-   has people and hardware on the ground, the legion marches in from the edges
-   and advances on them, and the only way to hold the town is to thin the swarm
-   faster than it closes. Ported here from the Python mission so the thing is
-   playable and testable in a browser.
-
-   Defense in depth, edges inward: HARDWARE soaks the first contact · WALLS are
-   cover · the PEOPLE sit safe in the middle and are what you are actually
-   saving. SOLDIERS are armed and fight back — and a gnome the soldiers kill
-   pays you NOTHING, so hiding behind the line is survivable and poor.
-
-   THE FALLBACK: four phases. Each one the swarm survives, the armed line gives
-   ground toward the civilians and the field scrolls harder. THE SURGE rides
-   with it so the retreat costs something — a line that merely contracts is a
-   defensive buff wearing a retreat's clothes (measured: it made the Python
-   mission EASIER, 90% -> 100% perfect, before the surge was added).
-   Phase 3 IS the Bradley onslaught.
-   ===================================================================== */
-var GP_WAVE_EVERY   = 2.6;          // reinforcements this often...
-var GP_WAVES_STOP   = 8.0;          // ...until this many seconds remain
-var GP_WAVE_SIZE    = 4;
-var GP_MAX_GNOMES   = 18;           // on-field cap — a SET force, perf-safe
-var GP_REACH        = 0.030;        // strike range, fraction of width
-var GP_ATTACK_CD    = 2.2;          // seconds between one gnome's strikes
-var GP_ADVANCE      = 0.028;        // closing speed, fraction of width per sec
-var GP_SOLDIER_RANGE= 0.11;         // how far down the line a defender reaches. Tuned, not guessed:
-                                    // at 0.20/1.7 the line held the town on its own for the whole
-                                    // level and the player was optional — the mildest setting where
-                                    // an untouched Gunpowder actually falls. The ?selftest asserts it.
-var GP_SOLDIER_CD   = 2.2;
-var GP_SOLDIER_HP   = 3;            // soldiers soak; civilians do not
-var GP_SAVE_BONUS   = 400;          // per survivor at the horn
-var GP_PHASE_AT     = [0.22,0.45,0.68];
-var GP_PHASE_SURGE  = [1.0,1.18,1.40,1.70];
-var GP_PHASE_SCROLL = [16,42,74,112];
-var GP_FALLBACK     = 0.055;        // ground given per phase, fraction of width
-var GP_VEHICLES_AT  = 0.45, GP_ARMOR_AT = 0.68, GP_BRADLEYS = 2;
-var GP_PHASE_BARK = ['',
-  "THEY'RE COMING IN WAVES — FALL BACK!",
-  'GIVE GROUND! KEEP THEM OFF THE CIVILIANS!',
-  'ARMOR! OUR OWN BRADLEYS — BRACE!'];
-
-// glyph-free defender model. armed=true -> returns fire. hp 0 -> indestructible cover.
-var DEFENDERS = [
-  { s:'gp_aa_gun',    fx:0.10, hp:3, w:0.075 },
-  { s:'gp_vehicle',   fx:0.20, hp:3, w:0.070 },
-  { s:'gp_wall',      fx:0.30, hp:0, w:0.080 },
-  { s:'gp_soldier_a', fx:0.37, hp:GP_SOLDIER_HP, w:0.030, armed:true },
-  { s:'gp_soldier_b', fx:0.43, hp:GP_SOLDIER_HP, w:0.030, armed:true },
-  { s:'person',       fx:0.48, hp:1, w:0.028, civ:true },
-  { s:'farmer',       fx:0.52, hp:1, w:0.028, civ:true },
-  { s:'person',       fx:0.56, hp:1, w:0.028, civ:true },
-  { s:'gp_soldier_c', fx:0.61, hp:GP_SOLDIER_HP, w:0.030, armed:true },
-  { s:'gp_soldier_a', fx:0.67, hp:GP_SOLDIER_HP, w:0.030, armed:true },
-  { s:'gp_wall_2',    fx:0.74, hp:0, w:0.080 },
-  { s:'gp_aa_gun',    fx:0.86, hp:3, w:0.075 }
-];
-var defenders=[], gpPhase=0, gpWaveT=0, gpVehicles=false, gpArmor=false;
-function gpPeople(){ var n=0; for(var i=0;i<defenders.length;i++){ var d=defenders[i]; if(d.alive&&d.hp>0&&(d.armed||d.civ)) n++; } return n; }
-function gpPeopleTotal(){ var n=0; for(var i=0;i<DEFENDERS.length;i++) if(DEFENDERS[i].armed||DEFENDERS[i].civ) n++; return n; }
-function buildDefenders(){
-  defenders=[];
-  for(var i=0;i<DEFENDERS.length;i++){ var d=DEFENDERS[i];
-    defenders.push({ s:d.s, x:W*d.fx, hp:d.hp, maxhp:d.hp, w:W*d.w, armed:!!d.armed, civ:!!d.civ,
-                     alive:true, vanish:0, fireCd:rnd(0,GP_SOLDIER_CD), hitT:0 });
-  }
-}
-
-/* =====================================================================
-   PAX RESCUE — THE ROPE, THE LADDER, THE STRANDED.
-
-   THE ROPE hangs under the ornithopter. Its swing is RENDER-ONLY (a pendulum
-   spring in drawRope, the house airy-glide pattern); the LOGIC end of the rope
-   is always straight down from the hull, so every grab/hazard/delivery is
-   deterministic. Fly LOW and pass the rope's end within reach of a stranded
-   gnome's raised hands and they grab on. They HANG, they cannot climb. Fly them
-   to the SAFE drop-off and set them down low. Drag them through the legion, a
-   shot, a jet — or take a hit yourself — and they LET GO: a short drop is walked
-   off (and can be picked up again); a long fall is lost.
-
-   THE LADDER power-up replaces the rope for LADDER_SECS and holds LADDER_CAP.
-   Gnomes on the ladder CLIMB — but only while you HOVER — and are safe once
-   aboard. The choice: carry them to the drop-off, or hold still in danger long
-   enough for them to finish climbing. Climbers not yet aboard still let go on a
-   hit. The ladder is never pulled up with someone still on it.
-
-   FRIENDLIES CANNOT BE BEAMED. The beam only ever searches the legion array
-   (targets); the stranded live in their own array (friends), so beaming or
-   sucking up a friendly is impossible by construction, not by penalty. The
-   soldiers' fire is flagged ally and never knocks a gnome off the rope either.
-
-   HARD VISUAL RULE: the rope is a plain line ending in a wooden TOGGLE, never a
-   loop; the ladder is rails + rungs; hanging gnomes grip with their HANDS.
-   ===================================================================== */
-// THE FRIENDLY LOOK — the ONE place it lives. Joe hasn't picked it yet: change it here.
-// Set `sprite` to an IMG key (load() it above) and the sprite draws instead of the ASCII.
-var FRIENDLY_LOOK = {
-  sprite: null,
-  col:    '#6fd3ff',               // cyan — never the legion's painterly reds/browns
-  ink:    '#02121c',               // outline so it reads on any ground
-  stand:  ['\\o/', ' | ', '/ \\'], // waving on the ground (alternates with wave)
-  wave:   ['_o/',  ' | ', '/ \\'],
-  hang:   ['\\o/', ' | ', '/ \\'], // hands UP on the toggle — they grip with their hands
-  climbA: ['|o/',  ' | ', '/ \\'],
-  climbB: ['\\o|', ' | ', '/ \\'],
-  fall:   ['\\o/', ' | ', '/ \\'],
-  flag:   'HELP', flagCol:'#fff3a0', flagInk:'#1a2a3a'
+var WHO={
+  engineer:{art:'gnome_engineer', h:58, name:'ENGINEER', gnome:true},
+  refugee: {art:'friend_stand',   h:54, name:'ENGINEER', gnome:true},
+  mother:  {art:'villager_mother',h:64, name:'FAMILY'},
+  hood:    {art:'villager_hood',  h:68, name:'TRAVELLER'},
+  man:     {art:'villager_man',   h:64, name:'TRAVELLER'},
+  elder:   {art:'villager_elder', h:60, name:'THE KEEPER'},
+  runner:  {art:'villager_runner',h:66, name:'VILLAGER'},
+  goat:    {art:'goat',           h:44, name:'GOAT', animal:true},
+  sheep:   {art:'sheep',          h:36, name:'SHEEP', animal:true},
+  goat2:   {art:'goat_piebald',   h:46, name:'GOAT', animal:true},
+  leg_a:   {art:'legionary_a',    h:84, name:'LEGIONARY'},
+  leg_b:   {art:'legionary_b',    h:84, name:'LEGIONARY'},
+  leg_c:   {art:'legionary_c',    h:92, name:'OPTIO'},
+  signifer:{art:'signifer',       h:90, name:'SIGNIFER'},
+  cornicen:{art:'cornicen',       h:90, name:'CORNICEN'}
 };
-var RESCUE_GRAB_R      = 0.026;  // fraction of W — rope end to a stranded gnome's raised hands
-var RESCUE_SAFE_FALL   = 0.12;   // fraction of H — a drop shorter than this is walked off; longer is lost
-var RESCUE_DELIVER_LOW = 0.07;   // fraction of H — feet this near the ground over the drop-off = delivered
-var RESCUE_DROP_W      = 0.10;   // drop-off width, fraction of W
-var RESCUE_BONUS       = 500, RESCUE_ALL_BONUS = 2500;
-var RESCUE_REGRAB      = 0.8;    // seconds before a dropped gnome can grab on again
-var RESCUE_LEGION_HUNTS= false;  // OFF: on a rescue front the CLOCK is the pressure; the legion patrols,
-                                 // shoots at you and fouls the rope, but leaves the stranded be. ON: it also
-                                 // marches on them and takes them (measured: an idle rescue front then fell
-                                 // to captures at ~12s — the clock never mattered). Joe's call.
-var RESCUE_PRESS       = 0.45;   // (hunts ON) the legion closes on the stranded at this fraction of line speed
-var RESCUE_WAVE_EVERY  = 3.4, RESCUE_WAVE_SIZE = 2, RESCUE_MAX_GNOMES = 10;
-var RESCUE_FALL_G      = 1400;   // px/s^2
-var LADDER_SECS = 16, LADDER_CAP = 3, LADDER_CLIMB = 3.0, LADDER_HOVER_V = 70, LADDER_PICK_TTL = 14;
+var LEGION={   // the Red Hat Legion on foot: art, drawn height, ray value, ray lock seconds, walk speed px/s
+  axe:   {art:'gnome_axe',      h:64, val:150, lock:0.85, spd:46},
+  spear: {art:'gnome_spear',    h:66, val:150, lock:0.85, spd:50},
+  shield:{art:'gnome_shield',   h:68, val:200, lock:1.05, spd:38},
+  charge:{art:'gnome_charge',   h:62, val:150, lock:0.85, spd:56},
+  heavy: {art:'gnome_heavy',    h:78, val:400, lock:1.45, spd:30},
+  banner:{art:'gnome_bannerman',h:84, val:300, lock:1.20, spd:32}
+};
+// the aimed shooters: a crew rises, its aim line TRACKS you, then LOCKS, then fires down the locked line
+var SHOOTER={
+  bolt: {crew:'bolt_crew',   crewH:54, setup:0.45, track:D8_BOLT_TRACK, lock:D8_BOLT_LOCK, speed:1215, shot:'bolt'},
+  arrow:{crew:'hood_archer', crewH:72, setup:0.55, track:0.50,           lock:0.55,         speed:860,  shot:'arrow'}
+};
+var THOPTER_TELE=D8_THOPTER_TELE, THOPTER_SPEED=990, THOPTER_HW=88, THOPTER_HH=30;
+var GLIDER_TELE=1.0, GLIDER_SPEED=300, GLIDER_R=48;
+var STONE_TELE=1.4, STONE_FLY=1.0, STONE_R=74;
+var HZ_MIN={ bolt:D8_BOLT_TRACK+D8_BOLT_LOCK, arrow:0.50+0.55, upbolt:D8_BOLT_TRACK+D8_BOLT_LOCK, thopter:THOPTER_TELE, glider:GLIDER_TELE, stone:STONE_TELE };
 
-var friends=[], pickups=[], ladderT=0, ladderSpawned={}, overTitle='', lastResult=null;
-function buildFriends(L){
-  friends=[]; pickups=[]; ladderT=0; ladderSpawned={};
-  if(!hasRescue(L)) return;
-  for(var i=0;i<L.friends.length;i++)
-    friends.push({ friend:true, x:W*L.friends[i], y:groundY(), vy:0, st:'ground', cd:0, prog:0, fade:0, how:'', ph:i*1.7 });
-}
-function dropZone(){ var L=LEVELS[level]; return (mode==='campaign' && L && hasRescue(L)) ? { x:W*L.drop, w:W*RESCUE_DROP_W } : null; }
-function inDrop(x){ var d=dropZone(); return !!d && Math.abs(x-d.x) <= d.w/2; }
+/* =====================================================================
+   THE FRONTS — the campaign march (docs/PAX_LEVELS_1014.md §3).
+   Built: DOVER, NOTTINGHAM, WELSH WASH, W1 SEGEDUNUM. The rest are SEALED
+   (on the map, with their design, not playable yet).
+   friends: x, who, rock (stands that many px above the ground)
+   ===================================================================== */
+var FRONTS=[
+  { key:'dover', title:'THE FALL OF DOVER', latin:'DUBRIS · AT DAWN', place:'THE WHITE CLIFFS', time:'dawn', gy:770, clock:80, music:'front_dover',
+    brief:'The Red Hat Legion is coming UP the white cliffs. The sky is still calm. Bring the harbour folk and the garrison goats to the camp.',
+    wolfe:'"The cliffs are white so the gnomes can SEE them. Think about that."',
+    newThing:'THE ROPE — fly LOW and pass its end to their hands. Set them down at the camp.',
+    friends:[{x:170,who:'elder'},{x:330,who:'mother'},{x:520,who:'goat'},{x:690,who:'runner'},{x:860,who:'sheep'},{x:1010,who:'goat2'}],
+    need:5, drop:{x:1430,w:230,label:'THE CAMP'},
+    legion:{start:3, every:5.0, size:2, max:6, kinds:['axe','spear','charge'], from:'left', hunts:0},
+    hazards:{}, ladders:[{at:16,x:760}], tutorial:true },
+  { key:'nottingham', title:'NOTTINGHAM HOODS', latin:'SHERWOOD · AT DUSK', place:'UNDER THE CANOPY', time:'dusk', gy:770, clock:85, music:'front_nottingham',
+    brief:'Travellers caught under the canopy. The Hoods answer to neither Rome nor gnome — they loose at anything in the sky.',
+    wolfe:'"Robin of the Hood. A GNOME name. Nobody asks why."',
+    newThing:'HOOD ARCHERS — a dotted line tracks you, turns RED, then they loose. Move off the red line. F spins through it.',
+    friends:[{x:300,who:'hood'},{x:470,who:'mother'},{x:640,who:'engineer'},{x:800,who:'man'},{x:980,who:'goat'},{x:1150,who:'refugee'},{x:1330,who:'elder'}],
+    need:6, drop:{x:170,w:230,label:'THE STOCKADE'},
+    legion:{start:4, every:5.2, size:2, max:7, kinds:['axe','spear','shield','charge'], from:'right', hunts:0},
+    hazards:{ arrows:{start:5, every:4.6} }, ladders:[{at:18,x:900}] },
+  { key:'wash', title:'THE WELSH WASH', latin:'SILURES · THE DAM IS BROKEN', place:'THE TIDAL LAKE', time:'blood', gy:770, clock:85, music:'front_wash',
+    brief:'The Legion broke the dam. The legions are driven into the rising water. Winch them out before the Wash takes them. Everything is in the sky.',
+    wolfe:'"Water rises. Rome sinks. Coincidence is what they WANT you to call it."',
+    newThing:'THE WATER RISES — the lowest go under first. BOLTS, STONES (leave the ring) and GLIDERS all at once.',
+    friends:[{x:250,who:'leg_a',rock:0},{x:400,who:'leg_b',rock:16},{x:550,who:'cornicen',rock:0},{x:710,who:'signifer',rock:30},
+             {x:870,who:'leg_c',rock:8},{x:1030,who:'leg_a',rock:22},{x:1180,who:'leg_b',rock:0}],
+    need:5, drop:{x:1460,w:230,label:'THE RIDGE', surf:-64},
+    water:{start:5, from:34, rate:1.55},
+    legion:{start:2, every:7.0, size:1, max:3, kinds:['heavy','banner','axe'], from:'left', hunts:0, xmax:240},
+    hazards:{ bolts:{start:7, every:6.2}, stones:{start:12, every:7.5}, gliders:{start:18, every:9.5} }, ladders:[{at:22,x:700}] },
+  { key:'wall', title:'SEGEDUNUM — WALLSEND', latin:'W1 · THE EAST END OF THE WALL', place:'HADRIAN\'S WALL', time:'night', gy:610, clock:90, music:'front_wall', wall:true,
+    brief:'The Wall. The Legion is raising ladders all along the walkway. Get the garrison down to the milecastle before the red hats reach them.',
+    wolfe:'"They say the Wall kept the barbarians out. I say: which SIDE were they on?"',
+    newThing:'SCALING LADDERS — red hats climb to the walkway and take whoever they reach. THE RAY lifts a climber off the face. TAKEN THOPTERS cross a red lane.',
+    friends:[{x:400,who:'leg_a'},{x:560,who:'cornicen'},{x:720,who:'signifer'},{x:880,who:'leg_c'},{x:1040,who:'engineer'},{x:1200,who:'leg_b'},{x:1360,who:'leg_a'},{x:1500,who:'elder'}],
+    need:5, drop:{x:150,w:230,label:'THE MILECASTLE'},
+    legion:{start:999, every:99, size:0, max:0, kinds:['axe'], from:'both', hunts:1},
+    siege:[{at:9,x:1290},{at:20,x:820},{at:31,x:1430},{at:43,x:1000},{at:55,x:640},{at:66,x:1180}],
+    hazards:{ upbolts:{start:9, every:7.5}, thopters:{start:12, every:9.0} }, ladders:[{at:24,x:600}] }
+];
+// the whole march, in order — built fronts carry their FRONTS index; the rest are sealed (stubbed)
+var MARCH=[
+  {name:'THE FALL OF DOVER', f:0}, {name:'NOTTINGHAM HOODS', f:1}, {name:'LONDON CALLING', note:'the bridge evacuation · ballista bolts'},
+  {name:'LONDON PROPER', note:'rooftop rescues while the line holds'}, {name:'THE WELSH WASH', f:2},
+  {name:'LIVERPOOL', note:'the evacuation fleet · catapult stones'}, {name:'YORK — EBORACUM', note:'Davius\'s town · the gateway to the Wall'},
+  {name:'W1 SEGEDUNUM — WALLSEND', f:3, wall:true}, {name:'W2 CILURNUM — THE TYNE BRIDGE', note:'fire pots close the bridge ends', wall:true},
+  {name:'W3 VERCOVICIUM — THE CRAGS', note:'the first vertical CLIMB', wall:true}, {name:'W4 THE TURF WALL — IN FOG', note:'missile ships out of the fog', wall:true},
+  {name:'W5 WINSHIELDS — THE SUMMIT', note:'the climb, then HADRIAN vs THE GNOMEAN KING', wall:true}
+];
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+var state='attract', simT=0, rt=0;       // simT = sim seconds (play only), rt = real seconds (presentation)
+var F=null, fi=0, campaign=false, demo=false, autopilot=null;
+var score=0, scoreAtStart=0, hp=HULL, stageClock=0, hornSet=false;
+var P=null, friends=[], legion=[], haz=[], shots=[], fx=[], pickups=[], siege=[];
+var hzT={}, legionT=0, waterY=0, ladderT=0, ladderSpawned={}, tipDone={};
+var stats=null, lastResult=null, hzLog=[], msg='', msgCol='#fff', msgT=0, shake=0;
+var ROPEVIS={th:0,om:0,lx:null,pv:0};
+
+function GY(){ return F?F.gy:770; }
+function bandBot(){ return GY()-30-ANCHOR-ROPE_LEN; }
+function ropeEndY(){ return P.y+ANCHOR+ROPE_LEN; }
+function dropSurf(){ return GY()+(F.drop.surf||0); }
+function inDrop(x){ return Math.abs(x-F.drop.x) <= F.drop.w/2; }
+function surfAt(x){ return inDrop(x) ? dropSurf() : GY(); }
+function flash(m,c,s){ msg=m; msgCol=c||'#efe3c4'; msgT=s||1.2; }
 function rescuedN(){ var n=0; for(var i=0;i<friends.length;i++) if(friends[i].st==='safe') n++; return n; }
 function lostN(){ var n=0; for(var i=0;i<friends.length;i++) if(friends[i].st==='lost') n++; return n; }
 function onRope(){ for(var i=0;i<friends.length;i++) if(friends[i].st==='rope') return friends[i]; return null; }
 function onLadder(){ var n=0; for(var i=0;i<friends.length;i++) if(friends[i].st==='ladder') n++; return n; }
-function friendH(){ return sz().gnome; }
-function ropeAnchorY(){ return P.y + SAUCER_W()*0.14; }
-// sized so that at the bottom of the flight band a hanging gnome's feet just skim the ground
-function ropeLen(){ return Math.max(24, groundY() - band().bot - SAUCER_W()*0.14 - friendH() - 2); }
-function ropeEndY(){ return ropeAnchorY() + ropeLen(); }
+function spinning(){ return simT < P.spinU; }
 
-/* ---------- the gnome legion ---------- */
-var TARGETKINDS={
-  gnome:  { val:100, sprites:['gnome'],        wander:15, lock:0.9, meter:4 },
-  knife:  { val:150, sprites:['gnome_knife'],  wander:24, lock:1.0, meter:4 },
-  pistol: { val:250, sprites:['gnome_pistol'], wander:12, lock:1.3, meter:5, shoots:true },
-  smg:    { val:350, sprites:['gnome_smg'],    wander:10, lock:1.5, meter:6, shoots:true, fast:true },
-  heavy:  { val:500, sprites:['gnome_heavy'],  wander:7,  lock:1.8, meter:7, shoots:true, fast:true },
-  vehicle:{ val:0,   sprites:['gp_vehicle'],   wander:5,  lock:1.2, meter:0, hazardGrab:true }
-};
-function countKind(k){ var n=0; for(var i=0;i<targets.length;i++) if(!targets[i].gone && targets[i].kind===k) n++; return n; }
-function pickKind(b){
-  var r=Math.random()-(b||0)*0.42;
-  if(r<0.40) return 'gnome';
-  if(r<0.58) return 'knife';
-  if(r<0.74) return 'pistol';
-  if(r<0.88) return 'smg';
-  if(r<0.96) return 'heavy';
-  return 'vehicle';
-}
-function curBias(){ return (mode==='campaign' && LEVELS[level])?LEVELS[level].bias:0.3; }
-function pickSpawnKind(){ var k=pickKind(curBias()); if(k==='vehicle' && countKind('vehicle')>=2) k='gnome'; return k; }
-function spawnTarget(kind){
-  // The sandbox capped at 9 and counted DEAD targets, which silently strangled the
-  // mission's waves — reinforcements simply never arrived. Count the living, and cap
-  // at the mission's own bounded number.
-  var liveN=0; for(var q=0;q<targets.length;q++) if(!targets[q].gone) liveN++;
-  if(liveN >= GP_MAX_GNOMES + GP_BRADLEYS) return;
-  if(targets.length > 240) targets = targets.filter(function(t){ return !t.gone; });
-  kind = kind || pickSpawnKind();
-  var def=TARGETKINDS[kind], sp=def.sprites[(Math.random()*def.sprites.length)|0];
-  // the legion MARCHES IN from the edges — it does not mill about in the middle
-  var fromWest = chance(0.5);
-  var ex = fromWest ? W*rnd(0.01,0.07) : W*rnd(0.93,0.99);
-  targets.push({ kind:kind, def:def, sprite:sp, x:ex, y:groundY(), vx:0,vy:0, dir:fromWest?1:-1,
-                 lock:0, lifting:false, gone:false, fireCd:rnd(1.5,3.5), isBoss:false,
-                 hp:(kind==='heavy'?2:kind==='vehicle'?3:1), strikeCd:rnd(0.3,1.2) });
-}
-function spawnBoss(){ targets.push({ kind:'heavy', def:{val:BOSS_BONUS,sprites:['gnome_heavy'],wander:7*0.5,lock:1.6,meter:8,shoots:true,fast:true}, sprite:'gnome_heavy',
-  x:W*rnd(0.25,0.75), y:groundY(), vx:0,vy:0, dir:chance(.5)?1:-1, lock:0, lifting:false, gone:false, fireCd:rnd(0.7,1.2), isBoss:true });
-  flash('THE GNOME GENERAL','#ffd23f',1.6); }
+function newPlayer(){ var y=(BAND_TOP+bandBot())/2, x=F.drop.x<800?F.drop.x+120:F.drop.x-120;
+  return { x:x, y:y, tx:x, ty:y, vx:0, vy:0, bank:0, face:x<800?1:-1, spinU:-9, spinCd:-9, stun:0, invuln:0, gear:'rope', spd:0, lock:null, raying:false }; }
 
-/* ---------- starts ---------- */
-function startCampaign(){ startMission(0); }
-function startMission(idx){ score=0; hp=maxHP; clock=0; startLevel(idx); }
-function startLevel(idx){
-  level=idx; mode='campaign'; var L=LEVELS[idx];
-  P=newPlayer(); targets=[]; jets=[]; shots=[]; fx=[]; shake=0;
-  meter=8; stageClock=L.clock; levelLen=L.clock; jetTimer=2; aaTimer=1.8;
-  runActive=false; bossTele=false; bossSpawned=false;
-  if(hasLine(L)) buildDefenders(); else defenders=[];
-  gpPhase=0; gpWaveT=hasLine(L)?GP_WAVE_EVERY:RESCUE_WAVE_EVERY; gpVehicles=false; gpArmor=false;
-  buildFriends(L); overTitle='';
-  scenery=[]; for(var i=0;i<L.props.length;i++) scenery.push({ x:W*(0.04+i*0.14+rnd(-0.02,0.02)), s:L.props[i], w:clamp(W*rnd(0.05,0.085),60,150) });
-  var rush = hasLine(L) ? 7 : 4;          // a rescue opens lighter — the clock is the pressure
-  for(var k=0;k<rush;k++) spawnTarget();   // the opening rush, already on the road
-  state='play'; flash('FRONT '+(idx+1)+'  —  '+L.zone+'  ·  '+KIND_NAME[L.kind], TH.accent, 2.0);
+function startFront(idx, opt){
+  opt=opt||{};
+  fi=idx; F=FRONTS[idx]; seed(opt.seed!=null?opt.seed:(SEED+idx*7919));
+  if(!opt.retry) scoreAtStart=score; else score=scoreAtStart;
+  hp=HULL; simT=0; stageClock=F.clock; hornSet=false;
+  P=newPlayer(); legion=[]; haz=[]; shots=[]; fx=[]; pickups=[]; ladderT=0; ladderSpawned={}; tipDone={}; hzLog=[];
+  friends=F.friends.map(function(d,i){ var w=WHO[d.who]; return { x:d.x, who:d.who, w:w, rock:d.rock||0, st:'ground', y:GY()-(d.rock||0), vy:0, cd:0, prog:0, fade:0, how:'', ph:i*1.7, sink:0 }; });
+  hzT={}; var H=F.hazards||{};
+  ['bolts','arrows','upbolts','thopters','gliders','stones'].forEach(function(k){ hzT[k]= H[k] ? H[k].start : 1e9; });
+  legionT=F.legion.start;
+  waterY = F.water ? GY()+F.water.from : 1e9;
+  siege=(F.siege||[]).map(function(s){ return { x:s.x, at:s.at, st:'pending', t:0, sent:0, nextT:0, art:(s.x%2?'tower':'ladders') }; });
+  stats={ beamed:0, dodged:0, hits:0, lost:0, spun:0 };
+  lastResult=null; ROPEVIS={th:0,om:0,lx:null,pv:0};
+  state = opt.go ? 'play' : 'brief'; rt=0;
+  if(state==='play') beginPlay();
 }
-function endResult(passed, reason){
-  var L=LEVELS[level]||{};
-  lastResult={ idx:level, kind:L.kind, zone:L.zone, passed:passed, reason:reason, t:+(levelLen-stageClock).toFixed(2),
-               people:defenders.length?gpPeople():null, peopleTotal:defenders.length?gpPeopleTotal():null,
-               rescued:rescuedN(), lost:lostN(), need:L.need||0, stranded:friends.length };
+function beginPlay(){ state='play'; flash(F.title, '#e8c66a', 1.8); if(!demo){ sfx('coin'); playMusic(F.music, 0.7); } }
+function retryFront(){ startFront(fi,{retry:true, go:true}); }
+
+/* =====================================================================
+   INPUT — keyboard + gamepad + autopilot all write the same intents.
+   ===================================================================== */
+var keys={}, inp={left:0,right:0,up:0,down:0,ray:0,spin:0}, nf={left:0,right:0,up:0,down:0}, was={left:0,right:0,up:0,down:0}, spinWas=0;
+var KEYDIR={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'up',w:'up',ArrowDown:'down',s:'down'};
+var pad={left:0,right:0,up:0,down:0,ray:0,spin:0,start:0,back:0}, padWas={};
+function readPad(){
+  if(NODE||!navigator.getGamepads) return; var gps=navigator.getGamepads(), g=null;
+  for(var i=0;i<gps.length;i++) if(gps[i]&&gps[i].connected){ g=gps[i]; break; }
+  pad={left:0,right:0,up:0,down:0,ray:0,spin:0,start:0,back:0}; if(!g) return;
+  var ax=g.axes[0]||0, ay=g.axes[1]||0, b=function(i){ return g.buttons[i]&&g.buttons[i].pressed?1:0; };
+  pad.left=(ax<-0.45||b(14))?1:0; pad.right=(ax>0.45||b(15))?1:0; pad.up=(ay<-0.45||b(12))?1:0; pad.down=(ay>0.45||b(13))?1:0;
+  pad.ray=b(0)||b(7); pad.spin=b(1)||b(2)||b(6); pad.start=b(9); pad.back=b(8);
+  var edges=['up','down','left','right','ray','spin','start','back'];
+  for(var k=0;k<edges.length;k++){ var e=edges[k]; if(pad[e]&&!padWas[e]) onPress(padKey(e)); padWas[e]=pad[e]; }
 }
-function rescueClear(L){
-  var r=rescuedN(), bonus=(r===friends.length?RESCUE_ALL_BONUS:0);   // RESCUE_BONUS is paid per gnome, on delivery
-  score+=bonus;
-  flash(L.zone+'  —  '+r+'/'+friends.length+' BROUGHT OUT'+(bonus?'  +'+bonus:''),'#9affc0',1.8);
+function padKey(e){ return {up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight',ray:' ',spin:'f',start:'Enter',back:'Escape'}[e]; }
+if(!NODE){
+  addEventListener('keydown',function(e){ unlockAudio(); var k=e.key.length===1?e.key.toLowerCase():e.key; if(!keys[k]){ keys[k]=1; onPress(k); }
+    if(/^(Arrow| )/.test(e.key)||e.key===' ') e.preventDefault(); });
+  addEventListener('keyup',function(e){ var k=e.key.length===1?e.key.toLowerCase():e.key; keys[k]=0; });
+  addEventListener('blur',function(){ keys={}; });
+  addEventListener('pointerdown',function(){ unlockAudio(); if(state==='attract') onPress('Enter'); });
 }
-function nextLevel(){ score+=2000; if(level+1<LEVELS.length) startLevel(level+1); else { state='clear'; flash('GUNPOWDER HELD  +2000','#9affc0',99); } }
-function startSiege(){
-  mode='base'; score=0; hp=maxHP; clock=0;
-  P=newPlayer(); targets=[]; jets=[]; shots=[]; fx=[]; shake=0;
-  meter=100; stageClock=30; levelLen=30; jetTimer=1.0; aaTimer=1.2; runActive=false; bossSpawned=true;
-  friends=[]; pickups=[]; overTitle='';
-  scenery=[]; var bp=['gp_wall','barracks','bunker','radar','gp_banner','gp_wall','bunker'];
-  for(var i=0;i<7;i++) scenery.push({ x:W*(0.04+i*0.14+rnd(-0.02,0.02)), s:bp[i%bp.length], w:clamp(W*rnd(0.05,0.085),60,150) });
-  for(var k=0;k<7;k++) spawnTarget();
-  state='play'; flash('THE SIEGE — HOLD THE LINE','#ff5d6c',1.6);
+function gatherInput(){
+  if(autopilot){ var a=autopilot(); inp.left=a.left|0; inp.right=a.right|0; inp.up=a.up|0; inp.down=a.down|0; inp.ray=a.ray|0; inp.spin=a.spin|0; return; }
+  inp.left = keys.ArrowLeft||keys.a||pad.left?1:0; inp.right= keys.ArrowRight||keys.d||pad.right?1:0;
+  inp.up   = keys.ArrowUp||keys.w||pad.up?1:0;     inp.down = keys.ArrowDown||keys.s||pad.down?1:0;
+  inp.ray  = keys[' ']||keys.z||pad.ray?1:0;        inp.spin = keys.f||keys.x||keys.Shift||pad.spin?1:0;
 }
 
-/* ---------- input ---------- */
-var held={}, nf={left:0,right:0,up:0,down:0}, planting=false;
-var STEP=16, repeat=0.055, delay=0.11;
-var DIR={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'up',w:'up',ArrowDown:'down',s:'down'};
-function kn(e){ return DIR[e.key]||DIR[e.key.toLowerCase()]; }
-function atMenu(){ return state==='title'||state==='over'||state==='clear'; }
-addEventListener('keydown',function(e){
-  if(state==='boot'){ state='title'; e.preventDefault(); return; }
-  if(e.key===' '){ if(atMenu()) startCampaign(); else planting=true; e.preventDefault(); return; }
-  var k=e.key.toLowerCase();
-  if(k==='b' && atMenu()){ startSiege(); return; }
-  if(atMenu() && /^[1-9]$/.test(k) && +k<=LEVELS.length){ startMission(+k-1); return; }
-  if(k==='x'){ stress=!stress; flash('BLITZ '+(stress?'ON':'off'), stress?'#ff5d6c':'#bdf2cf',0.8); return; }
-  if(k==='g'){ GLIDE=!GLIDE; flash('GLIDE '+(GLIDE?'ON':'OFF'),'#bdf2cf',0.7); return; }
-  if(k==='r'){ if(mode==='base') startSiege(); else startCampaign(); return; }
-  if(k==='['){ damp=Math.max(8,damp-1); return; } if(k===']'){ damp=Math.min(46,damp+1); return; }
-  if(k==='-'||k==='_'){ accel=Math.max(60,accel-20); return; } if(k==='='||k==='+'){ accel=Math.min(680,accel+20); return; }
-  if(k==='f'){ if(state==='play' && clock>P.warbleCd){ P.warbleU=clock+0.5; P.warbleCd=clock+1.1; planting=false; } return; }
-  var d=kn(e); if(d&&!held[d]){ held[d]=true; nf[d]=clock; e.preventDefault(); }
-});
-addEventListener('keyup',function(e){ if(e.key===' '){ planting=false; return; } var d=kn(e); if(d) held[d]=false; });
-addEventListener('blur',function(){ held={}; planting=false; });
-function pumpPlayer(){
-  var b=band();
-  if(!planting && P.stun<=0){
-    if(held.left &&clock>=nf.left ){ P.tx=clamp(P.tx-STEP,W*0.05,W*0.95); nf.left =(nf.left ===clock?clock+delay:nf.left )+repeat; }
-    if(held.right&&clock>=nf.right){ P.tx=clamp(P.tx+STEP,W*0.05,W*0.95); nf.right=(nf.right===clock?clock+delay:nf.right)+repeat; }
-    if(held.up   &&clock>=nf.up   ){ P.ty=clamp(P.ty-STEP,b.top,b.bot);   nf.up   =(nf.up   ===clock?clock+delay:nf.up   )+repeat; }
-    if(held.down &&clock>=nf.down ){ P.ty=clamp(P.ty+STEP,b.top,b.bot);   nf.down =(nf.down ===clock?clock+delay:nf.down )+repeat; }
-  }
-}
-function warbling(){ return clock<P.warbleU; }
-
-/* ---------- combat ---------- */
-var MAX_FX=80, MAX_SHOTS=140;
-function addFx(x,y,kind,col,n){ if(fx.length>=MAX_FX) fx.shift(); fx.push({x:x,y:y,kind:kind||'burst',col:col||'#ffd27a',t:0,life:n||0.45}); }
-function hitPlayer(){
-  if(warbling()||P.invuln>0){ addFx(P.x,P.y,'spark','#9affc0',0.3); return; }
-  hp-=34; P.stun=1.1; P.invuln=2.0; shake=18; addFx(P.x,P.y,'boom','#ff7a3a',0.6);
-  releaseAll('HIT! THEY LET GO');   // a real hit shakes everyone off the rope/ladder (not the aboard)
-  if(hp<=0){ hp=0; state='over'; flash('THE LEGION TOOK GUNPOWDER…','#ff5d6c',99); endResult(false,'hull'); }
-}
-function shoot(x,y,vx,vy,kind,col){ if(shots.length>=MAX_SHOTS) shots.shift(); shots.push({x:x,y:y,vx:vx,vy:vy,kind:kind,col:col,t:0,life:kind==='missile'?5:3}); }
-function abduct(tg){
-  if(tg.def.hazardGrab){ flash('THAT WAS A WAR MACHINE!','#ff5d6c',1.0); hitPlayer(); tg.gone=true; tg.respawn=rnd(2,3.5); tg.lock=0; tg.lifting=false; return; }
-  score+=tg.def.val; meter=clamp(meter+tg.def.meter,0,100); addFx(P.x,P.y,'snatch','#7fe9ff',0.5);
-  if(tg.isBoss) flash('GENERAL TAKEN! +'+BOSS_BONUS,'#ffd23f',1.6);
-  else if(tg.def.val>=350) flash('+'+tg.def.val,'#9affc0',0.7);
-  // On a FRONT a beamed gnome is GONE — exactly like one the soldiers drop, and like the Python
-  // mission ("sucking up a gnome removes an attacker"). The sandbox respawn used to survive here, so
-  // the beam never thinned the swarm, it only sent a gnome back to the edge 1.4-2.8s later while the
-  // soldiers' kills were the only permanent ones (tools/pax_sweep.mjs). THE SIEGE keeps the respawn.
-  tg.gone=true; tg.respawn = (tg.isBoss || mode==='campaign') ? 1e9 : rnd(1.4,2.8);
-  tg.lock=0; tg.lifting=false;
-}
-
-/* ---------- update ---------- */
-function stageOf(){ return meter<35?0 : meter<60?1 : meter<82?2 : 3; }
-var STAGECOL=['#39ff14','#ffe23a','#ff9d3a','#ff5d6c'], STAGENAME=['QUIET','MUSTER','ADVANCE','OVERRUN'];
-function update(dt){
-  t+=dt;
-  if(state!=='play'){ if(msgT>0)msgT-=dt; if(shake>0)shake*=0.9; return; }
-  clock+=dt; stageClock-=dt; if(msgT>0)msgT-=dt; if(shake>0)shake-=dt*40;
-  if(P.stun>0)P.stun-=dt; if(P.invuln>0)P.invuln-=dt;
-  var stg=stageOf(), L=LEVELS[level], elapsed=levelLen-stageClock;
-  pumpPlayer(); var pox=P.x, poy=P.y; spring(P,P.tx,P.ty,dt); P.spd=Math.hypot(P.x-pox,P.y-poy)/Math.max(dt,1e-6); P.bank += (clamp(P.vx/190,-1,1)-P.bank)*Math.min(1,7*dt);
-  if(mode!=='base') meter = clamp(meter + dt*1.9, 0, 100);
-
-  var worldSpeed = (mode==='campaign' && defenders.length)
-      ? GP_PHASE_SCROLL[Math.min(gpPhase,GP_PHASE_SCROLL.length-1)] : 16;
-  if(mode==='campaign' && elapsed>=L.scrollStart){
-    if(!runActive){ runActive=true; flash('>>> THE LEGION ADVANCES <<<','#ff9d3a',1.4); }
-    var ramp=clamp((elapsed-L.scrollStart)/Math.max(1,levelLen-L.scrollStart),0,1);
-    worldSpeed=16+90*ramp; if(!planting && P.stun<=0) P.tx=clamp(P.tx-(22+70*ramp)*dt, W*0.05, W*0.95);
-  }
-  for(var i=0;i<scenery.length;i++){ scenery[i].x-=worldSpeed*dt; if(scenery[i].x<-W*0.12) scenery[i].x+=W*1.24; }
-
-  if(mode==='campaign' && L.boss){
-    if(!bossTele && elapsed>=BOSS_TELE){ bossTele=true; flash('a heavy tread shakes the field…','#ffe23a',1.6); }
-    if(!bossSpawned && elapsed>=BOSS_APPEAR){ bossSpawned=true; spawnBoss(); }
-  }
-  if(mode==='base'){ if(stageClock<=0){ state='clear'; score+=3000; flash('THE SIEGE BROKEN  +3000','#9affc0',99); } }
-  else if(defenders.length && gpPeople()===0){
-    // the town is gone — the mission is lost the moment the last person falls
-    state='over'; flash('THE LEGION TOOK GUNPOWDER…','#ff5d6c',99); endResult(false,'town');
-  }
-  else if(friends.length && friends.length-lostN() < L.need){
-    // not enough of the stranded left alive to make the count — the rescue is over
-    state='over'; overTitle='LEFT BEHIND'; flash('TOO MANY LOST — '+L.zone+' ABANDONED','#ff5d6c',99); endResult(false,'lost');
-  }
-  else if(L.kind==='rescue' && rescuedN()>=L.need && rescuedN()+lostN()===friends.length){
-    // everyone who could be saved is safe — no need to wait for the horn
-    rescueClear(L); endResult(true,'all-resolved'); nextLevel();
-  }
-  else if(stageClock<=0){
-    if(friends.length && rescuedN() < L.need){
-      state='over'; overTitle='LEFT BEHIND';
-      flash('THE CLOCK RAN OUT — '+rescuedN()+'/'+L.need+' SAFE','#ff5d6c',99); endResult(false,'clock');
-    } else {
-      if(defenders.length){
-        var saved=gpPeople(), total=gpPeopleTotal();
-        score += GP_SAVE_BONUS*saved;
-        if(saved===total){ score+=3000; flash(L.zone+' HELD — EVERY SOUL  +3000','#9affc0',1.8); }
-        else flash(L.zone+' HELD  '+saved+'/'+total+' saved  +'+(GP_SAVE_BONUS*saved),'#9affc0',1.8);
-      }
-      if(friends.length) rescueClear(L);
-      endResult(true,'horn'); nextLevel();
-    }
-  }
-
-  gpMission(dt, elapsed);
-  rescueTick(dt, elapsed);
-
-  P.lock=null;
-  if(planting && P.stun<=0){
-    var bestD=W*0.06, bi=-1;
-    for(var i=0;i<targets.length;i++){ var c=targets[i]; if(c.gone) continue; var dxp=Math.abs(c.x-P.x); if(dxp<bestD && P.y<c.y){ bestD=dxp; bi=i; } }
-    if(bi>=0){ var tg=targets[bi]; P.lock=tg; tg.lock=clamp(tg.lock+dt/tg.def.lock,0,1); tg.lifting=true; if(tg.lock>=1) abduct(tg); }
-  }
-  for(var i=0;i<targets.length;i++){ var c=targets[i]; if(c!==P.lock && c.lock>0){ c.lock=Math.max(0,c.lock-dt*1.5); if(c.lock<=0)c.lifting=false; } }
-
-  for(var i=0;i<targets.length;i++){ var c=targets[i];
-    if(c.gone){ if(c.respawn>1e8) continue; c.respawn-=dt; if(c.respawn<=0){ c.gone=false; c.lock=0; c.lifting=false; c.x=chance(.5)?W*0.03:W*0.97; c.y=groundY(); var nk=pickSpawnKind(); c.kind=nk; c.def=TARGETKINDS[nk]; c.sprite=c.def.sprites[(Math.random()*c.def.sprites.length)|0]; c.isBoss=false; } continue; }
-    if(c.lifting && c.lock>0){ c.y = groundY() - (groundY()-(P.y+SAUCER_W()*0.18))*c.lock; }
-    else {
-      c.y=groundY();
-      // ADVANCE on the nearest standing defender and strike in reach. This is the
-      // mission: the legion is not wandering, it is coming for the town.
-      var near=null, nd=1e9;
-      for(var q=0;q<defenders.length;q++){ var d=defenders[q];
-        if(!d.alive || d.hp<=0 || d.vanish>0) continue;
-        var dd=Math.abs(d.x-c.x); if(dd<nd){ nd=dd; near=d; } }
-      if(RESCUE_LEGION_HUNTS) for(var q=0;q<friends.length;q++){ var fr=friends[q];   // ...and on the stranded
-        if(fr.st!=='ground') continue;
-        var dd=Math.abs(fr.x-c.x); if(dd<nd){ nd=dd; near=fr; } }
-      var surge = GP_PHASE_SURGE[Math.min(gpPhase,GP_PHASE_SURGE.length-1)];
-      if(near){
-        c.dir = near.x>c.x ? 1 : -1;
-        if(nd > W*GP_REACH){ c.x += c.dir*(W*GP_ADVANCE*surge*(near.friend?RESCUE_PRESS:1))*dt; }
-        else {
-          c.strikeCd -= dt;
-          if(c.strikeCd<=0 && near.friend){ c.strikeCd = GP_ATTACK_CD; loseFriend(near,'captured'); }
-          else if(c.strikeCd<=0){ c.strikeCd = GP_ATTACK_CD;
-            near.hp -= (c.kind==='vehicle'||c.isBoss)?2:1; near.hitT=0.18;
-            addFx(near.x, groundY()-14, 'burst', '#ff7a3a', 0.4);
-            if(near.hp<=0){ near.vanish=0.5;
-              flash(near.civ?'A CIVILIAN IS DOWN':'THE LINE IS BREAKING','#ff5d6c',1.1); shake=6; }
-          }
-        }
-      } else { c.x += c.dir*c.def.wander*surge*dt; if(c.x<W*0.02||c.x>W*0.98)c.dir*=-1; }
-    }
-    if(c.def.shoots && !c.lifting && stg>=1){ c.fireCd-=dt; if(c.fireCd<=0){ c.fireCd=c.def.fast?rnd(0.8,1.6):rnd(2.0,3.4);
-      var dx=P.x-c.x, dy=P.y-(c.y-18), L2=Math.hypot(dx,dy)||1, sp=c.def.fast?460:360;
-      shoot(c.x,c.y-22,dx/L2*sp,dy/L2*sp,'potshot', c.isBoss?'#ffd23f':'#ffe2a0'); addFx(c.x,c.y-22,'spark','#ffe2a0',0.2); } }
-  }
-
-  var jetCap = stress?9 : mode==='base'?4 : (stg>=3?3:2);
-  var jetGap = stress?0.35 : mode==='base'?0.9 : (stg>=3?1.3:2.0);
-  if(stg>=2 || mode==='base'){ jetTimer-=dt; if(jetTimer<=0 && jets.length<jetCap){ spawnJet(stg); jetTimer=jetGap+rnd(0,jetGap); } }
-  for(var j=jets.length-1;j>=0;j--){ var je=jets[j]; je.x+=je.vx*dt;
-    var ty=je.base+Math.sin(clock*je.spd+je.phase)*je.amp;
-    if(GLIDE){ var oy=je.y; je.vy+=((ty-je.y)*accel-je.vy*damp)*dt; je.y+=je.vy*dt; if((ty-oy)*(ty-je.y)<0){je.y=ty;je.vy=0;} } else je.y=ty;
-    je.bank+=(clamp(je.vy/200,-1,1)-je.bank)*Math.min(1,7*dt);
-    if(stg>=3 || mode==='base'){ je.fireCd-=dt; if(je.fireCd<=0 && je.x>W*0.1 && je.x<W*0.9){ je.fireCd=stress?rnd(0.25,0.6):rnd(0.9,1.7);
-      if(chance(0.4)){ shoot(je.x,je.y+10,je.vx*0.3,60,'missile','#ff5d6c'); addFx(je.x,je.y,'spark','#ff9d3a',0.2); }
-      else { var dx=P.x-je.x, dy=P.y-je.y, L3=Math.hypot(dx,dy)||1; shoot(je.x,je.y,dx/L3*560,dy/L3*560,'tracer','#fff2a0'); } } }
-    if(Math.hypot(je.x-P.x,je.y-P.y) < SAUCER_W()*0.42) hitPlayer();
-    if((je.dir>0&&je.x>W+90)||(je.dir<0&&je.x<-90)) jets.splice(j,1);
-  }
-
-  if(stg>=3 || mode==='base'){ aaTimer-=dt; if(aaTimer<=0){ aaTimer= stress?rnd(0.25,0.6) : mode==='base'?rnd(0.9,1.5) : rnd(1.4,2.2);
-    var ax=clamp(P.x+rnd(-W*0.05,W*0.05),0,W); fx.push({x:ax,y:groundY(),kind:'aatel',col:'#ff5d6c',t:0,life:0.6,fire:true}); } }
-
-  for(var s=shots.length-1;s>=0;s--){ var sh=shots[s]; sh.t+=dt;
-    if(sh.kind==='missile' && !sh.harmless){ var dx=P.x-sh.x, dy=P.y-sh.y, L4=Math.hypot(dx,dy)||1, turn=160;
-      sh.vx+=dx/L4*turn*dt; sh.vy+=dy/L4*turn*dt; var sp=Math.hypot(sh.vx,sh.vy); if(sp>300){sh.vx*=300/sp;sh.vy*=300/sp;}
-      if(chance(0.5 - stageOf()*0.13)) addFx(sh.x,sh.y,'smoke','#9aa',0.45); }
-    sh.x+=sh.vx*dt; sh.y+=sh.vy*dt;
-    var radH = warbling()? SAUCER_W()*0.52 : SAUCER_W()*0.36;
-    if(!sh.harmless && Math.hypot(sh.x-P.x,sh.y-P.y) < radH){
-      if(warbling()){ var dxx=sh.x-P.x, dyy=sh.y-P.y, LL=Math.hypot(dxx,dyy)||1, spd=Math.hypot(sh.vx,sh.vy)||320;
-        sh.vx=dxx/LL*spd*1.15+rnd(-50,50); sh.vy=dyy/LL*spd*1.15-50; sh.harmless=true; addFx(sh.x,sh.y,'snatch','#9affc0',0.35); }
-      else if(P.invuln>0){ shots.splice(s,1); } else { hitPlayer(); shots.splice(s,1); }
-      continue;
-    }
-    if(sh.t>sh.life || sh.x<-60||sh.x>W+60||sh.y<-60||sh.y>H+60) shots.splice(s,1);
-  }
-  for(var f=fx.length-1;f>=0;f--){ var e=fx[f]; e.t+=dt;
-    if(e.kind==='aatel' && e.fire && e.t>=e.life){ shoot(e.x,groundY(),0,-560,'aa','#ff5d6c'); e.fire=false; }
-    if(e.t>e.life) fx.splice(f,1);
-  }
-}
-/* ---------- THE GUNPOWDER HORROR — mission tick ---------- */
-function gpMission(dt, elapsed){
-  if(mode!=='campaign') return;
-  if(!defenders.length){          // a pure RESCUE front: lighter waves, no line, no armor
-    if(stageClock > GP_WAVES_STOP){ gpWaveT -= dt;
-      if(gpWaveT<=0){ gpWaveT = RESCUE_WAVE_EVERY;
-        var live=0; for(var i=0;i<targets.length;i++) if(!targets[i].gone) live++;
-        for(var k=0; k<RESCUE_WAVE_SIZE && live<RESCUE_MAX_GNOMES; k++){ spawnTarget(); live++; } } }
+/* ---------- menus ---------- */
+var menuI=0, selI=0, idleT=0;
+var MENU=['THE CAMPAIGN','CHOOSE A FRONT','THE TRUTHJUNKET SPECIAL','HOW TO FLY'];
+function onPress(k){
+  idleT=0;
+  if(k==='m'){ AU.muted=!AU.muted; if(AU.cur) AU.cur.volume=AU.muted?0:(AU.cur._v||0.8); flash(AU.muted?'SOUND OFF':'SOUND ON','#efe3c4',0.8); return; }
+  if(k==='g'&&state==='play'){ GLIDE=!GLIDE; flash('GLIDE '+(GLIDE?'ON':'OFF'),'#efe3c4',0.7); return; }
+  var go = (k===' '||k==='Enter'), back=(k==='Escape');
+  if(state==='attract'){ toTitle(); sfx('menu_select'); return; }
+  if(state==='title'){
+    if(k==='ArrowUp'||k==='w'){ menuI=(menuI+MENU.length-1)%MENU.length; sfx('menu_move'); }
+    else if(k==='ArrowDown'||k==='s'){ menuI=(menuI+1)%MENU.length; sfx('menu_move'); }
+    else if(go){ sfx('menu_select');
+      if(menuI===0){ campaign=true; score=0; startFront(0); }
+      else if(menuI===1){ state='select'; selI=0; }
+      else if(menuI===2){ toAttract(); }
+      else { state='howto'; } }
+    else if(back){ toAttract(); }
     return;
   }
-  var prog = clamp(elapsed/Math.max(1,levelLen), 0, 1);
-
-  // --- THE FALLBACK: phases turn on progress; the armed line gives ground ---
-  var want=0; for(var i=0;i<GP_PHASE_AT.length;i++) if(prog>=GP_PHASE_AT[i]) want++;
-  if(want>gpPhase){
-    gpPhase=want;
-    var mid=W*0.5, step=W*GP_FALLBACK;
-    for(var i=0;i<defenders.length;i++){ var d=defenders[i];
-      if(d.alive && d.hp>0 && d.armed){ d.x += (d.x<mid? step : -step); d.x=clamp(d.x,W*0.06,W*0.94); } }
-    if(GP_PHASE_BARK[gpPhase]) flash(GP_PHASE_BARK[gpPhase], gpPhase>=3?'#ff5d6c':'#ff9d3a', 1.6);
-    shake=Math.max(shake,5);
+  if(state==='howto'){ if(go||back){ sfx('menu_back'); state='title'; } return; }
+  if(state==='select'){
+    var built=MARCH.filter(function(m){return m.f!=null;});
+    if(k==='ArrowUp'||k==='w'){ selI=(selI+built.length-1)%built.length; sfx('menu_move'); }
+    else if(k==='ArrowDown'||k==='s'){ selI=(selI+1)%built.length; sfx('menu_move'); }
+    else if(/^[1-4]$/.test(k)){ selI=+k-1; campaign=false; score=0; sfx('menu_select'); startFront(built[selI].f); }
+    else if(go){ campaign=false; score=0; sfx('menu_select'); startFront(built[selI].f); }
+    else if(back){ sfx('menu_back'); state='title'; }
+    return;
   }
+  if(state==='brief'){ if(go){ sfx('menu_select'); beginPlay(); } else if(back){ sfx('menu_back'); toTitle(); } return; }
+  if(state==='play'){ if(back){ toTitle(); } else if(k==='r'&&!demo){ retryFront(); } return; }
+  if(state==='failed'){ if(go||k==='r'){ sfx('menu_select'); retryFront(); } else if(back){ sfx('menu_back'); toTitle(); } return; }
+  if(state==='results'){ if(rt<0.8) return;
+    if(k==='r'){ sfx('menu_select'); retryFront(); return; }
+    if(go){ sfx('menu_select'); if(campaign){ state='march'; rt=0; playMusic('theme',0.6); } else { state='select'; playMusic('theme',0.6); } }
+    else if(back){ toTitle(); } return; }
+  if(state==='march'){ if(go){ sfx('menu_select'); var nx=nextBuilt(fi); if(nx<0){ state='end'; rt=0; } else startFront(nx); } else if(back){ toTitle(); } return; }
+  if(state==='end'){ if(go||back){ sfx('menu_select'); toTitle(); } return; }
+}
+function nextBuilt(f){ for(var i=0;i<MARCH.length;i++) if(MARCH[i].f===f){ for(var j=i+1;j<MARCH.length;j++) if(MARCH[j].f!=null) return MARCH[j].f; } return -1; }
+function toTitle(){ demo=false; autopilot=null; state='title'; rt=0; idleT=0; playMusic('theme',0.75); }
+function toAttract(){ demo=false; autopilot=null; state='attract'; rt=0; atk=0; atT=0; playMusic('theme',0.8); restartMusic(); }
 
-  // --- reinforcements keep marching until the last killable wave ---
-  if(stageClock > GP_WAVES_STOP){
-    gpWaveT -= dt;
-    if(gpWaveT<=0){ gpWaveT = GP_WAVE_EVERY;
-      var live=0; for(var i=0;i<targets.length;i++) if(!targets[i].gone) live++;
-      for(var k=0; k<GP_WAVE_SIZE && live<GP_MAX_GNOMES; k++){ spawnTarget(); live++; }
+/* =====================================================================
+   UPDATE — the sim (play state only). Fixed rules, rng() only.
+   ===================================================================== */
+function update(dt){
+  simT+=dt; stageClock-=dt; if(msgT>0) msgT-=dt; if(shake>0) shake=Math.max(0,shake-dt*40);
+  if(P.stun>0) P.stun-=dt; if(P.invuln>0) P.invuln-=dt;
+  var el=F.clock-stageClock;
+  gatherInput(); pump(dt);
+  var px=P.x, py=P.y; spring(P,P.tx,P.ty,dt); P.spd=Math.hypot(P.x-px,P.y-py)/Math.max(dt,1e-6);
+  P.bank += (clamp(P.vx/190,-1,1)-P.bank)*Math.min(1,7*dt);
+  if(Math.abs(P.vx)>40) P.face = P.vx>0?1:-1;
+  if(inp.spin && !spinWas && simT>=P.spinCd && P.stun<=0){ P.spinU=simT+SPIN_TIME; P.spinCd=simT+SPIN_CD; sfx('spin'); stats.spun++; }
+  spinWas=inp.spin;
+
+  if(F.water && el>=F.water.start) waterY -= F.water.rate*dt;
+  legionTick(dt, el); siegeTick(dt, el); hazardTick(dt, el); shotTick(dt); rayTick(dt); rescueTick(dt, el); tipsTick();
+  for(var f=fx.length-1;f>=0;f--){ fx[f].t+=dt; if(fx[f].t>fx[f].life) fx.splice(f,1); }
+  endCheck();
+}
+function pump(dt){
+  var dirs=['left','right','up','down'], bb=maxY();
+  P.raying = !!(inp.ray && P.stun<=0 && !spinning());
+  for(var i=0;i<4;i++){ var d=dirs[i], h=inp[d] && !P.raying && P.stun<=0;
+    if(h && !was[d]){ nf[d]=simT; was[d]=1; nf[d+'_first']=1; }
+    if(!h){ was[d]=0; continue; }
+    if(simT>=nf[d]){
+      if(d==='left') P.tx-=STEP; else if(d==='right') P.tx+=STEP; else if(d==='up') P.ty-=STEP; else P.ty+=STEP;
+      nf[d] = nf[d+'_first'] ? simT+DELAY : nf[d]+REPEAT; nf[d+'_first']=0;
     }
   }
-  // --- the set vehicle force, then the captured Bradleys for the climax ---
-  if(!gpVehicles && prog>=GP_VEHICLES_AT){ gpVehicles=true; spawnTarget('vehicle'); spawnTarget('vehicle');
-    flash('CARTS ON THE ROAD','#ffd23f',1.2); }
-  if(!gpArmor && prog>=GP_ARMOR_AT){ gpArmor=true;
-    for(var k=0;k<GP_BRADLEYS;k++) spawnBradley();
-    flash('BRADLEYS — THEY TOOK OUR OWN ARMOR','#ff5d6c',2.0); shake=10; }
+  P.tx=clamp(P.tx,60,LW-60); P.ty=clamp(P.ty,BAND_TOP,bb);
+}
+// how low the craft may fly: the rope's end can reach a standing figure's hands; a rider's feet never go into the ground
+function maxY(){ var r=onRope(), m=bandBot(); if(r){ m=Math.min(m, GY()+4-r.w.h-ANCHOR-ROPE_LEN); } return m; }
 
-  // --- THE LINE SHOOTS BACK -------------------------------------------------
-  // A gnome the soldiers drop pays the player NOTHING. Hiding behind a working
-  // line is survivable and poor; the score is out in the swarm.
-  for(var i=0;i<defenders.length;i++){ var d=defenders[i];
-    if(d.vanish>0){ d.vanish-=dt; if(d.vanish<=0) d.alive=false; continue; }
-    if(d.hitT>0) d.hitT-=dt;
-    if(!d.alive || d.hp<=0 || !d.armed) continue;
-    d.fireCd-=dt; if(d.fireCd>0) continue;
-    var tgt=null, td=W*GP_SOLDIER_RANGE;
-    for(var q=0;q<targets.length;q++){ var c=targets[q];
-      if(c.gone||c.lifting) continue; var dd=Math.abs(c.x-d.x); if(dd<td){ td=dd; tgt=c; } }
-    if(!tgt) continue;
-    d.fireCd=GP_SOLDIER_CD;
-    shoot(d.x, groundY()-16, (tgt.x>d.x?1:-1)*420, -20, 'tracer', '#ffe6a0'); shots[shots.length-1].ally=true;
-    tgt.hp-=1;
-    if(tgt.hp<=0){ addFx(tgt.x, groundY()-16, 'burst', '#9affc0', 0.4); tgt.gone=true; tgt.respawn=1e9; }
+/* ---------- the Red Hat Legion on foot ---------- */
+function spawnGnome(kindName, x, dir, y){
+  var k=LEGION[kindName]; legion.push({ kind:kindName, k:k, x:x, y:y==null?GY():y, dir:dir, lock:0, lifting:false, gone:false, strikeCd:rr(0.4,1.0), climb:false, hunts:!!F.legion.hunts });
+}
+function legionTick(dt, el){
+  var Lg=F.legion;
+  if(el>=legionT && stageClock>6){ legionT=el+Lg.every*rr(0.85,1.15);
+    var live=0; for(var i=0;i<legion.length;i++) if(!legion[i].gone) live++;
+    for(var n=0;n<Lg.size && live<Lg.max;n++,live++){
+      var fromL = Lg.from==='left' ? true : Lg.from==='right' ? false : rng()<0.5;
+      spawnGnome(Lg.kinds[(rng()*Lg.kinds.length)|0], fromL? -30-n*46 : LW+30+n*46, fromL?1:-1);
+    }
+  }
+  for(var i=legion.length-1;i>=0;i--){ var g=legion[i];
+    if(g.gone){ legion.splice(i,1); continue; }
+    if(g.lifting) continue;
+    if(g.climb){ g.y-=g.climbV*dt; if(g.y<=GY()){ g.y=GY(); g.climb=false; g.dir = g.x<800?1:-1; } continue; }
+    var tgt=null, td=1e9;
+    if(g.hunts) for(var q=0;q<friends.length;q++){ var fr=friends[q]; if(fr.st!=='ground') continue; var d=Math.abs(fr.x-g.x); if(d<td){ td=d; tgt=fr; } }
+    if(tgt){ g.dir = tgt.x>g.x?1:-1;
+      if(td>30){ g.x += g.dir*g.k.spd*dt; g.grab=0; g.grabbing=null; }
+      else { if(g.grabbing!==tgt){ g.grab=0; g.grabbing=tgt; } g.grab+=dt; if(g.grab>=CAPTURE_TIME){ g.grab=0; g.grabbing=null; loseFriend(tgt,'captured'); } } }
+    else {
+      g.grab=0; g.grabbing=null;
+      g.x += g.dir*g.k.spd*dt;
+      if(Lg.xmax && g.x>Lg.xmax){ g.dir=-1; } if(Lg.xmax && g.x<20 && g.dir<0){ g.dir=1; }
+      if((g.dir>0 && g.x>LW+60) || (g.dir<0 && g.x<-60)) g.gone=true;
+    }
+  }
+}
+/* ---------- W1: scaling ladders on the Wall ---------- */
+var SIEGE_TELE=3.0, SIEGE_EVERY=4.2, SIEGE_PER=3, CLIMB_V=44;
+function siegeTick(dt, el){
+  for(var i=0;i<siege.length;i++){ var s=siege[i];
+    if(s.st==='pending' && el>=s.at){ s.st='raise'; s.t=0; flash('SCALING LADDERS ON THE WALL','#ff7a5a',1.4); sfx('ladders_up'); hzLog.push({type:'ladders', tele:SIEGE_TELE}); }
+    else if(s.st==='raise'){ s.t+=dt; if(s.t>=SIEGE_TELE){ s.st='active'; s.nextT=0; } }
+    else if(s.st==='active'){ s.nextT-=dt;
+      if(s.nextT<=0 && s.sent<SIEGE_PER){ s.sent++; s.nextT=SIEGE_EVERY;
+        spawnGnome(rng()<0.5?'axe':'spear', s.x+rr(-6,6), s.x<800?1:-1, LH-30); var g=legion[legion.length-1]; g.climb=true; g.climbV=CLIMB_V*rr(0.9,1.1); }
+      if(s.sent>=SIEGE_PER) s.st='done'; }
   }
 }
 
-/* ---------- PAX RESCUE — tick ---------- */
-function saveFriend(f, how){
-  if(f.st==='safe'||f.st==='lost') return;
-  f.st='safe'; f.how=how; f.prog=0; f.y=groundY(); score+=RESCUE_BONUS;
-  if(how==='drop'){ var d=dropZone(); if(d) f.x=clamp(f.x, d.x-d.w*0.4, d.x+d.w*0.4); }
-  addFx(f.x, how==='aboard'?P.y:groundY()-14, 'snatch', FRIENDLY_LOOK.col, 0.5);
-  flash(how==='aboard'?'ABOARD — SAFE  +'+RESCUE_BONUS:'SAFE!  +'+RESCUE_BONUS, FRIENDLY_LOOK.col, 0.9);
+/* =====================================================================
+   THE DODGE — every hazard is TELEGRAPHED before it can hurt. Each logs
+   how long it warned (hzLog) and the ?selftest holds it to HZ_MIN.
+   ===================================================================== */
+function hazardTick(dt, el){
+  var H=F.hazards||{};
+  function due(k){ if(H[k] && el>=hzT[k] && stageClock>3){ hzT[k]=el+H[k].every*rr(0.8,1.2); return true; } return false; }
+  if(due('bolts')) spawnShooter('bolt', false);
+  if(due('upbolts')) spawnShooter('bolt', true);
+  if(due('arrows')) spawnShooter('arrow', false);
+  if(due('thopters')) spawnThopter();
+  if(due('gliders')) spawnGlider();
+  if(due('stones')) spawnStone();
+  for(var i=haz.length-1;i>=0;i--){ var h=haz[i]; h.t+=dt;
+    if(h.k==='shooter') tickShooter(h,dt); else if(h.k==='thopter') tickThopter(h,dt); else if(h.k==='glider') tickGlider(h,dt); else if(h.k==='stone') tickStone(h,dt);
+    if(h.done) haz.splice(i,1);
+  }
 }
-function loseFriend(f, how){
-  if(f.st==='safe'||f.st==='lost') return;
-  f.st='lost'; f.how=how; f.fade=1.0; f.y=groundY();
-  addFx(f.x, groundY()-10, 'smoke', '#9aa', 0.6);
-  flash(how==='captured'?'THE LEGION TOOK ONE OF OURS':'LOST IN THE FALL','#ff9d3a',1.1);
+function liveShooters(){ var n=0; for(var i=0;i<haz.length;i++) if(haz[i].k==='shooter'&&haz[i].st!=='fired') n++; return n; }
+function spawnShooter(type, up){
+  if(liveShooters()>=2) return;
+  var S=SHOOTER[type], x;
+  if(type==='arrow'){ do { x=rr(240,LW-120); } while(Math.abs(x-P.x)<220); }
+  else { x = rng()<0.5 ? rr(60,300) : rr(LW-300,LW-60); if(up) x=rr(120,LW-120); }
+  var gy = up ? LH-24 : GY();
+  haz.push({ k:'shooter', type:type, S:S, up:!!up, st:'setup', t:0, x:x, gy:gy, y:gy-S.crewH*0.6, ax:P.x, ay:P.y, aimT:0 });
 }
-function releaseFriend(f, why){
-  if(f.st!=='rope' && f.st!=='ladder') return false;
-  f.st='fall'; f.vy=0; f.fallFrom=f.y; f.cd=RESCUE_REGRAB; f.prog=0;
-  if(why) flash(why,'#ffb347',0.9);
-  return true;
+function tickShooter(h,dt){
+  var S=h.S;
+  if(h.st==='setup'){ if(h.t>=S.setup){ h.st='aim'; h.t=0; sfx('bolt_aim'); } return; }
+  if(h.st==='aim'){
+    h.aimT=h.t;
+    if(h.t<S.track){ h.ax=P.x; h.ay=P.y; }
+    else if(!h.locked){ h.locked=true; sfx('bolt_lock'); }
+    if(h.t>=S.track+S.lock){
+      var dx=h.ax-h.x, dy=h.ay-h.y, L=Math.hypot(dx,dy)||1;
+      shots.push({ kind:S.shot, x:h.x, y:h.y, vx:dx/L*S.speed, vy:dy/L*S.speed, t:0, life:2.4, tele:h.aimT, type:h.up?'upbolt':h.type });
+      hzLog.push({ type:h.up?'upbolt':h.type, tele:h.aimT });
+      h.st='fired'; h.t=0; sfx(S.shot==='arrow'?'arrow_loose':'bolt_fire'); fxAdd(h.x,h.y,'spark','#ffd27a',0.25);
+    }
+    return;
+  }
+  if(h.st==='fired' && h.t>=0.8) h.done=true;
 }
-function releaseAll(why){ var any=false; for(var i=0;i<friends.length;i++) if(releaseFriend(friends[i])) any=true; if(any&&why) flash(why,'#ffb347',1.0); return any; }
-function giveLadder(){
-  P.gear='ladder'; ladderT=LADDER_SECS;
-  var r=onRope(); if(r){ r.st='ladder'; r.prog=0; }       // whoever is on the rope steps onto the bottom rung
-  flash('LADDER! HOVER TO LET THEM CLIMB · '+LADDER_CAP+' MAX', '#ffd23f', 1.4);
+function spawnThopter(){ var dir=rng()<0.5?1:-1;
+  haz.push({ k:'thopter', st:'warn', t:0, dir:dir, x:dir>0?-200:LW+200, y:clamp(P.y,BAND_TOP,bandBot()), art:rng()<0.5?'taken_thopter':'taken_thopter_b' }); sfx('thopter_warn'); }
+function tickThopter(h,dt){
+  if(h.st==='warn'){ if(h.t>=THOPTER_TELE){ h.st='cross'; h.warned=h.t; h.t=0; hzLog.push({type:'thopter', tele:h.warned}); sfx('thopter_pass'); } return; }
+  if(h.st==='cross'){ h.x += h.dir*THOPTER_SPEED*dt;
+    if(!h.hit && Math.abs(h.x-P.x)<THOPTER_HW && Math.abs(h.y-P.y)<THOPTER_HH){
+      if(spinning()){ h.hit=true; retreat(h,'SENT PACKING'); score+=250; sfx('clank'); }
+      else if(P.invuln<=0){ h.hit=true; hitPlayer('thopter'); retreat(h); } }
+    var r=onRope(); if(r && !h.hit && Math.abs(h.x-r.x)<THOPTER_HW*0.8 && Math.abs(h.y-(r.y-r.w.h*0.5))<THOPTER_HH+10) releaseFriend(r,'CLIPPED BY A TAKEN THOPTER — THEY LET GO');
+    if((h.dir>0&&h.x>LW+260)||(h.dir<0&&h.x<-260)){ if(!h.hit) stats.dodged++; h.done=true; }
+    return; }
+  if(h.st==='retreat'){ h.x += h.dir*THOPTER_SPEED*0.45*dt; h.y -= 140*dt; h.sc=Math.max(0.15,(h.sc||1)-dt*0.55); if(h.t>2.2) h.done=true; }
 }
-function rescueTick(dt, elapsed){
-  if(!friends.length) return;
-  var L=LEVELS[level];
-  // --- LADDER power-ups, on the level's schedule ---
-  for(var i=0;i<(L.ladders||[]).length;i++){ var ld=L.ladders[i];
-    if(!ladderSpawned[i] && elapsed>=ld.at){ ladderSpawned[i]=1; var b=band();
-      pickups.push({ x:W*ld.x, y:b.top+(b.bot-b.top)*0.45, ttl:LADDER_PICK_TTL }); flash('A LADDER DRIFTS IN','#ffd23f',1.0); } }
-  for(var i=pickups.length-1;i>=0;i--){ var pk=pickups[i]; pk.ttl-=dt;
-    if(Math.hypot(pk.x-P.x, pk.y-P.y) < SAUCER_W()*0.55){ pickups.splice(i,1); giveLadder(); continue; }
-    if(pk.ttl<=0) pickups.splice(i,1); }
-  if(P.gear==='ladder'){ ladderT-=dt;
-    if(ladderT<=0 && !onLadder()){ P.gear='rope'; ladderT=0; flash('LADDER STOWED — BACK ON THE ROPE','#bdf2cf',0.9); } }
+function retreat(h,label){ h.st='retreat'; h.t=0; h.sc=1; if(label) flash(label,'#9fe08a',0.9); }   // planes RETREAT into the distance — never crash
+function spawnGlider(){ var dir=rng()<0.5?1:-1, y=clamp(P.y+rr(-50,50),BAND_TOP,bandBot());
+  haz.push({ k:'glider', st:'warn', t:0, dir:dir, x:dir>0?-90:LW+90, y:y, base:y, amp:rr(26,46), ph:rr(0,6), art:rng()<0.5?'glider':'glider_b' }); sfx('glider_warn'); }
+function tickGlider(h,dt){
+  if(h.st==='warn'){ if(h.t>=GLIDER_TELE){ h.st='fly'; h.warned=h.t; h.t=0; hzLog.push({type:'glider', tele:h.warned}); } return; }
+  if(h.st==='fly'){ h.x+=h.dir*GLIDER_SPEED*dt; h.y=h.base+Math.sin(h.t*2.2+h.ph)*h.amp;
+    if(!h.hit && Math.hypot(h.x-P.x,h.y-P.y)<GLIDER_R){
+      if(spinning()){ h.hit=true; retreat(h,'SENT PACKING'); score+=200; sfx('clank'); }
+      else if(P.invuln<=0){ h.hit=true; hitPlayer('glider'); retreat(h); } }
+    var r=onRope(); if(r && !h.hit && Math.hypot(h.x-r.x,h.y-(r.y-r.w.h*0.5))<GLIDER_R*0.8) releaseFriend(r,'A GLIDER CLIPPED THE ROPE — THEY LET GO');
+    if((h.dir>0&&h.x>LW+120)||(h.dir<0&&h.x<-120)){ if(!h.hit) stats.dodged++; h.done=true; }
+    return; }
+  if(h.st==='retreat'){ h.x+=h.dir*GLIDER_SPEED*0.5*dt; h.y-=120*dt; h.sc=Math.max(0.15,(h.sc||1)-dt*0.6); if(h.t>2.0) h.done=true; }
+}
+function spawnStone(){ var fromL=P.x>LW/2, cx=fromL?70:LW-70;
+  haz.push({ k:'stone', st:'aim', t:0, cx:cx, cy:GY()-40, tx:P.x, ty:P.y, fromL:fromL }); sfx('stone_launch'); }
+function stonePos(h,u){ var mx=(h.cx+h.tx)/2, my=Math.min(h.cy,h.ty)-320; var a=(1-u)*(1-u), b=2*(1-u)*u, c=u*u; return { x:a*h.cx+b*mx+c*h.tx, y:a*h.cy+b*my+c*h.ty }; }
+function tickStone(h,dt){
+  if(h.st==='aim'){ if(h.t>=STONE_TELE){ h.st='fly'; h.t=0; } return; }
+  if(h.st==='fly'){ if(h.t>=STONE_FLY){
+      h.st='done'; h.done=true; hzLog.push({type:'stone', tele:STONE_TELE}); sfx('stone_impact');
+      fxAdd(h.tx,h.ty,'dust',null,0.6);
+      if(Math.hypot(P.x-h.tx,P.y-h.ty)<STONE_R){
+        if(spinning()){ flash('CLANK — THE SCREW TURNS IT','#9fe08a',0.8); sfx('clank'); score+=100; }
+        else if(P.invuln<=0) hitPlayer('stone'); }
+      else stats.dodged++;
+      var r=onRope(); if(r && Math.hypot(r.x-h.tx,(r.y-r.w.h*0.5)-h.ty)<STONE_R) releaseFriend(r,'THE STONE SHOOK THEM LOOSE');
+    } }
+}
+function shotTick(dt){
+  for(var s=shots.length-1;s>=0;s--){ var sh=shots[s]; sh.t+=dt; sh.x+=sh.vx*dt; sh.y+=sh.vy*dt;
+    if(!sh.harmless && Math.hypot(sh.x-P.x,sh.y-P.y) < (spinning()?58:40)){
+      if(spinning() && D8_SPIN_DEFLECTS){ var dx=sh.x-P.x, dy=sh.y-P.y, L=Math.hypot(dx,dy)||1, sp=Math.hypot(sh.vx,sh.vy);
+        sh.vx=dx/L*sp*0.9; sh.vy=dy/L*sp*0.9-80; sh.harmless=true; fxAdd(sh.x,sh.y,'ring','#9fe08a',0.35); sfx('clank'); score+=50; }
+      else if(P.invuln>0){ shots.splice(s,1); continue; }
+      else { hitPlayer(sh.type); shots.splice(s,1); continue; }
+    }
+    if(!sh.harmless){ var r=onRope(); if(r && Math.hypot(sh.x-r.x, sh.y-(r.y-r.w.h*0.5))<28){ shots.splice(s,1); releaseFriend(r,'HIT ON THE ROPE — THEY LET GO'); continue; }
+      for(var q=0;q<friends.length;q++){ var f=friends[q]; if(f.st==='ladder' && Math.hypot(sh.x-f.x, sh.y-(f.y-f.w.h*0.5))<26){ shots.splice(s,1); releaseFriend(f,'HIT ON THE LADDER — THEY LET GO'); break; } } }
+    if(sh.t>sh.life || sh.x<-80||sh.x>LW+80||sh.y<-80||sh.y>LH+80){ if(sh.t>0.2 && !sh.harmless) stats.dodged++; shots.splice(s,1); }
+  }
+}
+function hitPlayer(src){
+  if(spinning()||P.invuln>0) return;
+  hp-=HIT_DMG; P.stun=HIT_STUN; P.invuln=HIT_INVULN; shake=16; stats.hits++; sfx('hit'); fxAdd(P.x,P.y,'boom',null,0.6);
+  releaseAll('HIT! THEY LET GO');
+  if(hp<=0){ hp=0; }
+}
 
-  var FH=friendH(), gy=groundY(), ex=P.x, ey=ropeEndY(), R=Math.max(22, W*RESCUE_GRAB_R);
-  var hovering = P.spd < LADDER_HOVER_V;
+/* ---------- THE RAY: hold to plant; the god-ray lifts a red hat out of the fight ---------- */
+function rayTick(dt){
+  P.lock=null;
+  if(P.raying){
+    var best=RAY_REACH, bi=-1;
+    for(var i=0;i<legion.length;i++){ var g=legion[i]; if(g.gone) continue; var d=Math.abs(g.x-P.x); if(d<best && g.y>P.y){ best=d; bi=i; } }
+    if(bi>=0){ var g=legion[bi]; if(!g.lifting) sfx('ray_on'); P.lock=g; g.lifting=true; g.lock=clamp(g.lock+dt/g.k.lock,0,1);
+      if(g.lock>=1){ g.gone=true; score+=g.k.val; stats.beamed++; fxAdd(P.x,P.y+30,'ring','#ffe9a8',0.5); sfx('ray_take'); } }
+  }
+  for(var i=0;i<legion.length;i++){ var g=legion[i]; if(g!==P.lock && g.lock>0){ g.lock=Math.max(0,g.lock-dt*1.6); if(g.lock<=0) g.lifting=false; } }
+}
+
+/* =====================================================================
+   THE RESCUE — rope (hangs, one at a time), ladder (climb while you hover),
+   the stranded, the drop-off. FRIENDLIES CANNOT BE RAYED: the ray only
+   ever searches `legion`; the stranded live in `friends`.
+   ===================================================================== */
+function saveFriend(f,how){ if(f.st==='safe'||f.st==='lost') return;
+  f.st='safe'; f.how=how; f.prog=0; score+=RESCUE_PTS; sfx('deliver');
+  if(how==='drop'){ f.x=clamp(f.x,F.drop.x-F.drop.w*0.4,F.drop.x+F.drop.w*0.4); f.y=dropSurf(); }
+  fxAdd(f.x, how==='aboard'?P.y:f.y-20, 'ring', '#7fe7ff', 0.5);
+  flash((how==='aboard'?'ABOARD — SAFE':'SAFE')+'  +'+RESCUE_PTS,'#7fe7ff',0.9);
+  if(rescuedN()>=F.need && !hornSet){ hornSet=true; if(rescuedN()<friends.length){ stageClock=Math.min(stageClock,HORN_AFTER_NEED); flash('ENOUGH ARE SAFE — THE HORN IN '+HORN_AFTER_NEED+'. BRING THE REST?','#e8c66a',2.2); sfx('horn'); } }
+}
+function loseFriend(f,how){ if(f.st==='safe'||f.st==='lost') return;
+  f.st='lost'; f.how=how; f.fade=1; stats.lost++; sfx('lost');
+  flash(how==='captured'?'THE LEGION TOOK ONE OF OURS': how==='drowned'?'THE WASH TOOK ONE':'LOST IN THE FALL','#ff8a5a',1.2); }
+function releaseFriend(f,why){ if(f.st!=='rope'&&f.st!=='ladder') return false;
+  f.st='fall'; f.vy=0; f.fallFrom=f.y; f.cd=REGRAB; f.prog=0; sfx('let_go'); if(why) flash(why,'#ffb347',1.0); return true; }
+function releaseAll(why){ var any=false; for(var i=0;i<friends.length;i++) if(releaseFriend(friends[i])) any=true; if(any&&why) flash(why,'#ffb347',1.0); return any; }
+function giveLadder(){ P.gear='ladder'; ladderT=LADDER_SECS; var r=onRope(); if(r && !r.w.animal){ r.st='ladder'; r.prog=0; }
+  sfx('ladder_get'); flash('LADDER! HOVER SO THEY CAN CLIMB · '+LADDER_CAP+' AT ONCE · NOT GOATS','#e8c66a',1.6); }
+function rescueTick(dt, el){
+  for(var i=0;i<(F.ladders||[]).length;i++){ var ld=F.ladders[i];
+    if(!ladderSpawned[i] && el>=ld.at){ ladderSpawned[i]=1; pickups.push({ x:ld.x, y:BAND_TOP+(bandBot()-BAND_TOP)*0.4, ttl:LADDER_PICK_TTL }); flash('A LADDER CRATE DRIFTS IN','#e8c66a',1.0); } }
+  for(var i=pickups.length-1;i>=0;i--){ var pk=pickups[i]; pk.ttl-=dt;
+    if(Math.hypot(pk.x-P.x,pk.y-P.y)<70){ pickups.splice(i,1); giveLadder(); continue; } if(pk.ttl<=0) pickups.splice(i,1); }
+  if(P.gear==='ladder'){ ladderT-=dt; if(ladderT<=0 && !onLadder()){ P.gear='rope'; ladderT=0; flash('LADDER STOWED — BACK ON THE ROPE','#efe3c4',0.9); } }
+
+  var ex=P.x, ey=ropeEndY(), hover=P.spd<LADDER_HOVER_V;
   for(var i=0;i<friends.length;i++){ var f=friends[i];
     if(f.cd>0) f.cd-=dt;
     if(f.st==='lost'){ if(f.fade>0) f.fade-=dt*0.6; continue; }
     if(f.st==='safe') continue;
     if(f.st==='ground'){
-      if(f.cd>0 || P.stun>0) continue;
-      // hands are at the top of the figure; the rope's end must pass within reach of them
-      if(Math.hypot(f.x-ex, (gy-FH)-ey) < R){
-        if(P.gear==='rope' && !onRope()){ f.st='rope'; flash('GOT ONE — HANG ON! FLY THEM TO SAFE','#6fd3ff',1.0); }
-        else if(P.gear==='ladder' && ladderT>0 && onLadder()<LADDER_CAP){ f.st='ladder'; f.prog=0; flash('ON THE LADDER — HOVER SO THEY CAN CLIMB','#6fd3ff',1.0); }
+      var stand=GY()-f.rock;
+      if(F.water){ var depth=stand-waterY; f.sink=clamp(depth/(f.w.h*0.55),0,1); if(depth>f.w.h*0.55){ f.y=stand; loseFriend(f,'drowned'); continue; } }
+      if(f.cd>0||P.stun>0) continue;
+      var top=stand-f.w.h;
+      if(Math.abs(f.x-ex)<GRAB_R && ey>=top-14 && ey<=stand){
+        if(P.gear==='rope' && !onRope()){ f.st='rope'; sfx('grab'); flash(f.w.animal?'GOT ONE — IN THE SLING. FLY IT TO '+F.drop.label:'GOT ONE — HANG ON! FLY THEM TO '+F.drop.label,'#7fe7ff',1.0); }
+        else if(P.gear==='ladder' && !f.w.animal && onLadder()<LADDER_CAP){ f.st='ladder'; f.prog=0; sfx('grab'); flash('ON THE LADDER — HOVER SO THEY CAN CLIMB','#7fe7ff',1.0); }
       }
       continue;
     }
-    if(f.st==='fall'){
-      f.vy += RESCUE_FALL_G*dt; f.y += f.vy*dt;
-      if(f.y>=gy){ f.y=gy; f.vy=0;
-        var drop=gy-f.fallFrom;
-        if(drop > H*RESCUE_SAFE_FALL) loseFriend(f,'fall');
-        else if(inDrop(f.x)) saveFriend(f,'drop');           // a short hop down INTO the camp counts
-        else { f.st='ground'; flash('SHORT DROP — THEY\'RE OK','#bdf2cf',0.8); }
-      }
-      continue;
-    }
-    // --- carried: rope (hangs, never climbs) or ladder (climbs while you hover) ---
+    if(f.st==='fall'){ f.vy+=FALL_G*dt; f.y+=f.vy*dt; var sf=surfAt(f.x);
+      if(f.y>=sf){ f.y=sf; f.vy=0; f.rock=0; var drop=sf-f.fallFrom;
+        if(drop>SAFE_FALL) loseFriend(f,'fall');
+        else if(inDrop(f.x)) saveFriend(f,'drop');
+        else if(F.water && waterY < sf-f.w.h*0.4) loseFriend(f,'drowned');
+        else { f.st='ground'; flash('SHORT DROP — THEY\'RE OK','#efe3c4',0.8); } }
+      continue; }
+    // carried
     f.x=P.x;
-    if(f.st==='ladder'){
-      if(hovering) f.prog += dt/LADDER_CLIMB;
-      if(f.prog>=1){ saveFriend(f,'aboard'); continue; }
-      f.y = ey - f.prog*(ropeLen()-6) + FH;
-    } else f.y = ey + FH;
-    // delivery: set them down LOW over the SAFE drop-off
-    if(f.y >= gy - H*RESCUE_DELIVER_LOW && inDrop(f.x)){ saveFriend(f,'drop'); continue; }
-    // hazards — anything that hits the hanging body shakes them off
-    var cx=f.x, cy=f.y-FH*0.5, hit=false;
-    for(var s=shots.length-1;s>=0;s--){ var sh=shots[s]; if(sh.harmless||sh.ally) continue;
-      if(Math.hypot(sh.x-cx, sh.y-cy) < FH*0.5){ shots.splice(s,1); hit=true; break; } }
-    if(!hit) for(var j=0;j<jets.length;j++) if(Math.hypot(jets[j].x-cx, jets[j].y-cy) < SAUCER_W()*0.35){ hit=true; break; }
-    if(!hit && f.y > gy-FH*0.5) for(var q=0;q<targets.length;q++){ var c=targets[q];
-      if(!c.gone && !c.lifting && Math.abs(c.x-f.x) < W*0.016){ hit=true; break; } }
-    if(hit){ addFx(cx,cy,'spark','#ffb347',0.3); releaseFriend(f,'DRAGGED THROUGH IT — THEY LET GO'); }
+    if(f.st==='ladder'){ if(hover) f.prog+=dt/LADDER_CLIMB; if(f.prog>=1){ saveFriend(f,'aboard'); continue; }
+      f.y = ey - f.prog*(ROPE_LEN-8) + f.w.h; }
+    else f.y = ey + f.w.h;
+    if(inDrop(f.x) && f.y >= dropSurf()-DELIVER_LOW){ saveFriend(f,'drop'); continue; }
+    if(f.y > GY()-24) for(var q=0;q<legion.length;q++){ var g=legion[q]; if(!g.gone && !g.lifting && !g.climb && Math.abs(g.x-f.x)<CARRY_REACH){ releaseFriend(f,'DRAGGED THROUGH THE LEGION — THEY LET GO'); break; } }
   }
 }
+var TIPS=[
+  {id:'rope',  when:function(){ return simT>0.5 && !onRope() && rescuedN()===0; }, until:function(){ return !!onRope()||rescuedN()>0; }, text:'FLY LOW — PASS THE ROPE\'S END TO THEIR HANDS'},
+  {id:'carry', when:function(){ return !!onRope() && rescuedN()===0; }, until:function(){ return rescuedN()>0; }, text:'NOW FLY TO '+'THE CAMP'+' AND SET THEM DOWN LOW'},
+  {id:'ray',   when:function(){ return rescuedN()>0 && legion.some(function(g){return !g.gone && Math.abs(g.x-P.x)<240;}); }, until:function(){ return stats.beamed>0; }, text:'HOLD SPACE — THE RAY LIFTS A RED HAT OUT OF THE FIGHT'},
+  {id:'ladder',when:function(){ return pickups.length>0; }, until:function(){ return P.gear==='ladder'||pickups.length===0; }, text:'FLY INTO THE LADDER CRATE — IT CARRIES THREE'},
+  {id:'spin',  when:function(){ return P.gear==='ladder'; }, until:function(){ return P.gear!=='ladder'; }, text:'HOVER — THEY CLIMB WHILE YOU HOLD STILL.  F = THE SCREW: SPIN THROUGH FIRE'}
+];
+var tipNow=null;
+function tipsTick(){ tipNow=null; if(!F.tutorial) return;
+  for(var i=0;i<TIPS.length;i++){ var T=TIPS[i]; if(tipDone[T.id]) continue; if(T.until()){ if(T.seen) tipDone[T.id]=1; continue; } if(T.when()){ T.seen=1; tipNow=T.text; return; } } }
 
-function spawnBradley(){
-  var west = targets.length%2===0;
-  targets.push({ kind:'vehicle', def:TARGETKINDS.vehicle, sprite:'gp_bradley',
-    x: west? W*0.02 : W*0.98, y:groundY(), vx:0,vy:0, dir:west?1:-1, lock:0, lifting:false,
-    gone:false, fireCd:rnd(0.6,1.4), isBoss:true, hp:6, strikeCd:rnd(0.4,1.0) });
+function endCheck(){
+  if(state!=='play') return;
+  if(hp<=0) return fail('hull');
+  var r=rescuedN(), l=lostN(), n=friends.length;
+  if(n-l < F.need) return fail('lost');
+  if(r===n || (r>=F.need && r+l===n)) return win('all');
+  if(stageClock<=0){ if(r>=F.need) return win('horn'); return fail('clock'); }
 }
-
-/* ---------- ?selftest — the mission, proven headless ------------------------
-   House convention (MERC ZEBRA selfTest, SUCK UP --selftest): verification lives
-   IN the artifact, not in a throwaway rig. "It loaded with no console errors" is
-   not a test — a page whose sprites 404 still boots, still paints, and still
-   reports clean. So this asserts PROOF OF LIFE: the line exists, the legion
-   closes on it, damage actually lands, waves keep arriving, and the phases turn.
-   Runs the real update() on a fixed dt — no rendering, no timers, no RNG seeding
-   needed because every assertion is about behaviour, not exact values.
-   Open: PAX GNOMANIA — AIRY.html?selftest
-   --------------------------------------------------------------------------- */
-function selfTest(){
-  var R=[], ok=function(n,c,d){ R.push({n:n,ok:!!c,d:d||''}); };
-  W=1280; H=860;
-  var SURV=-1, BOTH=-1, RESC=[];
-  LEVELS.forEach(function(L,i){ if(L.kind==='survival'&&SURV<0) SURV=i; if(L.kind==='both'&&BOTH<0) BOTH=i; if(L.kind==='rescue') RESC.push(i); });
-  ok('the fronts are a MIX of kinds', LEVELS.map(function(L){return L.kind;}).join(',')==='rescue,rescue,survival,rescue,both',
-     LEVELS.map(function(L){return L.kind;}).join(' · '));
-
-  // ================= SURVIVAL — THE GUNPOWDER HORROR, unchanged =================
-  startMission(SURV);
-  ok('the line is built', defenders.length===DEFENDERS.length, defenders.length+' defenders');
-  ok('there are people to save', gpPeopleTotal()>0 && gpPeople()===gpPeopleTotal(),
-     gpPeople()+'/'+gpPeopleTotal());
-  ok('armed defenders exist (the line can fight back)',
-     defenders.filter(function(d){return d.armed;}).length>=3);
-  ok('the legion is on the field at kickoff', targets.filter(function(t){return !t.gone;}).length>0);
-
-  // the legion should start at the EDGES, not milling in the middle
-  var mid=0; for(var i=0;i<targets.length;i++) if(!targets[i].gone && Math.abs(targets[i].x-W*0.5)<W*0.25) mid++;
-  ok('the legion marches in from the edges', mid===0, mid+' spawned mid-field');
-
-  var hp0=0; for(i=0;i<defenders.length;i++) hp0+=Math.max(0,defenders[i].hp);
-  var g0=targets.filter(function(t){return !t.gone;}).length;
-  var dt=1/60, phasesSeen={};
-  for(var k=0;k<60*30;k++){ update(dt); phasesSeen[gpPhase]=1; }
-  var hp1=0; for(i=0;i<defenders.length;i++) hp1+=Math.max(0,defenders[i].hp);
-  var g1=targets.filter(function(t){return !t.gone;}).length;
-
-  ok('the legion reaches the line and does damage', hp1<hp0, hp0+' -> '+hp1+' line HP');
-  ok('reinforcements keep arriving', g1>0, g1+' on the field after 30s');
-  ok('the swarm stays BOUNDED (a set force, perf-safe)', g1<=GP_MAX_GNOMES+GP_BRADLEYS+2, g1+' vs cap '+GP_MAX_GNOMES);
-  ok('THE FALLBACK turns phases', gpPhase>0, 'reached phase '+gpPhase);
-  ok('the stage clock runs', stageClock<levelLen);
-
-  ok('a survival front has no stranded and no rope', friends.length===0 && !dropZone());
-
-  // the beam THINS the swarm: on a front a beamed gnome stays gone (the sandbox respawn only survives in THE SIEGE)
-  startMission(SURV); var foe0=targets.filter(function(t){return !t.gone && t.kind!=='vehicle';})[0];
-  abduct(foe0); for(k=0;k<60*4;k++){ hp=maxHP; update(dt); }
-  ok('a beamed gnome stays gone on a front (it does not march back in)', foe0.gone && foe0.respawn>1e8, 'respawn '+foe0.respawn);
-
-  // the mission must be LOSABLE — an unbeatable or unloseable defense is not a mission.
-  // Read the town at the moment THIS front ends (the next front builds its own line).
-  // The hull is pinned: an idle ship gets shot down ~21s in, which ended the old run
-  // with the town at 4/7 — it passed on the PLAYER dying, not the TOWN falling.
-  startMission(SURV); lastResult=null;
-  for(k=0;k<60*Math.ceil(levelLen+2) && state==='play' && level===SURV;k++){ hp=maxHP; update(dt); }
-  var lr=lastResult||{};
-  ok('an untouched town falls (the player is load-bearing)', lr.idx===SURV && lr.people<lr.peopleTotal,
-     lr.people+'/'+lr.peopleTotal+' left with no player help ('+lr.reason+' @ '+lr.t+'s)');
-
-  // ================= RESCUE — the rope, the ladder, the stranded =================
-  // A QUIET rig: the real update(), but no legion/jets/waves, so each rule is isolated.
-  var b, low, mid;
-  function quiet(idx){ startMission(idx); targets=[]; shots=[]; jets=[]; gpWaveT=1e9; pickups=[];
-    (LEVELS[idx].ladders||[]).forEach(function(_,i){ ladderSpawned[i]=1; });
-    b=band(); low=b.bot; mid=(b.top+b.bot)/2; }
-  function park(x,y){ P.x=P.tx=x; P.y=P.ty=y; P.vx=P.vy=0; }
-  function run(sec){ for(var n=0;n<Math.round(sec*60);n++){ meter=0; update(dt); } }
-  var R0=RESC[0];
-
-  quiet(R0);
-  var f0=friends[0], f1=friends[1], f2=friends[2];
-  ok('stranded friendlies are on the ground', friends.length===LEVELS[R0].friends.length && friends.every(function(f){return f.st==='ground';}),
-     friends.length+' stranded, need '+LEVELS[R0].need);
-  park(f2.x, mid); run(0.3);
-  ok('the rope does NOT reach from mid-band (you must fly low)', f2.st==='ground');
-  planting=true; run(1.0); planting=false;
-  ok('the beam cannot lift a friendly (impossible by construction)', f2.st==='ground' && P.lock===null);
-  park(f0.x, low); run(0.2);
-  ok('the rope grabs a friendly within reach', f0.st==='rope', 'rope end '+Math.round(ropeEndY())+' vs hands '+Math.round(groundY()-friendH()));
-  ok('...and only one — the rope holds one', friends.filter(function(f){return f.st==='rope';}).length===1 && f1.st==='ground');
-  var sc0=score; park(dropZone().x, low); run(0.2);
-  ok('a delivery at the drop-off counts', f0.st==='safe' && f0.how==='drop' && rescuedN()===1 && score-sc0===RESCUE_BONUS,
-     rescuedN()+' safe, +'+(score-sc0));
-
-  quiet(R0); f0=friends[0]; f1=friends[1]; f2=friends[2];
-  park(f0.x, low); run(0.2); park(f0.x+W*0.06, mid); run(0.3);
-  var wasRope=f0.st==='rope'; P.invuln=0; hitPlayer();
-  ok('a hit makes them let go', wasRope && f0.st==='fall');
-  run(1.5);
-  ok('...and a long fall is lost', f0.st==='lost', 'fell '+Math.round(groundY()-(f0.fallFrom||0))+'px vs safe '+Math.round(H*RESCUE_SAFE_FALL)+'px');
-  P.invuln=0; P.stun=0; hp=maxHP;
-  park(f1.x, low); run(0.2); var r1=f1.st==='rope'; P.invuln=0; hitPlayer(); run(0.5);
-  ok('...but a short drop is walked off (can be picked up again)', r1 && f1.st==='ground');
-  P.invuln=0; P.stun=0; hp=maxHP; f2.cd=0;
-  park(f2.x, low); run(0.2);
-  spawnTarget('gnome'); var foe=targets[targets.length-1]; foe.x=P.x; run(1/60);
-  ok('dragging them through the legion makes them let go', f2.st==='fall');
-  targets=[]; run(0.6); f2.cd=0; P.stun=0; run(0.1);
-  var g2=f2.st==='rope';
-  shoot(f2.x, f2.y-friendH()*0.5, 0,0,'tracer','#fff'); shots[shots.length-1].ally=true; run(1/60);
-  var allyOk=f2.st==='rope';
-  shoot(f2.x, f2.y-friendH()*0.5, 0,0,'potshot','#fff'); run(1/60);
-  ok('an enemy shot knocks them off; the soldiers\' ally fire never does', g2 && allyOk && f2.st==='fall');
-
-  // THE LADDER — caps at 3, climbers become safe once aboard (while you hover)
-  var RL=RESC[RESC.length-1]; quiet(RL);
-  var X=W*0.40; for(var i=0;i<4;i++){ friends[i].x=X; }
-  park(X, mid); pickups.push({x:P.x,y:P.y,ttl:5}); run(1/60);
-  ok('the LADDER pickup replaces the rope', P.gear==='ladder' && ladderT>0);
-  var maxOn=0; park(X, low);
-  for(var n=0;n<6;n++){ run(1/60); maxOn=Math.max(maxOn,onLadder()); }
-  ok('the ladder caps at 3', onLadder()===LADDER_CAP && friends.filter(function(f){return f.x===X&&f.st==='ground';}).length===1, onLadder()+' on, 1 waiting');
-  var p0=friends[0].prog; park(X, mid);
-  for(var n=0;n<30;n++){ P.tx=P.x+(n%2?-60:60); update(dt); P.ty=P.y; }   // jinking about — not hovering
-  var moved=friends[0].prog-p0;
-  park(X, mid); var aboard0=rescuedN();
-  for(var n=0;n<Math.round((LADDER_CLIMB+0.3)*60);n++){ update(dt); maxOn=Math.max(maxOn,onLadder()); }
-  var aboard=friends.filter(function(f){return f.how==='aboard';}).length;
-  ok('climbers only climb while you hover', moved < 30/60/LADDER_CLIMB*0.5, 'moving gained '+moved.toFixed(3)+' of a climb');
-  ok('climbers become safe once aboard', aboard===LADDER_CAP && rescuedN()-aboard0===LADDER_CAP && maxOn<=LADDER_CAP, aboard+' aboard, max on ladder '+maxOn);
-  park(X, low); run(0.1); var late=friends[3], lateOn=late.st==='ladder';
-  P.invuln=0; hitPlayer();
-  ok('a hit shakes a climber off, never the aboard', lateOn && late.st==='fall' && friends.filter(function(f){return f.how==='aboard'&&f.st==='safe';}).length===LADDER_CAP);
-  P.stun=0; P.invuln=0; hp=maxHP; late.cd=99; ladderT=0.05; park(X, mid); run(0.6);
-  ok('an empty, spent ladder is stowed back to the rope', P.gear==='rope');
-
-  // a RESCUE front is WINNABLE: bring them all out and it clears on its own
-  quiet(R0); lastResult=null;
-  for(var i=0;i<friends.length && state==='play' && level===R0;i++){ var fr=friends[i]; park(fr.x, low); run(0.2); park(dropZone().x, low); run(0.2); }
-  lr=lastResult||{};
-  ok('a rescue front is winnable (all brought out = cleared)', lr.idx===R0 && lr.passed===true, (lr.rescued)+'/'+(lr.stranded)+' · '+lr.reason);
-
-  // the player is NECESSARY: an untouched rescue front is failed by the clock
-  startMission(R0); lastResult=null;
-  for(k=0;k<60*Math.ceil(levelLen+3) && state==='play' && level===R0;k++){ hp=maxHP; update(dt); }
-  lr=lastResult||{};
-  ok('an untouched rescue front is FAILED by the clock (the player is necessary)', lr.idx===R0 && lr.passed===false && lr.rescued===0 && lr.reason==='clock',
-     lr.reason+' @ '+lr.t+'s · '+lr.rescued+' safe · '+lr.lost+' lost to the legion');
-
-  // BOTH — hold the line while evacuating
-  startMission(BOTH);
-  ok('the HOLD + EVACUATE front builds the line AND the stranded', defenders.length===DEFENDERS.length && friends.length===LEVELS[BOTH].friends.length && !!dropZone());
-
-  var pass=R.every(function(r){return r.ok;});
-  var html='<pre style="font:13px ui-monospace;color:#e9e0d6;background:#03020a;padding:18px;margin:0;min-height:100vh">'
-    +'<b style="font-size:18px;color:'+(pass?'#9affc0':'#ff5d6c')+'">PAX GNOMANIA — THE FRONTS (rescue · survival · both) — SELF TEST: '+(pass?'PASS':'FAIL')+'</b>\n\n';
-  R.forEach(function(r){ html+=(r.ok?'  <span style="color:#9affc0">OK  </span>':'  <span style="color:#ff5d6c">FAIL</span>')+'  '+r.n+(r.d?'   <span style="color:#7a6f5f">'+r.d+'</span>':'')+'\n'; });
-  html+='</pre>';
-  document.body.innerHTML=html;
-  document.title='PAX SELFTEST '+(pass?'PASS':'FAIL');
-  return pass;
+var FAILS={ hull:['SHOT DOWN','The ornithopter came down behind the line.'], lost:['LEFT BEHIND','Too many were lost — there are not enough left to bring out.'],
+            clock:['THE HORN SOUNDED','Not enough reached safety before the horn.'] };
+function fail(reason){
+  state='failed'; rt=0; sfx('fail'); playMusic('failed',0.6);
+  lastResult={ front:fi, key:F.key, passed:false, reason:reason, t:+simT.toFixed(2), rescued:rescuedN(), lost:lostN(), need:F.need, stranded:friends.length, hp:hp };
 }
-
-function spawnJet(stg){ var b=band(), dir=chance(.5)?1:-1;
-  jets.push({ dir:dir, x:dir>0?-70:W+70, y:b.top-H*0.04, base:clamp(P.y+rnd(-40,40),b.top-H*0.04,b.bot), vy:0,
-    amp:H*(0.03+Math.random()*0.05), spd:1.3+Math.random()*1.3, phase:rnd(0,6.28), vx:(170+stg*30+Math.random()*90)*dir, bank:0, fireCd:rnd(0.6,1.4) }); }
-
-/* ---------- render ---------- */
-function drawBoot(){
-  ctx.fillStyle='#03020a'; ctx.fillRect(0,0,W,H);
-  var cx=W/2, cy=H*0.44, pulse=0.5+0.5*Math.sin(bootT*3);
-  var gl=ctx.createRadialGradient(cx,cy,10,cx,cy,W*0.5);
-  gl.addColorStop(0,'rgba(255,43,58,'+(0.16+0.16*pulse)+')'); gl.addColorStop(0.5,'rgba(255,43,58,0.05)'); gl.addColorStop(1,'rgba(255,43,58,0)');
-  ctx.fillStyle=gl; ctx.fillRect(0,0,W,H);
-  var shiver=Math.sin(bootT*34)*1.5, lw=Math.min(W*0.45,520)*(0.94+0.07*clamp(bootT/3.4,0,1));
-  if(!drawImg('ck_logo', cx+shiver, cy, lw, 0, clamp(bootT*1.6,0,1))){ ctx.textAlign='center'; ctx.fillStyle='#ff5d6c'; ctx.font='900 60px system-ui'; ctx.fillText('CASTLE KILLSCREEN',cx,cy); }
-  ctx.textAlign='center'; ctx.globalAlpha=clamp(bootT-1.4,0,1)*(0.5+0.4*pulse); ctx.fillStyle=TH.edge; ctx.font='800 16px system-ui'; ctx.fillText('PAX GNOMANIA  ·  '+TH.name, cx, H*0.66); ctx.globalAlpha=1;
-  ctx.globalAlpha=clamp((bootT-1.6)*1.4,0,0.7); ctx.fillStyle='#7a6f5f'; ctx.font='700 12px ui-monospace'; ctx.fillText('press any key', cx, H*0.86); ctx.globalAlpha=1;
+function win(reason){
+  var r=rescuedN(), n=friends.length, all=(r===n);
+  var tally=[ ['BROUGHT OUT', r+' / '+n, r*RESCUE_PTS], ['RED HATS RAYED', stats.beamed+'', 0], ['EVERY SOUL', all?'YES':'—', all?ALL_BONUS:0],
+              ['HULL', Math.max(0,hp)+'%', Math.max(0,hp)*HULL_PTS], ['TIME LEFT', Math.max(0,Math.ceil(stageClock))+'s', Math.max(0,Math.ceil(stageClock))*TIME_PTS] ];
+  var bonus=tally[2][2]+tally[3][2]+tally[4][2]; score+=bonus;
+  var grade = all&&hp>=HULL ? 'AUREUS' : all ? 'ARGENTEUS' : r>F.need ? 'DENARIUS' : 'AS';
+  state='results'; rt=0; sfx('win'); playMusic('results',0.6);
+  lastResult={ front:fi, key:F.key, passed:true, reason:reason, t:+simT.toFixed(2), rescued:r, lost:lostN(), need:F.need, stranded:n, hp:hp, tally:tally, grade:grade, frontScore:score-scoreAtStart, total:score };
 }
-function drawBG(){
-  var sky=ctx.createLinearGradient(0,0,0,H); sky.addColorStop(0,TH.sky[0]); sky.addColorStop(.55,TH.sky[1]); sky.addColorStop(.84,TH.sky[2]); sky.addColorStop(1,TH.sky[3]);
-  ctx.fillStyle=sky; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='#cfe8ff'; for(var i=0;i<80;i++){ var sx=(i*131%W), sy=(i*71%(H*0.55)); ctx.globalAlpha=0.25+0.45*Math.abs(Math.sin(i+t*1.1)); ctx.fillRect(sx,sy,1.6,1.6); } ctx.globalAlpha=1;
-  if(ok('moon')) drawImg('moon',W*0.84,H*0.15,clamp(W*0.08,70,130),0,0.9);
-  var gy=groundY();
-  for(var i=0;i<scenery.length;i++){ var p=scenery[i]; drawImg(p.s,p.x,gy-p.w*0.32,p.w,0,0.92,false); }
-  ctx.fillStyle=TH.ground; ctx.fillRect(0,gy+8,W,H);
-  ctx.strokeStyle=TH.edge+'88'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,gy+8); ctx.lineTo(W,gy+8); ctx.stroke();
-}
-function drawDefenders(){
-  // Drawn UNDER the legion so a gnome standing on a defender reads as overrun.
-  // Damage shows in the sprite itself — a hit flashes it and a wounded defender
-  // sits lower and dimmer — rather than in a bar, because the line is the readout.
-  for(var i=0;i<defenders.length;i++){ var d=defenders[i];
-    if(!d.alive) continue;
-    var im=IMG[d.s], ar=(im&&im.ok)? im.naturalWidth/im.naturalHeight : 1.0;
-    var w=d.w, h=w/ar;
-    var wounded = d.maxhp>0 ? (1 - d.hp/d.maxhp) : 0;
-    var a = d.vanish>0 ? clamp(d.vanish/0.5,0,1) : (1 - wounded*0.35);
-    if(d.hitT>0){ ctx.save(); ctx.globalCompositeOperation='lighter'; }
-    drawImg(d.s, d.x, groundY()+6-h/2 + wounded*h*0.10, w, 0, a, false, !!(d.armed||d.civ));
-    if(d.hitT>0) ctx.restore();
-    if(d.armed && d.alive && d.hp>0){        // a small standing mark so the armed line reads
-      ctx.fillStyle='rgba(154,255,192,'+(0.55*(d.hp/d.maxhp))+')';
-      ctx.fillRect(d.x-7, groundY()+9, 14, 2);
+function fxAdd(x,y,kind,col,life){ if(fx.length>90) fx.shift(); fx.push({x:x,y:y,kind:kind,col:col,t:0,life:life||0.5}); }
+
+/* =====================================================================
+   THE AUTOPILOT — a competent scripted pilot (the ?selftest's "can it be
+   won" policy, the ?demo, and the attract's live reconstruction). It
+   reads the telegraphs exactly as a player would: never the RNG.
+   ===================================================================== */
+function makePilot(opts){
+  opts=opts||{};
+  var mem={evadeT:0, ey:0, ex:null, hoverT:0};
+  return function(){
+    var o={left:0,right:0,up:0,down:0,ray:0,spin:0};
+    if(opts.idle || !P) return o;
+    var tx=P.x, ty=P.y, bb=maxY(), threat=false, r=onRope();
+    // --- 1. threats (telegraphs) ---
+    for(var i=0;i<haz.length;i++){ var h=haz[i];
+      if(h.k==='shooter' && h.st==='aim'){ var dx=h.ax-h.x, dy=h.ay-h.y, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L, d=(P.x-h.x)*nx+(P.y-h.y)*ny;
+        if(Math.abs(d)<70 && h.t>h.S.track*0.5){ threat=true; ty = P.y + (P.y>(BAND_TOP+bb)/2 ? -150 : 150); tx = P.x + (d>=0?1:-1)*nx*120; } }
+      if(h.k==='thopter' && (h.st==='warn'||h.st==='cross') && Math.abs(h.y-P.y)<THOPTER_HH+60){ threat=true; ty = h.y + (h.y>(BAND_TOP+bb)/2 ? -150 : 150); }
+      if(h.k==='glider' && (h.st==='warn' || (h.st==='fly' && (h.x-P.x)*h.dir<0 && Math.abs(h.x-P.x)<420)) && Math.abs(h.y-P.y)<110){ threat=true; ty = h.y + (h.y>(BAND_TOP+bb)/2 ? -170 : 170); }
+      if(h.k==='stone' && Math.hypot(P.x-h.tx,P.y-h.ty)<STONE_R+70){ threat=true; tx = h.tx + (P.x>=h.tx?1:-1)*200; }
     }
-  }
+    for(var s=0;s<shots.length;s++){ var sh=shots[s]; if(sh.harmless) continue; var ddx=P.x-sh.x, ddy=P.y-sh.y, dd=Math.hypot(ddx,ddy);
+      if(dd<170 && (ddx*sh.vx+ddy*sh.vy)>0 && simT>=P.spinCd) o.spin=1; }
+    for(var i=0;i<haz.length;i++){ var h=haz[i]; if((h.k==='thopter'&&h.st==='cross'&&Math.abs(h.x-P.x)<240&&Math.abs(h.y-P.y)<THOPTER_HH+20)||(h.k==='stone'&&h.st==='fly'&&h.t>STONE_FLY-0.3&&Math.hypot(P.x-h.tx,P.y-h.ty)<STONE_R)) { if(simT>=P.spinCd) o.spin=1; } }
+    if(threat){ mem.evadeT=0.35; mem.ey=ty; mem.ex=tx; }
+    else if(mem.evadeT>0){ mem.evadeT-=1/60; ty=mem.ey; tx=mem.ex; threat=true; }
+    // --- 2. the job ---
+    if(!threat){
+      var dropX=F.drop.x;
+      if(r){ tx=dropX; ty = Math.abs(P.x-dropX)>110 ? bb-70 : bb; }
+      else if(P.gear==='ladder' && onLadder()>0){
+        var more=null; if(onLadder()<LADDER_CAP) more=nearestStranded(true, 160);
+        if(more){ tx=more.x; ty=bb; } else { tx=P.x; ty=P.y; return o; }   // hover: let them climb
+      } else {
+        var pk=pickups[0]; if(pk && P.gear==='rope' && Math.abs(pk.x-P.x)<520){ tx=pk.x; ty=pk.y; }
+        else { var f=nearestStranded(P.gear==='ladder'); if(f){ tx=f.x; ty = Math.abs(P.x-f.x)>160 ? bb-60 : bb; } else { tx=dropX; ty=(BAND_TOP+bb)/2; } }
+      }
+      // ray a red hat that is in the way (under us, or about to foul the rider)
+      for(var q=0;q<legion.length;q++){ var g=legion[q]; if(g.gone) continue;
+        var near=Math.abs(g.x-P.x)<26, inWay=(F.wall||F.legion.hunts) ? Math.abs(g.x-tx)<260 || g.climb : false;
+        if(near && (inWay || (r && g.y>=GY()-2 && !g.climb) || g.lifting)){ o.ray=1; return o; }
+        if(F.wall && Math.abs(g.x-P.x)<170 && !r && (g.climb || nearestStrandedTo(g)<220)){ tx=g.x; } }
+    }
+    var tol=STEP*0.6;
+    if(tx<P.tx-tol) o.left=1; else if(tx>P.tx+tol) o.right=1;
+    if(ty<P.ty-tol) o.up=1; else if(ty>P.ty+tol) o.down=1;
+    return o;
+  };
+}
+function strandedDanger(f){ // seconds until this one is lost (water / a climbing red hat), lower = sooner
+  var t=999; if(F.water){ var stand=GY()-f.rock, drownY=stand-f.w.h*0.55; t=(waterY-drownY)/Math.max(0.01,F.water.rate); }
+  if(F.legion.hunts) for(var q=0;q<legion.length;q++){ var g=legion[q]; if(!g.gone){ var d=Math.abs(g.x-f.x)+(g.climb?(g.y-GY()):0); t=Math.min(t,d/50); } }
+  return t; }
+function nearestStrandedTo(g){ var b=1e9; for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.st==='ground') b=Math.min(b,Math.abs(f.x-g.x)); } return b; }
+function nearestStranded(noAnimals, within){
+  var best=null, bs=1e9;
+  for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.st!=='ground'||f.cd>0) continue; if(noAnimals&&f.w.animal) continue;
+    var d=Math.abs(f.x-P.x); if(within!=null && d>within) continue;
+    var dz=strandedDanger(f), s = d + Math.abs(f.x-F.drop.x)*0.5 + (dz<25? -600+dz*20 : 0);
+    if(s<bs){ bs=s; best=f; } }
+  return best;
 }
 
-/* ---------- PAX RESCUE — render (ASCII/procedural placeholders; sprites map over later) ---------- */
-// One figure-drawer for every friendly pose. topY = where the HANDS are (top of the figure).
-function drawFriendFig(x, topY, pose, alpha, rot){
-  var LK=FRIENDLY_LOOK, fh=friendH();
-  if(LK.sprite && ok(LK.sprite)){ drawImg(LK.sprite, x, topY+fh/2, fh*0.8, rot||0, alpha); return; }
-  ctx.save(); ctx.globalAlpha=alpha==null?1:alpha; ctx.translate(x, topY); if(rot) ctx.rotate(rot);
-  var lines=LK[pose]||LK.stand, lh=fh/3;
-  ctx.font='900 '+Math.round(lh*1.12)+'px ui-monospace,Menlo,monospace'; ctx.textAlign='center'; ctx.textBaseline='top';
-  ctx.lineJoin='round'; ctx.lineWidth=3.5; ctx.strokeStyle=LK.ink; ctx.fillStyle=LK.col;
-  for(var i=0;i<lines.length;i++){ ctx.strokeText(lines[i],0,i*lh-1); ctx.fillText(lines[i],0,i*lh-1); }
-  ctx.restore();
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+var SKIES={
+  dawn:  {stops:['#4f6f9c','#9db4c9','#f0d2a6','#f6b884'], sun:{x:230,y:430,r:54,col:'255,232,190',glow:0.6,disc:0.55}, haze:'#e9d6bb', amb:'gulls'},
+  dusk:  {stops:['#0e1f22','#20403a','#7a6a3e','#d68a3c'], sun:{x:1240,y:560,r:58,col:'255,170,90',glow:0.5}, haze:'#3a4a34', amb:'motes'},
+  blood: {stops:['#160304','#4a0a08','#9b1f0e','#e2622a'], sun:{x:1060,y:470,r:170,col:'255,120,60',glow:0.75}, haze:'#7a1a0c', amb:'embers'},
+  night: {stops:['#04070f','#0b1630','#1b2c4f','#3c5170'], moon:{x:1300,y:170,r:46}, haze:'#26354f', amb:'snow'}
+};
+var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parallax speed, mode
+  dover:[ {n:'hz_dover', dy:12, h:330, sp:4, haze:0.10} ],
+  nottingham:[ {n:'vale_far_hills', dy:-120, h:230, sp:2, sil:'#2b3a2c'}, {n:'hills_white_horse', dy:-70, h:170, sp:4, haze:0.55},
+               {n:'forest_edge', dy:-40, h:150, sp:6, haze:0.42}, {n:'tree_line', dy:14, h:270, sp:10, haze:0.22} ],
+  wash:[ {n:'wash_far_hills', dy:-90, h:250, sp:2, sil:'#5e130c'}, {n:'wash_far_ruins', dy:-50, h:190, sp:4, sil:'#3a0a07'},
+         {n:'wash_mid_camp', dy:-14, h:200, sp:7, sil:'#220505'}, {n:'wash_battle_line', dy:8, h:150, sp:11, sil:'#100202'} ],
+  wall:[ {n:'snow_hills', dy:-110, h:160, sp:2, haze:0.62}, {n:'wall_thin', dy:-70, h:70, sp:4, haze:0.55},
+         {n:'wall_siege', dy:-8, h:130, sp:7, haze:0.42} ]
+};
+var drift=0;
+function drawStrip(L, gy){
+  var img = L.sil ? tinted(L.n, L.sil, 1, true) : (L.haze ? tinted(L.n, SKIES[F.time].haze, L.haze, false) : IMG[L.n]);
+  if(!img || (!L.sil && !L.haze && !ok(L.n))) return;
+  var iw=img.width||img.naturalWidth, ih=img.height||img.naturalHeight; if(!iw) return;
+  var h=L.h, w=h*iw/ih, y=gy+L.dy-h, off=-((drift*L.sp)%(w*2));
+  for(var x=off, k=0; x<LW; x+=w, k++){ if(x+w<0) continue;
+    ctx.save(); if(k%2){ ctx.translate(x+w,y); ctx.scale(-1,1); ctx.drawImage(img,0,0,w,h); } else ctx.drawImage(img,x,y,w,h); ctx.restore(); }
 }
-function drawHelpFlag(x, feetY, alpha){
-  var LK=FRIENDLY_LOOK, fh=friendH(), px=x+fh*0.55, top=feetY-fh*1.45, fw=fh*1.05, fl=fh*0.46, wv=Math.sin(t*5+x)*2;
-  ctx.save(); ctx.globalAlpha=alpha==null?1:alpha;
-  ctx.strokeStyle='#d9d2c0'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(px,feetY); ctx.lineTo(px,top); ctx.stroke();
-  ctx.fillStyle=LK.flagCol; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+fw,top+wv); ctx.lineTo(px+fw,top+fl+wv); ctx.lineTo(px,top+fl); ctx.closePath(); ctx.fill();
-  ctx.fillStyle=LK.flagInk; ctx.font='900 '+Math.round(fl*0.78)+'px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(LK.flag, px+fw/2, top+fl/2+wv/2);
-  ctx.restore();
+function drawSky(time){
+  var S=SKIES[time], g=ctx.createLinearGradient(0,0,0,GY()+20);
+  for(var i=0;i<S.stops.length;i++) g.addColorStop(i/(S.stops.length-1), S.stops[i]);
+  ctx.fillStyle=g; ctx.fillRect(0,0,LW,LH);
+  if(S.sun){ var s=S.sun, rg=ctx.createRadialGradient(s.x,s.y,4,s.x,s.y,s.r*4.2);
+    rg.addColorStop(0,'rgba('+s.col+','+s.glow+')'); rg.addColorStop(0.3,'rgba('+s.col+','+(s.glow*0.35)+')'); rg.addColorStop(1,'rgba('+s.col+',0)');
+    ctx.fillStyle=rg; ctx.fillRect(0,0,LW,LH); ctx.fillStyle='rgba('+s.col+','+(s.disc||0.92)+')'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.283); ctx.fill(); }
+  if(S.moon){ var m=S.moon; ctx.fillStyle='rgba(220,232,255,0.08)'; ctx.beginPath(); ctx.arc(m.x,m.y,m.r*3,0,6.283); ctx.fill();
+    ctx.fillStyle='#dfe7f4'; ctx.beginPath(); ctx.arc(m.x,m.y,m.r,0,6.283); ctx.fill(); ctx.fillStyle='rgba(140,155,185,0.35)'; ctx.beginPath(); ctx.arc(m.x-12,m.y-8,9,0,6.283); ctx.arc(m.x+14,m.y+12,6,0,6.283); ctx.fill();
+    ctx.fillStyle='#cfe0ff'; for(var i=0;i<90;i++){ var sx=(i*173)%LW, sy=(i*97)%(GY()-260); ctx.globalAlpha=0.2+0.4*Math.abs(Math.sin(i+rt*0.8)); ctx.fillRect(sx,sy,1.6,1.6); } ctx.globalAlpha=1; }
 }
-function drawDropZone(){
-  var d=dropZone(); if(!d) return;
-  var gy=groundY(), fh=friendH();
-  ctx.save();
-  ctx.fillStyle='rgba(111,211,255,0.10)'; ctx.fillRect(d.x-d.w/2, gy-H*RESCUE_DELIVER_LOW, d.w, H*RESCUE_DELIVER_LOW+8);
-  ctx.strokeStyle='rgba(111,211,255,0.55)'; ctx.setLineDash([6,5]); ctx.lineWidth=1.5; ctx.strokeRect(d.x-d.w/2, gy-H*RESCUE_DELIVER_LOW, d.w, H*RESCUE_DELIVER_LOW+8); ctx.setLineDash([]);
-  // a tent — plain triangle — and a SAFE pennant on a pole
-  var tx=d.x-d.w*0.18, tw=fh*1.5, th=fh*1.1;
-  ctx.fillStyle='#2f5f4a'; ctx.beginPath(); ctx.moveTo(tx-tw/2,gy+6); ctx.lineTo(tx,gy+6-th); ctx.lineTo(tx+tw/2,gy+6); ctx.closePath(); ctx.fill();
-  ctx.fillStyle='#10231a'; ctx.beginPath(); ctx.moveTo(tx-tw*0.12,gy+6); ctx.lineTo(tx,gy+6-th*0.55); ctx.lineTo(tx+tw*0.12,gy+6); ctx.closePath(); ctx.fill();
-  var px=d.x+d.w*0.30, top=gy-fh*2.2, wv=Math.sin(t*4)*2;
-  ctx.strokeStyle='#d9d2c0'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(px,gy+6); ctx.lineTo(px,top); ctx.stroke();
-  ctx.fillStyle='#39d98a'; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+fh*1.4,top+fh*0.3+wv); ctx.lineTo(px,top+fh*0.6); ctx.closePath(); ctx.fill();
-  ctx.fillStyle='#032014'; ctx.font='900 '+Math.round(fh*0.34)+'px system-ui'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('SAFE', px+3, top+fh*0.3);
-  ctx.restore();
+function drawGround(){
+  var gy=GY();
+  if(F.wall){ drawWallFace(); return; }
+  var tile = F.key==='dover'||F.key==='nottingham' ? 'ground_grass' : 'ground_dirt';
+  ctx.fillStyle = F.time==='blood' ? '#1a0806' : F.time==='dusk' ? '#1c2414' : '#33401f'; ctx.fillRect(0,gy,LW,LH-gy);
+  if(ok(tile)){ var th=LH-gy+20, tw=th*ar(tile);
+    var src = F.time==='blood' ? tinted(tile,'#2a0805',0.62,false) : F.time==='dusk' ? tinted(tile,'#14200f',0.38,false) : IMG[tile];
+    var x0=-((drift*14)%(tw*2));   // mirror every other tile so the seams vanish
+    for(var x=x0,k=0; x<LW; x+=tw,k++){ ctx.save(); if(k%2){ ctx.translate(x+tw,gy-6); ctx.scale(-1,1); ctx.drawImage(src,0,0,tw,th); } else ctx.drawImage(src,x,gy-6,tw,th); ctx.restore(); } }
+  var lip=ctx.createLinearGradient(0,gy-8,0,gy+26); lip.addColorStop(0,'rgba(0,0,0,0)'); lip.addColorStop(1,'rgba(0,0,0,0.35)'); ctx.fillStyle=lip; ctx.fillRect(0,gy-8,LW,34);
 }
+function drawWallFace(){
+  var gy=GY(), src = ok('ground_flag') ? tinted('ground_flag','#1b2438',0.45,false) : null;
+  ctx.fillStyle='#2b3140'; ctx.fillRect(0,gy,LW,LH-gy);
+  if(src){ var th=96, tw=th*ar('ground_flag'); for(var y=gy+14; y<LH; y+=th-2) for(var x=((y/th)%2)*tw*0.5-tw; x<LW; x+=tw-1) ctx.drawImage(src,x,y,tw,th); }
+  var sh=ctx.createLinearGradient(0,gy,0,LH); sh.addColorStop(0,'rgba(8,10,20,0.05)'); sh.addColorStop(1,'rgba(4,6,12,0.75)'); ctx.fillStyle=sh; ctx.fillRect(0,gy,LW,LH-gy);
+  // the walkway: paving + crenellated parapet on the outer (far) edge
+  ctx.fillStyle='#545a68'; ctx.fillRect(0,gy-4,LW,18); ctx.fillStyle='#727a8a'; ctx.fillRect(0,gy-4,LW,4);
+  for(var x=-((drift*14)%60); x<LW; x+=60){ ctx.fillStyle='#3d4352'; ctx.fillRect(x,gy-34,36,30); ctx.fillStyle='#5c6475'; ctx.fillRect(x,gy-34,36,5); }
+  // the army at the foot of the Wall (render-only)
+  if(ok('battle_frieze')){ var img=tinted('battle_frieze','#0b1222',0.45,false); var h=120, w=h*ar('battle_frieze'); for(var x=-((drift*20)%w); x<LW; x+=w) ctx.drawImage(img,x,LH-h+16,w,h); }
+}
+function drawWater(){
+  if(!F.water) return; var wy=waterY; if(wy>LH) return;
+  var g=ctx.createLinearGradient(0,wy,0,LH); g.addColorStop(0,'rgba(120,24,12,0.78)'); g.addColorStop(1,'rgba(20,3,2,0.95)');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(0,LH); for(var x=0;x<=LW;x+=20) ctx.lineTo(x, wy+Math.sin(x*0.02+rt*2)*3); ctx.lineTo(LW,LH); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(255,170,110,0.45)'; ctx.lineWidth=2; ctx.beginPath(); for(var x=0;x<=LW;x+=20){ var y=wy+Math.sin(x*0.02+rt*2)*3; if(x) ctx.lineTo(x,y); else ctx.moveTo(x,y);} ctx.stroke();
+  ctx.fillStyle='rgba(255,190,140,0.35)'; for(var i=0;i<24;i++){ var gx=((i*137+rt*30)%LW), gyy=wy+10+((i*53)%60); ctx.fillRect(gx,gyy,18,1.5); }
+}
+function drawDrop(){
+  var d=F.drop, gy=GY(), s=dropSurf(), t=rt;
+  if(F.key==='wash'){ ctx.fillStyle='#0e0303'; ctx.beginPath(); ctx.moveTo(d.x-d.w*0.9,LH); ctx.quadraticCurveTo(d.x-d.w*0.7,s-6,d.x-d.w*0.4,s); ctx.lineTo(LW+10,s-4); ctx.lineTo(LW+10,LH); ctx.closePath(); ctx.fill(); }
+  if(F.key==='dover') spr('camp_tents', d.x+10, s+8, 92, {});
+  else if(F.key==='nottingham') spr('palisade_fort', d.x, s+8, 96, {});
+  else if(F.key==='wash') { spr('eagle_standard', d.x+60, s+4, 120, {}); spr('brazier', d.x-50, s+2, 52, {}); }
+  else if(F.wall){ // the milecastle gate-tower: stone + braziers + the eagle
+    ctx.fillStyle='#4a5162'; ctx.fillRect(d.x-90,s-150,180,154); ctx.fillStyle='#5f6779'; for(var k=0;k<5;k++) ctx.fillRect(d.x-90+k*38,s-176,24,28);
+    ctx.fillStyle='#1b1f2a'; ctx.beginPath(); ctx.moveTo(d.x-34,s+4); ctx.lineTo(d.x-34,s-70); ctx.arc(d.x,s-70,34,Math.PI,0); ctx.lineTo(d.x+34,s+4); ctx.closePath(); ctx.fill();
+    var fl=0.6+0.4*Math.sin(t*9); ctx.fillStyle='rgba(255,170,80,'+(0.25*fl)+')'; ctx.beginPath(); ctx.arc(d.x,s-70,60,0,6.283); ctx.fill();
+    spr('brazier', d.x-70, s-150, 44, {}); spr('brazier', d.x+70, s-150, 44, {}); spr('eagle_standard', d.x, s-176, 96, {}); }
+  // the SAFE pennant + a faint delivery box
+  var px=d.x+d.w*0.38, top=s-120, wv=Math.sin(t*4)*3;
+  ctx.strokeStyle='#d9cfb4'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(px,s+4); ctx.lineTo(px,top); ctx.stroke();
+  ctx.fillStyle='#3fae5a'; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+70,top+14+wv); ctx.lineTo(px,top+30); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#04200d'; ctx.font='bold 13px Georgia,serif'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('SAFE',px+6,top+15+wv/2);
+  ctx.save(); ctx.globalAlpha=0.5+0.2*Math.sin(t*3); ctx.strokeStyle='#7fe7ff'; ctx.setLineDash([7,6]); ctx.lineWidth=1.5; ctx.strokeRect(d.x-d.w/2, s-DELIVER_LOW, d.w, DELIVER_LOW+6); ctx.restore();
+  txt(d.label, d.x, s+30, 15, '#cfe9f2', 'center', 'bold', 0.9);
+}
+function txt(s,x,y,size,col,align,weight,alpha,font){ ctx.save(); ctx.globalAlpha=alpha==null?1:alpha; ctx.font=(weight||'')+' '+size+'px '+(font||'Georgia,"Times New Roman",serif');
+  ctx.textAlign=align||'left'; ctx.textBaseline='middle'; ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillText(s,x+2,y+2); ctx.fillStyle=col; ctx.fillText(s,x,y); ctx.restore(); }
+
+function figGlow(x,yb,h,a){ if(!D7_FRIENDLY_LOOK.glow) return; ctx.save(); ctx.globalAlpha=0.22*(a==null?1:a); var g=ctx.createRadialGradient(x,yb-h/2,4,x,yb-h/2,h*0.75);
+  g.addColorStop(0,'rgba(127,231,255,0.9)'); g.addColorStop(1,'rgba(127,231,255,0)'); ctx.fillStyle=g; ctx.fillRect(x-h,yb-h*1.3,h*2,h*1.6); ctx.restore(); }
+function helpFlag(x,yb,h){ if(!D7_FRIENDLY_LOOK.helpFlag) return; var px=x+h*0.42+10, top=yb-h-34, wv=Math.sin(rt*5+x)*2;
+  ctx.strokeStyle='#d9d2c0'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(px,yb); ctx.lineTo(px,top); ctx.stroke();
+  ctx.fillStyle='#fff3a0'; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+40,top+wv); ctx.lineTo(px+40,top+17+wv); ctx.lineTo(px,top+17); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#1a2a3a'; ctx.font='bold 11px Georgia,serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('HELP',px+20,top+8.5+wv/2); }
 function drawFriends(){
-  if(!friends.length) return;
-  var gy=groundY(), fh=friendH();
-  for(var i=0;i<friends.length;i++){ var f=friends[i];
-    if(f.st==='ground'){
-      var pose = Math.sin(t*6+f.ph)>0 ? 'stand' : 'wave';
-      drawHelpFlag(f.x, gy+6, 1);
-      drawFriendFig(f.x, gy+6-fh, pose, f.cd>0?0.6:1);
-    } else if(f.st==='fall'){
-      drawFriendFig(f.x, f.y+6-fh, 'fall', 1, Math.sin(t*14)*0.4);
-    } else if(f.st==='safe' && f.how==='drop'){
-      drawFriendFig(f.x, gy+6-fh*0.8, Math.sin(t*5+f.ph)>0?'stand':'wave', 0.9, 0);
-    } else if(f.st==='lost' && f.fade>0){
-      drawFriendFig(f.x, gy+6-fh, 'fall', clamp(f.fade,0,1)*0.6, 1.3);
-    }
+  for(var i=0;i<friends.length;i++){ var f=friends[i], w=f.w;
+    if(f.st==='ground'){ var yb=GY()-f.rock, flip=f.x>F.drop.x;
+      if(f.rock>0){ ctx.fillStyle=F.time==='blood'?'#1d0605':'#4a4a3a'; ctx.beginPath(); ctx.ellipse(f.x,yb+f.rock*0.5+4,40,f.rock*0.5+6,0,0,6.283); ctx.fill(); spr('boulders',f.x,yb+6,f.rock+14,{a:0.85}); }
+      figGlow(f.x,yb,w.h,1); helpFlag(f.x,yb,w.h);
+      var bob = w.animal?0:Math.max(0,Math.sin(rt*6+f.ph))*3;
+      if(F.water && f.sink>0){ ctx.save(); ctx.beginPath(); ctx.rect(f.x-80,0,160,waterY+2); ctx.clip(); spr(w.art,f.x,yb-bob,w.h,{flip:flip,a:f.cd>0?0.6:1}); ctx.restore(); }
+      else spr(w.art,f.x,yb-bob,w.h,{flip:flip,a:f.cd>0?0.6:1}); }
+    else if(f.st==='fall'){ spr(w.art,f.x,f.y,w.h,{rot:Math.sin(rt*14)*0.5}); }
+    else if(f.st==='safe' && f.how==='drop'){ spr(w.art,f.x,f.y,w.h,{flip:f.x>F.drop.x,a:0.95}); }
+    else if(f.st==='lost' && f.fade>0){ spr(w.art,f.x,(f.how==='drowned'?waterY+w.h*0.6:GY()),w.h,{a:clamp(f.fade,0,1)*0.5,rot:f.how==='captured'?0:1.2}); }
   }
 }
-function drawPickups(){
-  for(var i=0;i<pickups.length;i++){ var pk=pickups[i], y=pk.y+Math.sin(t*2.4+i)*6, bw=34, bh=26;
-    var blink = pk.ttl<3 ? (Math.floor(t*8)%2?0.35:1) : 1;
-    ctx.save(); ctx.globalAlpha=blink; ctx.translate(pk.x,y);
-    ctx.fillStyle='#5a3c1c'; ctx.strokeStyle='#ffd23f'; ctx.lineWidth=2; roundRect(-bw/2,-bh/2,bw,bh,4); ctx.fill(); ctx.stroke();
-    ctx.strokeStyle='#e6c68a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-7,-9); ctx.lineTo(-7,9); ctx.moveTo(7,-9); ctx.lineTo(7,9);
-    for(var r=-6;r<=6;r+=6){ ctx.moveTo(-7,r); ctx.lineTo(7,r); } ctx.stroke();
-    ctx.fillStyle='#ffd23f'; ctx.font='800 11px system-ui'; ctx.textAlign='center'; ctx.fillText('LADDER',0,-bh/2-5);
-    ctx.restore();
+function drawLegion(){
+  for(var i=0;i<legion.length;i++){ var g=legion[i]; if(g.gone) continue; var art=g.k.art, h=g.k.h;
+    if(g.climb){ art = (Math.floor(g.y/14)%2)?'gnome_climber_a':'gnome_climber_b'; h=86; }
+    var y=g.y; if(g.lifting){ y = g.y - (g.y-(P.y+ANCHOR+30))*g.lock*0.85; }
+    spr(art,g.x,y,h,{flip:g.dir<0,rot:g.lifting?Math.sin(rt*9)*0.25*g.lock:0});
+    if(g.grabbing && g.grab>0){ var u=g.grab/CAPTURE_TIME; ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(g.x-30,y-h-24,60,8); ctx.fillStyle=u>0.6?'#ff3b2a':'#ffb347'; ctx.fillRect(g.x-30,y-h-24,60*u,8);
+      txt('!',g.x,y-h-38,22,'#ff5a3a','center','bold',Math.floor(rt*8)%2?1:0.4); }
+    if(g.lifting && g.lock>0){ ctx.strokeStyle='#ffe9a8'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(g.x,y-h/2,h*0.6,-Math.PI/2,-Math.PI/2+6.283*g.lock); ctx.stroke(); } }
+}
+function drawSiege(){
+  for(var i=0;i<siege.length;i++){ var s=siege[i]; if(s.st==='pending') continue;
+    var u = s.st==='raise' ? ease(s.t/SIEGE_TELE) : 1, top=lerp(LH, GY()-30, u);
+    ctx.strokeStyle='#7a5a32'; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(s.x-16,LH); ctx.lineTo(s.x-12,top); ctx.moveTo(s.x+16,LH); ctx.lineTo(s.x+12,top); ctx.stroke();
+    ctx.lineWidth=3; ctx.beginPath(); for(var y=LH-14;y>top;y-=20){ ctx.moveTo(s.x-15,y); ctx.lineTo(s.x+15,y); } ctx.stroke();
+    if(s.st==='raise'){ var bl=Math.floor(rt*6)%2; txt('▼ LADDERS',s.x,GY()-70,15,bl?'#ff7a5a':'#ffd0b0','center','bold'); }
   }
 }
-// THE ROPE's swing is RENDER-ONLY: a damped pendulum on a moving pivot, fed by how the
-// drawn hull moves. The logic end never swings, so nothing here can change the game.
-var ROPEVIS={ th:0, om:0, lx:null, pv:0 };
-function ropeSwing(dt){
-  if(ROPEVIS.lx===null){ ROPEVIS.lx=P.x; }
-  var vx = dt>0 ? (P.x-ROPEVIS.lx)/dt : 0; ROPEVIS.lx=P.x;
-  var ax = dt>0 ? (vx-ROPEVIS.pv)/dt : 0; ROPEVIS.pv=vx;
-  var Lp=Math.max(30, ropeLen());
-  var acc = -(1400/Lp)*Math.sin(ROPEVIS.th) - 3.2*ROPEVIS.om - (clamp(ax,-5000,5000)/Lp)*Math.cos(ROPEVIS.th);
-  ROPEVIS.om += acc*dt; ROPEVIS.th = clamp(ROPEVIS.th + ROPEVIS.om*dt, -0.75, 0.75);
-  if(Math.abs(ROPEVIS.th)>=0.75) ROPEVIS.om*=-0.3;
-}
-function drawRope(){
-  if(!friends.length) return;
-  var ax=P.x, ay=ropeAnchorY(), Lp=ropeLen(), th=ROPEVIS.th;
-  ctx.save(); ctx.translate(ax,ay); ctx.rotate(-th);  // pendulum angle at the hull: end at (L·sin th, L·cos th)
-  if(P.gear==='ladder'){
-    var lw=8, fade = ladderT<3 && !onLadder() ? (Math.floor(t*8)%2?0.45:1) : 1;
-    ctx.globalAlpha=fade; ctx.strokeStyle='#c8a46a'; ctx.lineWidth=2.5;
-    ctx.beginPath(); ctx.moveTo(-lw,0); ctx.lineTo(-lw,Lp); ctx.moveTo(lw,0); ctx.lineTo(lw,Lp);
-    for(var r=10;r<=Lp;r+=10){ ctx.moveTo(-lw,r); ctx.lineTo(lw,r); } ctx.stroke(); ctx.globalAlpha=1;
-    for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.st!=='ladder') continue;
-      var along = Lp - f.prog*(Lp-6);
-      drawFriendFig(0, along, (Math.floor(f.prog*12)%2)?'climbA':'climbB', 1, 0); }
-  } else {
-    // a plain line ending in a wooden TOGGLE — a crossbar, never a loop
-    ctx.strokeStyle='#c8a46a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,Lp); ctx.stroke();
-    ctx.fillStyle='#8a5a2b'; ctx.strokeStyle='#3a2410'; ctx.lineWidth=1; ctx.fillRect(-9,Lp-2.5,18,5); ctx.strokeRect(-9,Lp-2.5,18,5);
-    if(onRope()) drawFriendFig(0, Lp-1, 'hang', 1, 0);
+function drawHazards(){
+  for(var i=0;i<haz.length;i++){ var h=haz[i];
+    if(h.k==='shooter'){ var S=h.S, rise=h.st==='setup'?clamp(h.t/S.setup,0,1):h.st==='fired'?clamp(1-(h.t-0.4)/0.4,0,1):1;
+      ctx.save(); ctx.beginPath(); ctx.rect(h.x-120,0,240,h.gy+4); ctx.clip();
+      if(h.type==='arrow' && ok('bush_clump')) spr('bush_clump',h.x,h.gy+8,60,{});
+      spr(S.crew,h.x,h.gy+(1-rise)*S.crewH,S.crewH,{flip:h.ax<h.x}); ctx.restore();
+      if(h.st==='aim'){ var locked=h.t>=S.track, lp=locked?clamp((h.t-S.track)/S.lock,0,1):0, dx=h.ax-h.x, dy=h.ay-h.y, L=Math.hypot(dx,dy)||1;
+        ctx.save(); if(!locked){ ctx.globalAlpha=0.55; ctx.strokeStyle='#ffd27a'; ctx.lineWidth=2; ctx.setLineDash([8,9]); }
+        else { var bl=lp>0.6?(Math.floor(rt*24)%2?1:0.5):1; ctx.globalAlpha=(0.5+0.5*lp)*bl; ctx.strokeStyle='#ff3b2a'; ctx.lineWidth=2+3.5*lp; }
+        ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(h.x+dx/L*2200,h.y+dy/L*2200); ctx.stroke(); ctx.restore();
+        var gg=ctx.createRadialGradient(h.x,h.y,2,h.x,h.y,70); gg.addColorStop(0,'rgba(255,80,50,'+(0.3+0.5*lp)+')'); gg.addColorStop(1,'rgba(255,80,50,0)'); ctx.fillStyle=gg; ctx.fillRect(h.x-70,h.y-70,140,140); } }
+    else if(h.k==='thopter'){
+      if(h.st==='warn'){ var p=clamp(h.t/THOPTER_TELE,0,1), on=Math.floor(rt*(6+14*p))%2?1:0.35, ex=h.dir>0?30:LW-30;
+        ctx.save(); ctx.globalAlpha=0.14+0.22*p; ctx.fillStyle='#ff3b2a'; ctx.fillRect(0,h.y-THOPTER_HH,LW,THOPTER_HH*2);
+        ctx.globalAlpha=on; ctx.fillStyle='#ff4a3a'; for(var c=0;c<3;c++){ var cx=ex+h.dir*c*20; ctx.beginPath(); ctx.moveTo(cx,h.y-16); ctx.lineTo(cx+h.dir*14,h.y); ctx.lineTo(cx,h.y+16); ctx.closePath(); ctx.fill(); }
+        ctx.restore(); txt('THEY\'RE FLYING OUR OWN BIRDS', ex+h.dir*80, h.y-30, 15, '#ffb3a6', h.dir>0?'left':'right', 'bold', on); }
+      else { var sc=h.sc||1, a=h.st==='retreat'?clamp(1-h.t/2.2,0,1):1; sprC(h.art,h.x,h.y,250*sc,{flip:h.dir<0,a:a,rot:h.st==='retreat'?-0.25*h.dir:0}); } }
+    else if(h.k==='glider'){
+      if(h.st==='warn'){ var on=Math.floor(rt*14)%2?1:0.4, ex=h.dir>0?30:LW-30; ctx.save(); ctx.globalAlpha=on; ctx.fillStyle='#ffb347';
+        ctx.beginPath(); ctx.moveTo(ex,h.y-12); ctx.lineTo(ex+h.dir*16,h.y); ctx.lineTo(ex,h.y+12); ctx.closePath(); ctx.fill(); ctx.restore(); txt('GLIDER',ex+h.dir*26,h.y,13,'#ffd29a',h.dir>0?'left':'right','bold',on); }
+      else { var sc=h.sc||1; sprC(h.art,h.x,h.y,130*sc,{flip:h.dir<0,a:h.st==='retreat'?clamp(1-h.t/2,0,1):1}); } }
+    else if(h.k==='stone'){
+      var cx=h.cx; spr('catapult_crew',cx,GY()+6,110,{flip:!h.fromL});
+      var p=h.st==='aim'?clamp(h.t/STONE_TELE,0,1):1, bl=Math.floor(rt*(5+10*p))%2?1:0.55;
+      ctx.save(); ctx.globalAlpha=(0.35+0.5*p)*bl; ctx.strokeStyle='#ff6a3a'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(h.tx,h.ty,STONE_R,0,6.283); ctx.stroke();
+      ctx.setLineDash([3,10]); ctx.lineWidth=2; ctx.beginPath(); for(var u=0;u<=1.001;u+=0.05){ var q=stonePos(h,u); if(u) ctx.lineTo(q.x,q.y); else ctx.moveTo(q.x,q.y); } ctx.stroke(); ctx.restore();
+      if(h.st==='fly'){ var q=stonePos(h,clamp(h.t/STONE_FLY,0,1)); sprC('stone',q.x,q.y,44,{rot:h.t*8}); } }
   }
-  ctx.restore();
-}
-
-function drawTargets(){
-  var order=[]; for(var i=0;i<targets.length;i++) if(!targets[i].gone) order.push(i);
-  order.sort(function(a,b){ var ca=targets[a], cb=targets[b], la=ca.kind==='vehicle'?0:1, lb=cb.kind==='vehicle'?0:1; return la!==lb? la-lb : ca.y-cb.y; });
-  var S=sz();
-  for(var o=0;o<order.length;o++){ var c=targets[order[o]];
-    var hT = c.kind==='vehicle'?S.vehicle : c.kind==='heavy'?S.heavy : S.gnome;
-    if(c.isBoss) hT=S.heavy*1.4;
-    var sp = c.sprite;
-    var rot = c.lifting? Math.sin(clock*8)*0.2*c.lock : 0;
-    var im=IMG[sp], ar=(im&&im.ok)? im.naturalWidth/im.naturalHeight : 1.0, h=hT, w=h*ar;
-    var cy = c.lifting? c.y : (groundY()+6 - h/2);
-    drawImg(sp, c.x, cy, w, rot, c.lifting?0.94:1, c.dir<0, c.kind!=='vehicle');
-    if(!c.lifting && (c.isBoss || c.def.val>=500)){ ctx.fillStyle='#ffd23f'; ctx.font='800 11px system-ui'; ctx.textAlign='center'; ctx.fillText(c.isBoss?'★ GENERAL ★':'HEAVY', c.x, cy-h/2-6); }
-  }
-}
-function drawSaucer(){
-  var w=SAUCER_W(), gy=groundY()+8, belly=P.y+w*0.16;
-  if(planting && P.stun<=0){
-    if(ok('beam')){ var bm=IMG['beam'], bw=(gy-belly)*(bm.naturalWidth/bm.naturalHeight); ctx.save(); ctx.globalAlpha=.82; ctx.drawImage(bm,P.x-bw/2,belly,bw,gy-belly); ctx.restore(); }
-    if(ok('ring')) drawImg('ring',P.x,gy,w*0.95,0,0.85);
-  }
-  var rot=P.bank*0.10, a = P.invuln>0 ? (Math.floor(clock*20)%2?0.4:1) : 1;
-  if(warbling()){ var fi=Math.floor(clock*22)%6; if(!drawImg('w'+fi,P.x,P.y,w,rot,0.6+0.3*Math.sin(clock*40))) drawImg('p1',P.x,P.y,w,rot,0.6); }
-  else if(!drawImg('p1',P.x,P.y,w,rot,a)){ ctx.fillStyle='#39ff14'; ctx.beginPath(); ctx.ellipse(P.x,P.y,w*0.5,w*0.22,0,0,6.28); ctx.fill(); }
 }
 function drawShots(){
-  for(var s=0;s<shots.length;s++){ var sh=shots[s];
-    if(sh.kind==='tracer'){ ctx.strokeStyle=sh.col; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(sh.x,sh.y); ctx.lineTo(sh.x-sh.vx*0.03,sh.y-sh.vy*0.03); ctx.stroke(); ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(sh.x,sh.y,2.2,0,6.28); ctx.fill(); }
-    else if(sh.kind==='missile'){ var ang=Math.atan2(sh.vy,sh.vx); ctx.save(); ctx.translate(sh.x,sh.y); ctx.rotate(ang); ctx.fillStyle='#ff5d6c'; ctx.fillRect(-8,-3,16,6); ctx.fillStyle='#ffd27a'; ctx.fillRect(-12,-2,5,4); ctx.restore(); }
-    else if(sh.kind==='aa'){ ctx.globalAlpha=.45; ctx.fillStyle='#ff5d6c'; ctx.beginPath(); ctx.arc(sh.x,sh.y,7,0,6.28); ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle='#ffb0b6'; ctx.beginPath(); ctx.arc(sh.x,sh.y,3,0,6.28); ctx.fill(); }
-    else { ctx.fillStyle=sh.col; ctx.beginPath(); ctx.arc(sh.x,sh.y,3.4,0,6.28); ctx.fill(); }
-  }
+  for(var s=0;s<shots.length;s++){ var sh=shots[s], ang=Math.atan2(sh.vy,sh.vx); ctx.save(); ctx.translate(sh.x,sh.y); ctx.rotate(ang); ctx.globalAlpha=sh.harmless?0.5:1;
+    var bl = sh.kind==='arrow'?34:46;
+    ctx.globalAlpha*=0.35; ctx.strokeStyle='#ffe2a0'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-bl*2.4,0); ctx.lineTo(-bl,0); ctx.stroke(); ctx.globalAlpha=sh.harmless?0.5:1;
+    ctx.fillStyle=sh.kind==='arrow'?'#9a7a4a':'#6e4a22'; ctx.fillRect(-bl,-1.8,bl,3.6); ctx.fillStyle='#d0d0d0'; ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(11,0); ctx.lineTo(0,5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#e6dcc0'; ctx.fillRect(-bl,-5,7,3); ctx.fillRect(-bl,2,7,3); ctx.restore(); }
 }
-function drawJets(){
-  for(var j=0;j<jets.length;j++){ var je=jets[j]; var w=sz().vehicle*2.4;
-    if(!drawImg('jet',je.x,je.y,w,je.bank*0.4,1,je.dir<0,false)){ ctx.fillStyle='#cdd6e0'; ctx.fillRect(je.x-w/2,je.y-4,w,8); }
-    ctx.globalAlpha=.7; ctx.fillStyle='#ffcf6a'; ctx.beginPath(); ctx.arc(je.x-je.dir*w*0.55,je.y,3+Math.random()*2,0,6.28); ctx.fill(); ctx.globalAlpha=1;
-  }
+function ropeSwing(dt){
+  if(ROPEVIS.lx===null) ROPEVIS.lx=P.x; var vx=dt>0?(P.x-ROPEVIS.lx)/dt:0; ROPEVIS.lx=P.x; var ax=dt>0?(vx-ROPEVIS.pv)/dt:0; ROPEVIS.pv=vx;
+  var acc=-(1400/ROPE_LEN)*Math.sin(ROPEVIS.th)-3.2*ROPEVIS.om-(clamp(ax,-5000,5000)/ROPE_LEN)*Math.cos(ROPEVIS.th);
+  ROPEVIS.om+=acc*dt; ROPEVIS.th=clamp(ROPEVIS.th+ROPEVIS.om*dt,-0.6,0.6); if(Math.abs(ROPEVIS.th)>=0.6) ROPEVIS.om*=-0.3;
 }
-function drawFx(){
-  for(var f=0;f<fx.length;f++){ var e=fx[f], p=e.t/e.life, a=1-p;
-    if(e.kind==='aatel'){ ctx.globalAlpha=0.4+0.6*Math.abs(Math.sin(e.t*30)); ctx.strokeStyle=e.col; ctx.lineWidth=2; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(e.x,e.y); ctx.lineTo(e.x,band().top); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; continue; }
-    ctx.globalAlpha=a;
-    if(e.kind==='boom'){ ctx.fillStyle='#ff7a3a'; ctx.beginPath(); ctx.arc(e.x,e.y,12+p*70,0,6.28); ctx.fill(); ctx.fillStyle='#ffd27a'; ctx.beginPath(); ctx.arc(e.x,e.y,6+p*36,0,6.28); ctx.fill(); }
-    else if(e.kind==='snatch'){ ctx.strokeStyle=e.col; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(e.x,e.y,8+p*40,0,6.28); ctx.stroke(); }
-    else if(e.kind==='smoke'){ ctx.fillStyle='#9aa'; ctx.beginPath(); ctx.arc(e.x,e.y,3+p*8,0,6.28); ctx.fill(); }
-    else { ctx.fillStyle=e.col; ctx.beginPath(); ctx.arc(e.x,e.y,3+p*16,0,6.28); ctx.fill(); }
+function drawRope(){
+  // RENDER-ONLY swing: the logic end of the rope is always straight down; nothing here changes the game
+  var ax=P.x, ay=P.y+ANCHOR, th=ROPEVIS.th;
+  ctx.save(); ctx.translate(ax,ay); ctx.rotate(-th);
+  if(P.gear==='ladder'){ var fade=ladderT<3&&!onLadder()?(Math.floor(rt*8)%2?0.45:1):1; ctx.globalAlpha=fade;
+    if(ok('ladder')){ var lw=30, seg=lw/ar('ladder'); for(var y=0;y<ROPE_LEN;y+=seg-6) ctx.drawImage(IMG.ladder,-lw/2,y,lw,Math.min(seg,ROPE_LEN-y+4)); }
     ctx.globalAlpha=1;
+    for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.st!=='ladder') continue; var along=ROPE_LEN-f.prog*(ROPE_LEN-8);
+      var art=f.w.gnome?((Math.floor(f.prog*12)%2)?'friend_climb_a':'friend_climb_b'):f.w.art; spr(art,0,along+f.w.h*0.2,f.w.h,{}); } }
+  else {
+    if(ok('rope')){ var rw=8, sg=rw/ar('rope'); for(var y=0;y<ROPE_LEN;y+=sg-4) ctx.drawImage(IMG.rope,-rw/2,y,rw,Math.min(sg,ROPE_LEN-y)); }
+    else { ctx.strokeStyle='#c8a46a'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,ROPE_LEN); ctx.stroke(); }
+    ctx.fillStyle='#8a5a2b'; ctx.strokeStyle='#3a2410'; ctx.lineWidth=1; ctx.fillRect(-11,ROPE_LEN-3,22,6); ctx.strokeRect(-11,ROPE_LEN-3,22,6);   // the wooden TOGGLE — never a loop
+    var r=onRope();
+    if(r){ if(r.w.gnome && ok('friend_hang')) spr('friend_hang',0,ROPE_LEN+r.w.h*1.25,r.w.h*1.5,{});
+      else { // a sling: two lines from the toggle to the waist, the figure hangs in it
+        ctx.strokeStyle='#c8a46a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-8,ROPE_LEN); ctx.lineTo(-r.w.h*0.25,ROPE_LEN+r.w.h*0.45); ctx.moveTo(8,ROPE_LEN); ctx.lineTo(r.w.h*0.25,ROPE_LEN+r.w.h*0.45); ctx.stroke();
+        spr(r.w.art,0,ROPE_LEN+r.w.h,r.w.h,{rot:Math.sin(rt*3)*0.08}); } } }
+  ctx.restore();
+}
+function drawRay(){
+  if(!P.raying) return; var gy=GY()+6, top=P.y+ANCHOR-4, pulse=0.75+0.25*Math.sin(rt*18);
+  var g=ctx.createLinearGradient(0,top,0,gy); g.addColorStop(0,'rgba(255,246,200,'+(0.75*pulse)+')'); g.addColorStop(1,'rgba(255,214,120,'+(0.25*pulse)+')');
+  ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(P.x-16,top); ctx.lineTo(P.x+16,top); ctx.lineTo(P.x+RAY_REACH,gy); ctx.lineTo(P.x-RAY_REACH,gy); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(255,240,190,'+(0.25*pulse)+')'; ctx.beginPath(); ctx.ellipse(P.x,gy,RAY_REACH*1.2,10,0,0,6.283); ctx.fill(); ctx.restore();
+}
+function drawPlayer(){
+  var w=180, rot=P.bank*0.10, a=P.invuln>0?(Math.floor(rt*20)%2?0.45:1):1, flip=P.face>0;
+  if(state==='failed' && lastResult && lastResult.reason==='hull'){ var u=clamp(rt/2.4,0,1), sc=1-0.65*u;
+    for(var k=0;k<5;k++){ ctx.save(); ctx.globalAlpha=0.35*(1-k/5); ctx.fillStyle='#2a2a2a'; ctx.beginPath(); ctx.arc(P.x-(flip?1:-1)*k*26*u, P.y+u*140-k*18, 14+k*6, 0, 6.283); ctx.fill(); ctx.restore(); }
+    sprC('thopter',P.x+(flip?1:-1)*u*160,P.y+u*150,w*sc,{rot:0.5*u*(flip?1:-1)+Math.sin(rt*6)*0.08,flip:flip,a:1-0.5*u}); return; }
+  if(spinning()){ var u=clamp(1-(P.spinU-simT)/SPIN_TIME,0,1), tri=u<0.4?u/0.4:u<0.6?1:(1-u)/0.4, f=Math.round(tri*5);
+    ctx.save(); ctx.globalAlpha=0.3; ctx.strokeStyle='#e8c66a'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(P.x,P.y,58,0,6.283); ctx.stroke(); ctx.restore();
+    sprC('thopter_spin_'+f,P.x,P.y,w*(f===5?0.66:0.62),{rot:rot,flip:flip}); }
+  else sprC('thopter',P.x,P.y,w,{rot:rot,flip:flip,a:a});
+}
+function drawPickups(){ for(var i=0;i<pickups.length;i++){ var pk=pickups[i], y=pk.y+Math.sin(rt*2.4+i)*6, bl=pk.ttl<3?(Math.floor(rt*8)%2?0.35:1):1;
+  ctx.save(); ctx.globalAlpha=bl; ctx.fillStyle='rgba(232,198,106,0.18)'; ctx.beginPath(); ctx.arc(pk.x,y,46,0,6.283); ctx.fill();
+  ctx.fillStyle='#5a3c1c'; ctx.strokeStyle='#e8c66a'; ctx.lineWidth=2; ctx.fillRect(pk.x-24,y-18,48,36); ctx.strokeRect(pk.x-24,y-18,48,36); ctx.restore();
+  sprC('ladder',pk.x,y,14,{a:bl,sc:1}); txt('LADDER',pk.x,y-32,13,'#e8c66a','center','bold',bl); } }
+function drawFx(){
+  for(var i=0;i<fx.length;i++){ var e=fx[i], p=e.t/e.life, a=1-p;
+    if(e.kind==='boom'){ sprC('fireball',e.x,e.y,90+p*60,{a:a}); }
+    else if(e.kind==='dust'){ sprC('dust_burst',e.x,e.y,120+p*60,{a:a*0.9}); }
+    else if(e.kind==='ring'){ ctx.save(); ctx.globalAlpha=a; ctx.strokeStyle=e.col; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(e.x,e.y,10+p*46,0,6.283); ctx.stroke(); ctx.restore(); }
+    else { ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=e.col||'#ffd27a'; ctx.beginPath(); ctx.arc(e.x,e.y,3+p*16,0,6.283); ctx.fill(); ctx.restore(); }
   }
 }
-function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-function drawBezel(){ ctx.strokeStyle=TH.edge; ctx.lineWidth=5; ctx.globalAlpha=0.7; roundRect(7,7,W-14,H-14,16); ctx.stroke(); ctx.globalAlpha=1;
-  ctx.fillStyle=TH.edge; ctx.font='800 11px ui-monospace'; ctx.textAlign='left'; ctx.globalAlpha=0.8; ctx.fillText(TH.name, 18, H-12); ctx.globalAlpha=1; }
-function drawHUD(){
-  ctx.textAlign='left'; ctx.fillStyle='#e9e0d6'; ctx.font='800 22px system-ui'; ctx.fillText('SCORE  '+score, 22, 36);
-  var hbw=clamp(W*0.18,170,300), hbx=W-22-hbw, hby=20;
-  ctx.fillStyle='#1a0c10'; ctx.strokeStyle='#3a1c24'; ctx.lineWidth=1; roundRect(hbx,hby,hbw,16,8); ctx.fill(); ctx.stroke();
-  ctx.save(); roundRect(hbx,hby,hbw,16,8); ctx.clip(); ctx.fillStyle= hp>60?'#39ff14':hp>30?'#ffe23a':'#ff5d6c'; ctx.fillRect(hbx,hby,hbw*(hp/maxHP),16); ctx.restore();
-  ctx.textAlign='right'; ctx.fillStyle='#9c8a6a'; ctx.font='700 11px system-ui'; ctx.fillText('HULL INTEGRITY', W-22, hby+30);
-  ctx.textAlign='center';
-  var zoneName = mode==='base'?'THE SIEGE':(LEVELS[level]?LEVELS[level].zone:'');
-  ctx.fillStyle='#9c8a6a'; ctx.font='800 13px system-ui'; ctx.fillText('FRONT '+(mode==='base'?'S':(level+1))+'  ·  '+zoneName+(mode==='base'?'':'  ·  '+KIND_NAME[LEVELS[level].kind]), W/2, 22);
-  if(defenders.length){            // GUNPOWDER STANDING — the actual objective
-    var saved=gpPeople(), total=gpPeopleTotal();
-    ctx.font='800 15px system-ui';
-    ctx.fillStyle = saved===total? '#9affc0' : saved>total*0.5? '#ffe23a' : '#ff5d6c';
-    ctx.fillText('GUNPOWDER  '+saved+' / '+total, W/2, 78);
-    if(gpPhase>0){ ctx.font='700 11px system-ui'; ctx.fillStyle='#ff9d3a';
-      ctx.fillText(['','PRESSED','GIVING GROUND','ARMOR'][Math.min(gpPhase,3)], W/2, 94); }
+var AMB=[]; for(var i=0;i<70;i++) AMB.push({x:Math.random()*LW, y:Math.random()*LH, s:Math.random(), p:Math.random()*6});
+function drawAmbient(){
+  var kind=SKIES[F.time].amb;
+  for(var i=0;i<AMB.length;i++){ var m=AMB[i];
+    if(kind==='snow'){ var x=(m.x+rt*(10+m.s*20)+Math.sin(rt+m.p)*20)%LW, y=(m.y+rt*(30+m.s*40))%LH; ctx.fillStyle='rgba(235,242,255,'+(0.35+0.4*m.s)+')'; ctx.fillRect(x,y,2+m.s*2,2+m.s*2); }
+    else if(kind==='embers'){ var x=(m.x+Math.sin(rt*0.7+m.p)*30)%LW, y=LH-((m.y+rt*(20+m.s*30))%LH); ctx.fillStyle='rgba(255,'+(120+(m.s*80|0))+',60,'+(0.3+0.5*m.s)+')'; ctx.fillRect(x,y,2,2); }
+    else if(kind==='motes'){ if(i>30) break; var x=(m.x+Math.sin(rt*0.5+m.p)*40)%LW, y=GY()-80-((m.y*0.5+rt*6)%300); ctx.fillStyle='rgba(255,230,150,'+(0.25+0.4*Math.abs(Math.sin(rt*2+m.p)))+')'; ctx.fillRect(x,y,2.5,2.5); }
+    else if(kind==='gulls'){ if(i>6) break; var x=(m.x+rt*(24+m.s*20))%(LW+200)-100, y=160+m.y*0.25+Math.sin(rt*2+m.p)*6, wv=Math.sin(rt*8+m.p)*5;
+      ctx.strokeStyle='rgba(40,50,70,0.6)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x-9,y-wv); ctx.lineTo(x,y); ctx.lineTo(x+9,y-wv); ctx.stroke(); }
   }
-  if(friends.length){             // THE STRANDED — the rescue objective
-    var rs=rescuedN(), need=LEVELS[level].need, ry=defenders.length?112:78;
-    ctx.font='800 15px system-ui'; ctx.fillStyle = rs>=need? '#9affc0' : FRIENDLY_LOOK.col;
-    ctx.fillText('SAFE  '+rs+' / '+need+'   ·   stranded '+(friends.length-rs-lostN())+'   ·   lost '+lostN(), W/2, ry);
-    ctx.textAlign='left'; ctx.font='800 13px ui-monospace';
-    if(P.gear==='ladder'){ ctx.fillStyle='#ffd23f'; ctx.fillText('LADDER '+Math.max(0,Math.ceil(ladderT))+'s  ·  '+onLadder()+'/'+LADDER_CAP+(P.spd<LADDER_HOVER_V?'  CLIMBING':'  hover to climb'), 22, 60); }
-    else { ctx.fillStyle='#c8a46a'; ctx.fillText('ROPE  ·  '+(onRope()?'CARRYING — set them down on SAFE':'fly LOW to reach the stranded'), 22, 60); }
-    ctx.textAlign='center';
-  }
-  ctx.fillStyle= stageClock<10?'#ff5d6c':'#fff'; ctx.font='800 30px system-ui'; ctx.fillText(Math.max(0,Math.ceil(stageClock))+'', W/2, 52);
-  if(runActive){ ctx.fillStyle='#ff9d3a'; ctx.font='800 14px system-ui'; ctx.globalAlpha=0.6+0.4*Math.sin(clock*9); ctx.fillText('>>> THE LEGION ADVANCES <<<', W/2, 74); ctx.globalAlpha=1; }
-  var stg=stageOf(), mw=clamp(W*0.34,260,520), mx=(W-mw)/2, my=H-30;
-  ctx.fillStyle='#15100a'; ctx.strokeStyle='#3a2c18'; ctx.lineWidth=1; roundRect(mx,my,mw,14,7); ctx.fill(); ctx.stroke();
-  var grad=ctx.createLinearGradient(mx,0,mx+mw,0); grad.addColorStop(0,'#39ff14'); grad.addColorStop(.55,'#ffe23a'); grad.addColorStop(.82,'#ff9d3a'); grad.addColorStop(1,'#ff5d6c');
-  ctx.save(); roundRect(mx,my,mw,14,7); ctx.clip(); ctx.fillStyle=grad; ctx.fillRect(mx,my,mw*(meter/100),14); ctx.restore();
-  ctx.textAlign='center'; ctx.fillStyle=STAGECOL[stg]; ctx.font='800 12px system-ui'; ctx.fillText('LEGION ALERT — '+STAGENAME[stg], W/2, my-7);
-  ctx.textAlign='left'; ctx.fillStyle=GLIDE?'#39ff14':'#ff9d3a'; ctx.font='700 12px ui-monospace'; ctx.fillText('GLIDE '+(GLIDE?'ON':'OFF')+'  accel '+accel+' / damp '+damp, 22, H-26);
-  ctx.textAlign='right'; ctx.fillStyle = fps<45?'#ff5d6c':fps<55?'#ffe23a':'#39ff14'; ctx.font='700 12px ui-monospace'; ctx.fillText('FPS '+Math.round(fps)+'  · gnomes '+targets.length+' · shots '+shots.length+(stress?'  · BLITZ':''), W-22, H-26);
-  if(msgT>0){ ctx.textAlign='center'; ctx.globalAlpha=clamp(msgT,0,1); ctx.fillStyle=msgColor; ctx.font='800 26px system-ui'; ctx.fillText(msg,W/2,H*0.30); ctx.globalAlpha=1; }
 }
-function overlay(title,sub){
-  ctx.fillStyle='rgba(4,3,10,.74)'; ctx.fillRect(0,0,W,H);
-  if(title==='PAX GNOMANIA' && ok('gnomania')) drawImg('gnomania',W/2,H*0.38,Math.min(W*0.42,460),0,1);
-  ctx.textAlign='center'; ctx.fillStyle=TH.title; ctx.font='900 '+clamp(W*0.055,38,84)+'px system-ui'; ctx.shadowColor=TH.edge; ctx.shadowBlur=22; ctx.fillText(title,W/2,H*0.55); ctx.shadowBlur=0;
-  ctx.fillStyle=TH.edge; ctx.font='800 13px ui-monospace'; ctx.fillText(TH.name,W/2,H*0.55+30);
-  ctx.fillStyle='#e9e0d6'; ctx.font='700 16px system-ui'; ctx.fillText(sub,W/2,H*0.55+62);
-  if(state!=='title'){ ctx.fillStyle='#9c8a6a'; ctx.font='800 22px system-ui'; ctx.fillText('SCORE  '+score,W/2,H*0.55+98); }
+function drawScene(dt){
+  drift += (state==='play'?dt:dt*0.5)*1.0;
+  drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i], GY());
+  if(F.key==='dover'){ spr('chalk_boulder',420,GY()+14,34,{}); spr('chalk_boulder',1150,GY()+12,30,{flip:true}); }
+  drawGround(); drawAmbient();
+  drawDrop(); drawSiege(); drawFriends(); drawLegion(); drawWater();
+  drawRay(); drawHazards(); drawShots(); drawPickups(); drawRope(); drawPlayer(); drawFx();
 }
 
+/* ---------- HUD ---------- */
+var GOLD='#e8c66a', PARCH='#efe3c4', RED='#ff6a4a', CYAN='#7fe7ff';
+function panel(x,y,w,h,a){ ctx.save(); ctx.globalAlpha=a==null?0.55:a; ctx.fillStyle='#0b0806'; roundRect(x,y,w,h,8); ctx.fill(); ctx.globalAlpha=0.7; ctx.strokeStyle='#7a6234'; ctx.lineWidth=1.5; roundRect(x,y,w,h,8); ctx.stroke(); ctx.restore(); }
+function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function drawHUD(){
+  panel(16,14,300,74); txt('SCORE',32,34,13,GOLD,'left','bold'); txt(''+score,32,62,30,PARCH,'left','bold',1,'ui-monospace,Menlo,monospace');
+  // hull
+  panel(LW-316,14,300,74); txt('HULL',LW-300,34,13,GOLD,'left','bold');
+  ctx.fillStyle='#1a0c0a'; roundRect(LW-300,50,268,18,9); ctx.fill(); ctx.save(); roundRect(LW-300,50,268,18,9); ctx.clip();
+  ctx.fillStyle=hp>60?'#7ccf5c':hp>30?'#f0c94a':'#ff5a3a'; ctx.fillRect(LW-300,50,268*hp/HULL,18); ctx.restore();
+  txt(spinning()?'THE SCREW':(simT<P.spinCd?'screw cooling':'F  SCREW READY'),LW-32,34,12,spinning()?GOLD:simT<P.spinCd?'#8a7a5a':'#bfe7a8','right','bold');
+  // centre: front + clock
+  panel(LW/2-240,10,480,92,0.5);
+  txt(F.title,LW/2,30,17,GOLD,'center','bold'); var c=Math.max(0,Math.ceil(stageClock));
+  txt(''+c,LW/2,64,36,c<=10?RED:PARCH,'center','bold',1,'ui-monospace,Menlo,monospace');
+  var r=rescuedN(), l=lostN(), st=friends.length-r-l;
+  txt('SAFE '+r+' / '+F.need+'   ·   STRANDED '+st+'   ·   LOST '+l,LW/2,92,14,r>=F.need?'#9fe08a':CYAN,'center','bold');
+  // gear line
+  var gl = P.gear==='ladder' ? 'LADDER '+Math.max(0,Math.ceil(ladderT))+'s · '+onLadder()+'/'+LADDER_CAP+(P.spd<LADDER_HOVER_V?' · CLIMBING':' · hover to climb')
+         : onRope() ? 'ROPE · CARRYING — set them down at '+F.drop.label : 'ROPE · fly LOW to reach the stranded';
+  txt(gl,32,108,14,P.gear==='ladder'?GOLD:'#d8c49a','left','bold');
+  if(F.water){ var depth=clamp((GY()+F.water.from-waterY)/(F.water.from+60),0,1); panel(LW-316,96,300,34,0.45); txt('THE WASH RISES',LW-300,113,13,'#ff9a7a','left','bold');
+    ctx.fillStyle='#2a0806'; ctx.fillRect(LW-170,106,140,14); ctx.fillStyle='#c0301a'; ctx.fillRect(LW-170,106,140*depth,14); }
+  if(F.wall){ var up=0; for(var i=0;i<legion.length;i++) if(!legion[i].gone && !legion[i].climb) up++; panel(LW-316,96,300,34,0.45);
+    txt('RED HATS ON THE WALK: '+up,LW-300,113,13,up?'#ff9a7a':'#bfe7a8','left','bold'); }
+  if(msgT>0) txt(msg,LW/2,170,26,msgCol,'center','bold',clamp(msgT,0,1));
+  if(tipNow){ panel(LW/2-430,LH-70,860,46,0.7); txt(tipNow,LW/2,LH-47,18,'#fff3c4','center','bold'); }
+  if(demo){ txt('DRAMATIZED RECONSTRUCTION',LW-30,LH-28,14,'#ffffff','right','bold',0.75); }
+}
+
+/* =====================================================================
+   SCREENS — attract, title, how-to, select, brief, results, failed, march, end
+   ===================================================================== */
+// THE ATTRACT — the TruthJunket special, cut to the theme (~104 s). Ken Burns on every plate.
+var ATTRACT=[
+  {k:'ident', d:5.5},
+  {k:'hook', d:6, lines:['FOR CENTURIES WE CREDITED THE LEGIONS.','SOMETHING ELSE WAS KEEPING THE SKY.']},
+  {k:'plate', p:'pax_presents', d:8, kb:[1.0,0.5,0.45, 1.12,0.5,0.5]},
+  {k:'plate', p:'wolfe_1', d:8, kb:[1.05,0.55,0.4, 1.2,0.5,0.42], who:'DR. H. WOLFE', role:'OCCULT ROMAN HISTORY · PETER UNIVERSITY', q:'"Hadrian built a wall. But did he build it... or did it already KNOW?"'},
+  {k:'plate', p:'gnomean_legion', d:9, kb:[1.0,0.5,0.15, 1.06,0.5,0.85]},
+  {k:'plate', p:'wall_for_them', d:8, kb:[1.12,0.35,0.4, 1.0,0.5,0.5]},
+  {k:'plate', p:'wolfe_4', d:7, kb:[1.1,0.45,0.45, 1.22,0.55,0.38], who:'DR. H. WOLFE', role:'AUTHOR, "GNOMEAN WARFARE IN LATE ROMAN BRITAIN"', q:'"They had flight in AD 122. We do not. Are we, in fact, going BACKWARDS?"'},
+  {k:'plate', p:'turning_screw', d:8, kb:[1.0,0.5,0.5, 1.15,0.6,0.42]},
+  {k:'demo', d:15},
+  {k:'plate', p:'legion_wolfe', d:7, kb:[1.0,0.5,0.5, 1.1,0.42,0.48]},
+  {k:'plate', p:'wolfe_6', d:7, kb:[1.06,0.5,0.4, 1.2,0.5,0.36], who:'DR. H. WOLFE', role:'TRUTHJUNKET TV', q:'"If the machines never existed, then WHO kept the sky safe? Checkmate."'},
+  {k:'plate', p:'pax_gnomania', d:9, kb:[1.0,0.5,0.5, 1.08,0.5,0.48], press:true},
+  {k:'howto', d:6, p:'pax_open'}
+];
+var atk=0, atT=0;
+function coverDraw(n, sc, fx_, fy_, a){ // cover the stage with a plate, Ken-Burns scale + focus point
+  if(!ok(n)) return; var im=IMG[n], iw=im.naturalWidth, ih=im.naturalHeight, base=Math.max(LW/iw, LH/ih)*sc, w=iw*base, h=ih*base;
+  var x=clamp(LW/2 - fx_*w + (0.5*w - LW/2)*0, LW-w, 0), y=clamp(LH/2 - fy_*h, LH-h, 0); x = clamp(LW/2 - fx_*w, LW-w, 0);
+  ctx.save(); ctx.globalAlpha=a==null?1:a; ctx.drawImage(im,x,y,w,h); ctx.restore(); }
+function tjBug(){ panel(24,22,250,40,0.6); txt('TRUTHJUNKET TV',40,42,17,'#ffd25a','left','bold'); ctx.fillStyle=Math.floor(rt*2)%2?'#ff2a2a':'#661010'; ctx.beginPath(); ctx.arc(LW-60,44,8,0,6.283); ctx.fill(); txt('REC',LW-78,44,14,'#ffbaba','right','bold'); }
+function drawAttract(dt){
+  atT+=dt; var S=ATTRACT[atk];
+  if(atT>=S.d){ atT=0; if(S.k==='demo'){ demo=false; autopilot=null; } atk=(atk+1)%ATTRACT.length; if(atk===0) restartMusic(); S=ATTRACT[atk];
+    if(S.k==='demo'){ demo=true; startFront(0,{go:true,seed:4242}); autopilot=makePilot(); state='attract'; } }
+  var u=atT/S.d, fade=Math.min(1, atT/0.6, (S.d-atT)/0.6);
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,LW,LH);
+  if(S.k==='ident'){ var gl=0.5+0.5*Math.sin(rt*3), cx=LW/2, cy=LH*0.45;
+    var g=ctx.createRadialGradient(cx,cy,10,cx,cy,700); g.addColorStop(0,'rgba(255,40,50,'+(0.14+0.12*gl)*fade+')'); g.addColorStop(1,'rgba(255,40,50,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,LW,LH);
+    sprC('ck_logo',cx+Math.sin(rt*34)*1.2,cy,640*(0.96+0.06*u),{a:fade}); txt('A CASTLE KILLSCREEN PRESENTATION',cx,LH*0.82,18,'#d9a0a0','center','bold',fade*0.8); return; }
+  if(S.k==='hook'){ txt(S.lines[0],LW/2,LH*0.42,40,PARCH,'center','bold',clamp(atT/0.8,0,1)*fade);
+    txt(S.lines[1],LW/2,LH*0.55,40,'#ff5a3a','center','bold',clamp((atT-1.8)/0.8,0,1)*fade*(0.75+0.25*Math.sin(rt*5))); tjBug(); return; }
+  if(S.k==='demo'){ if(F&&P){ update(dt); ropeSwing(dt); drawScene(dt); }
+    ctx.fillStyle='rgba(0,0,0,'+(1-fade)+')'; ctx.fillRect(0,0,LW,LH); tjBug(); lowerThird('THE ORNITHOPTER CORPS','A DRAMATIZED RECONSTRUCTION · DOVER, AD 122',fade); pressAny(); return; }
+  if(S.k==='howto'){ ctx.save(); ctx.globalAlpha=fade; backdrop(3,dt); ctx.restore(); howtoCard(fade); pressAny(); return; }
+  var kb=S.kb||[1,0.5,0.5,1.1,0.5,0.5], e=ease(u);
+  coverDraw(S.p, lerp(kb[0],kb[3],e), lerp(kb[1],kb[4],e), lerp(kb[2],kb[5],e), fade);
+  var vg=ctx.createRadialGradient(LW/2,LH/2,LH*0.4,LW/2,LH/2,LH); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.55)'); ctx.fillStyle=vg; ctx.fillRect(0,0,LW,LH);
+  tjBug();
+  if(S.who){ lowerThird(S.who,S.role,fade); var qa=clamp((atT-1.2)/0.8,0,1)*fade; panel(LW/2-560,LH-250,1120,64,0.6*qa); txt(S.q,LW/2,LH-218,24,'#fff6dc','center','italic bold',qa); }
+  if(S.press) pressAny();
+}
+function lowerThird(a,b,al){ ctx.save(); ctx.globalAlpha=al; ctx.fillStyle='rgba(120,12,12,0.88)'; ctx.fillRect(60,LH-150,640,46); ctx.fillStyle='rgba(10,8,6,0.85)'; ctx.fillRect(60,LH-104,640,32); ctx.restore();
+  txt(a,80,LH-127,24,'#fff','left','bold',al); txt(b,80,LH-88,14,'#e8c66a','left','bold',al); }
+function pressAny(){ var a=0.5+0.5*Math.sin(rt*4); txt('PRESS ANY KEY',LW/2,LH-40,22,GOLD,'center','bold',a); if(AU.blocked) txt('♪ sound starts with your first key',LW/2,LH-14,13,'#bba','center','',0.7); }
+function howtoCard(a){
+  panel(LW/2-520,120,1040,620,0.82*a); txt('HOW TO FLY',LW/2,170,38,GOLD,'center','bold',a);
+  var L=[['ARROWS / WASD','fly the ornithopter (it glides — lead your turns)'],['FLY LOW','the rope\'s end reaches the stranded — they grab on and hang'],
+         ['CARRY THEM','to the SAFE drop-off and set them down LOW. The rope holds ONE.'],['SPACE (hold)','THE RAY — lifts a red hat out of the fight (you hover while it works)'],
+         ['F  (or X / SHIFT)','THE SCREW — fold into the bronze screw: fire passes through, bolts bounce off'],['LADDER CRATE','carries three; they climb while you HOVER. Goats ride the rope only.'],
+         ['A HIT','costs hull — and whoever is on the rope lets go. A long fall is lost.'],['R · ESC · M','retry the front · title · sound']];
+  for(var i=0;i<L.length;i++){ txt(L[i][0],LW/2-470,240+i*58,20,PARCH,'left','bold',a); txt(L[i][1],LW/2-170,240+i*58,18,'#d8ccb0','left','',a); }
+  txt('Every danger warns you first: a dotted line turns RED · a red lane flashes · a ring marks where the stone lands.',LW/2,720,15,'#bfa77a','center','italic',a);
+}
+function backdrop(idx,dt){ var keep=F; F=FRONTS[idx]; drift+=dt*0.6; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); drawGround(); F=keep; }
+var titleFly=0;
+function drawTitle(dt){
+  titleFly+=dt; backdrop(2,dt);
+  var vg=ctx.createLinearGradient(0,0,0,LH); vg.addColorStop(0,'rgba(0,0,0,0.55)'); vg.addColorStop(0.5,'rgba(0,0,0,0.05)'); vg.addColorStop(1,'rgba(0,0,0,0.75)'); ctx.fillStyle=vg; ctx.fillRect(0,0,LW,LH);
+  sprC('thopter',(titleFly*140)%(LW+400)-200,250+Math.sin(titleFly*1.3)*18,220,{flip:true});
+  txt('PAX GNOMANIA',LW/2,370,110,GOLD,'center','bold'); txt('HADRIAN\'S ORNITHOPTER CORPS  ·  BRITANNIA, AD 122',LW/2,450,22,PARCH,'center','bold');
+  for(var i=0;i<MENU.length;i++){ var sel=i===menuI, y=540+i*54; if(sel){ panel(LW/2-260,y-24,520,48,0.65); }
+    txt((sel?'▶  ':'')+MENU[i],LW/2,y,sel?28:24,sel?'#fff3c4':'#cdbf9e','center','bold'); }
+  txt('↑ ↓  choose   ·   SPACE / ENTER  go   ·   ESC  the special',LW/2,LH-40,15,'#bba98a','center','bold',0.85);
+  txt('A CASTLE KILLSCREEN GAME · ANDERS & PARTNERS',LW/2,LH-16,12,'#8a7a5a','center','bold',0.7);
+}
+function drawSelect(){
+  backdrop(3,0.016); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,LW,LH);
+  txt('CHOOSE A FRONT',LW/2,80,44,GOLD,'center','bold');
+  var built=MARCH.filter(function(m){return m.f!=null;});
+  var bi=0;
+  for(var i=0;i<MARCH.length;i++){ var m=MARCH[i], y=150+i*56, isB=m.f!=null, sel=isB && built[selI]===m;
+    if(sel) panel(LW/2-470,y-24,940,48,0.7);
+    txt((isB?(++bi)+'.  ':'—  ')+m.name, LW/2-440, y, 22, isB?(sel?'#fff3c4':PARCH):'#6f6656','left','bold');
+    txt(isB?(FRONTS[m.f].latin):('SEALED · '+m.note), LW/2+440, y, 14, isB?'#c9b27a':'#5f584a','right', isB?'bold':'italic'); }
+  txt('↑ ↓ or 1–4  ·  SPACE fly it  ·  ESC back',LW/2,LH-28,15,'#bba98a','center','bold');
+}
+function drawBrief(dt){
+  drift+=dt*0.5; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); drawGround();
+  ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,LW,LH);
+  var a=clamp(rt/0.5,0,1), n=MARCH.findIndex(function(m){return m.f===fi;})+1;
+  txt('THE MARCH · '+(F.wall?'THE WALL':'STAGE '+n),LW/2,150,18,'#c9b27a','center','bold',a);
+  txt(F.title,LW/2,220,70,GOLD,'center','bold',a); txt(F.latin,LW/2,280,22,PARCH,'center','bold',a);
+  panel(LW/2-560,320,1120,300,0.7*a);
+  wrap(F.brief,LW/2,360,1040,24,'#f3ead2',a);
+  txt('BRING OUT '+F.need+' OF '+F.friends.length+' BEFORE THE HORN  ·  '+F.clock+'s',LW/2,470,24,CYAN,'center','bold',a);
+  wrap('NEW: '+F.newThing,LW/2,520,1040,19,'#ffcf9a',a);
+  wrap(F.wolfe+'  — DR. H. WOLFE',LW/2,680,1100,20,'#d8ccb0',a,'italic');
+  txt('SPACE — FLY   ·   ESC — TITLE',LW/2,LH-50,22,GOLD,'center','bold',0.5+0.5*Math.sin(rt*4));
+}
+function wrap(s,x,y,maxW,size,col,a,weight){ ctx.font=(weight||'bold')+' '+size+'px Georgia,serif'; var words=s.split(' '), line='', ly=y;
+  for(var i=0;i<words.length;i++){ var t=line?line+' '+words[i]:words[i]; if(ctx.measureText(t).width>maxW && line){ txt(line,x,ly,size,col,'center',weight||'bold',a); line=words[i]; ly+=size*1.45; } else line=t; }
+  if(line) txt(line,x,ly,size,col,'center',weight||'bold',a); }
+function drawResults(dt){
+  drawScene(dt*0.3); ctx.fillStyle='rgba(0,0,0,0.62)'; ctx.fillRect(0,0,LW,LH);
+  var R=lastResult||{tally:[]}, a=clamp(rt/0.4,0,1);
+  txt(F.title+' — HELD',LW/2,140,52,GOLD,'center','bold',a); txt(R.reason==='all'?'EVERYONE WHO COULD BE BROUGHT OUT, WAS.':'THE HORN SOUNDED WITH ENOUGH SAFE.',LW/2,195,20,PARCH,'center','bold',a);
+  panel(LW/2-420,240,840,380,0.75);
+  for(var i=0;i<R.tally.length;i++){ var row=R.tally[i], al=clamp((rt-0.4-i*0.35)/0.3,0,1); if(al>0 && !R['_t'+i]){ R['_t'+i]=1; sfx('tally'); }
+    txt(row[0],LW/2-380,290+i*56,24,PARCH,'left','bold',al); txt(row[1],LW/2+60,290+i*56,24,CYAN,'center','bold',al); txt(row[2]?'+'+row[2]:'',LW/2+380,290+i*56,24,GOLD,'right','bold',al,'ui-monospace,Menlo,monospace'); }
+  var al2=clamp((rt-2.4)/0.4,0,1);
+  txt('GRADE  '+R.grade,LW/2-380,600,26,'#fff3c4','left','bold',al2); txt('SCORE  '+score,LW/2+380,600,26,GOLD,'right','bold',al2,'ui-monospace,Menlo,monospace');
+  txt(campaign?'SPACE — MARCH ON   ·   R — FLY IT AGAIN':'SPACE — CHOOSE A FRONT   ·   R — FLY IT AGAIN',LW/2,LH-60,22,GOLD,'center','bold',al2*(0.6+0.4*Math.sin(rt*4)));
+}
+function drawFailed(dt){
+  drawScene(dt*0.3); ctx.fillStyle='rgba(30,0,0,0.6)'; ctx.fillRect(0,0,LW,LH);
+  var R=lastResult||{}, f=FAILS[R.reason]||['FAILED',''], a=clamp(rt/0.4,0,1);
+  txt(f[0],LW/2,300,84,'#ff6a4a','center','bold',a); txt(f[1],LW/2,380,24,PARCH,'center','bold',a);
+  txt('SAFE '+R.rescued+' of '+R.need+' needed   ·   LOST '+R.lost+'   ·   HULL '+Math.max(0,R.hp|0)+'%',LW/2,440,22,CYAN,'center','bold',a);
+  txt('R / SPACE — RETRY THE FRONT',LW/2,560,34,GOLD,'center','bold',0.55+0.45*Math.sin(rt*4)); txt('ESC — TITLE',LW/2,612,20,'#cdbf9e','center','bold',a);
+}
+function drawMarch(){
+  coverDraw('gnomean_legion',1.0,0.5,0.3+0.1*Math.sin(rt*0.05),0.28); ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,LW,LH);
+  txt('THE MARCH',LW/2,70,44,GOLD,'center','bold'); txt('DOVER TO THE WALL',LW/2,112,18,PARCH,'center','bold');
+  var cur=MARCH.findIndex(function(m){return m.f===fi;}), nx=nextBuilt(fi), nI=MARCH.findIndex(function(m){return m.f===nx;});
+  for(var i=0;i<MARCH.length;i++){ var m=MARCH[i], y=160+i*54, done=i<=cur && m.f!=null, sealedPast=i<cur && m.f==null, isNext=i===nI;
+    var col = done?'#9fe08a': isNext?'#fff3c4': m.f!=null?PARCH:'#6f6656';
+    if(isNext) panel(LW/2-470,y-23,940,46,0.7);
+    txt((done?'✓  ':isNext?'▶  ':'·  ')+m.name,LW/2-440,y,21,col,'left','bold');
+    txt(done?'HELD': m.f!=null?(isNext?'NEXT':'') : (sealedPast?'the march passes — DISPATCH SEALED':'SEALED · '+m.note),LW/2+440,y,14,m.f!=null?'#c9b27a':'#5f584a','right',m.f!=null?'bold':'italic'); }
+  txt('SCORE  '+score,LW/2,LH-70,22,GOLD,'center','bold','ui-monospace');
+  txt('SPACE — '+(nx<0?'ONWARD':'FLY '+FRONTS[nx].title),LW/2,LH-34,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
+}
+function drawEnd(){
+  coverDraw('wall_for_them',1.05+0.03*Math.sin(rt*0.1),0.5,0.5,0.6); ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,LW,LH);
+  txt('THE WALL HOLDS — FOR NOW',LW/2,170,56,GOLD,'center','bold'); txt('SCORE  '+score,LW/2,240,30,PARCH,'center','bold');
+  panel(LW/2-560,290,1120,330,0.7);
+  txt('STILL TO COME ON THE WALL',LW/2,330,22,'#c9b27a','center','bold');
+  for(var i=1;i<D3_WALL_LEVELS.length;i++) txt(D3_WALL_LEVELS[i],LW/2,330+i*46,22,PARCH,'center','bold');
+  wrap('"History says the frontier was secured. History also says Hadrian died in bed. I have QUESTIONS."  — DR. H. WOLFE',LW/2,580,1060,19,'#d8ccb0',1,'italic');
+  txt('SPACE — TITLE',LW/2,LH-50,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
+}
+
+/* ---------- the frame loop ---------- */
 var last=0;
 function frame(ts){
-  var raw=last?(ts-last)/1000:0.016; var dt=Math.min(0.033,raw); last=ts;
-  fpsAcc+=raw; if(++fpsN>=15){ fps=fpsN/fpsAcc; fpsAcc=0; fpsN=0; }
-  if(state==='boot'){ bootT+=dt; drawBoot(); if(bootT>3.7) state='title'; requestAnimationFrame(frame); return; }
-  clock+=dt; update(dt);
-  ctx.save(); if(shake>0) ctx.translate(rnd(-shake,shake),rnd(-shake,shake));
-  drawBG();
-  if(state==='play' && P) ropeSwing(dt);
-  if(state!=='title'){ drawDropZone(); drawDefenders(); drawTargets(); drawFriends(); drawShots(); drawJets(); drawPickups(); drawRope(); drawSaucer(); drawFx(); drawHUD(); }
+  var raw=last?(ts-last)/1000:0.016, dt=Math.min(0.033,raw); last=ts; rt+=dt; idleT+=dt;
+  readPad();
+  ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='#000'; ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.setTransform(SC,0,0,SC,OX,OY); ctx.save(); ctx.beginPath(); ctx.rect(0,0,LW,LH); ctx.clip();
+  ctx.imageSmoothingEnabled=true;
+  if(state==='play'){ update(dt); ropeSwing(dt); ctx.save(); if(shake>0) ctx.translate(vr(-shake,shake),vr(-shake,shake)); drawScene(dt); ctx.restore(); drawHUD(); }
+  else if(state==='attract') drawAttract(dt);
+  else if(state==='title'){ drawTitle(dt); if(idleT>40) toAttract(); }
+  else if(state==='howto'){ backdrop(3,dt); howtoCard(1); txt('SPACE — BACK',LW/2,LH-60,20,GOLD,'center','bold'); }
+  else if(state==='select') drawSelect();
+  else if(state==='brief') drawBrief(dt);
+  else if(state==='results') drawResults(dt);
+  else if(state==='failed') drawFailed(dt);
+  else if(state==='march') drawMarch();
+  else if(state==='end') drawEnd();
   ctx.restore();
-  drawBezel();
-  if(state==='title') overlay('PAX GNOMANIA','SPACE = the fronts ('+LEVELS.map(function(l){return KIND_NAME[l.kind];}).join(' → ')+')  ·  1–'+LEVELS.length+' = pick a front  ·  B = siege');
-  else if(state==='over') overlay(overTitle||'GUNPOWDER FELL','press SPACE / R to run the fronts again  ·  1–'+LEVELS.length+' = pick a front');
-  else if(state==='clear') overlay('PAX GNOMANIA','press SPACE / R to run it again');
   requestAnimationFrame(frame);
 }
-// ?selftest runs the mission headless and prints a report instead of booting the game.
-// ?auto skips boot+title straight into the mission — the headless shot rig's entry,
-// so a screenshot shows the LINE under attack rather than a title card.
-if(/[?&]auto/.test(location.search)){ bootT=99; var lv=+((location.search.match(/level=(\d+)/)||[])[1]||1); startMission(clamp(lv,1,LEVELS.length)-1); }
-if(/[?&]selftest/.test(location.search)){ try{ selfTest(); }catch(e){ document.body.innerHTML='<pre style="color:#ff5d6c;padding:18px">SELFTEST THREW: '+e.message+'\n'+e.stack+'</pre>'; document.title='PAX SELFTEST FAIL'; } }
-else requestAnimationFrame(frame);
+
+/* =====================================================================
+   ?selftest — proof of life, per front. House convention: the
+   verification lives IN the artifact. "It loaded with no console errors"
+   is not a test — a page whose sprites 404 boots clean. Runs the real
+   update() on a fixed dt; no rendering.
+   ===================================================================== */
+function simRun(sec, pilot, stopOnEnd){ var dt=1/60; autopilot=pilot||null; for(var n=0;n<Math.round(sec*60);n++){ if(state!=='play'){ if(stopOnEnd!==false) break; else continue; } update(dt); } autopilot=null; }
+function selfTest(){
+  var R=[], okk=function(n,c,d){ R.push({n:n,ok:!!c,d:d||''}); };
+  var dt=1/60, IDLE=makePilot({idle:true});
+  campaign=false; AU.off=true;
+  // ---- structure ----
+  okk('four fronts are built, the rest of the march is sealed on the map', FRONTS.length===4 && MARCH.filter(function(m){return m.f!=null;}).length===4 && MARCH.length===12, MARCH.length+' stops on the march');
+  var arts=[]; FRONTS.forEach(function(Fr){ (LAYERS[Fr.key]||[]).forEach(function(L){ arts.push(L.n); }); Fr.friends.forEach(function(d){ arts.push(WHO[d.who].art); }); Fr.legion.kinds.forEach(function(k){ arts.push(LEGION[k].art); }); });
+  var missingKeys=arts.filter(function(a){ return !ART[a]; });
+  okk('every front draws only manifest art (no stray names)', missingKeys.length===0, missingKeys.join(',')||arts.length+' references');
+  okk('no SUCK UP / Gunpowder art in the manifest', !Object.keys(ART).some(function(k){ return /gp_|bradley|saucer|jet|barracks|radar|aa_gun|soldier/.test(ART[k]); }));
+
+  // ---- per front: spawns, hazards telegraph, the untouched front FAILS ----
+  for(var i=0;i<FRONTS.length;i++){ var Fr=FRONTS[i];
+    startFront(i,{go:true,seed:101+i});
+    okk('['+Fr.key+'] the stranded are on the ground, the drop-off exists', friends.length===Fr.friends.length && friends.every(function(f){return f.st==='ground';}) && !!Fr.drop, friends.length+' stranded, need '+Fr.need);
+    var sawLegion=false, sawHaz={}, maxLive=0;
+    for(var n=0;n<60*40 && state==='play';n++){ hp=HULL; update(dt);
+      if(legion.some(function(g){return !g.gone;})) sawLegion=true; haz.forEach(function(h){ sawHaz[h.k==='shooter'?(h.up?'upbolts':h.type==='bolt'?'bolts':'arrows'):h.k==='thopter'?'thopters':h.k==='glider'?'gliders':'stones']=1; });
+      maxLive=Math.max(maxLive, legion.length+haz.length+shots.length); }
+    var want=Object.keys(Fr.hazards||{});
+    okk('['+Fr.key+'] the Legion takes the field', sawLegion || Fr.siege);
+    okk('['+Fr.key+'] every hazard on its card actually spawns', want.every(function(k){return sawHaz[k];}), (want.join(',')||'none (tutorial — the sky is still calm)'));
+    if(!want.length) okk('['+Fr.key+'] the tutorial sky is calm (no hazards)', Object.keys(sawHaz).length===0);
+    okk('['+Fr.key+'] the field stays bounded', maxLive<60, 'peak '+maxLive+' entities');
+    // the untouched front FAILS
+    startFront(i,{go:true,seed:202+i}); simRun(Fr.clock+5, IDLE);
+    var lr=lastResult||{};
+    okk('['+Fr.key+'] an untouched front FAILS (the player is necessary)', lr.passed===false, (lr.reason||'?')+' @ '+lr.t+'s · '+lr.rescued+' safe, '+lr.lost+' lost');
+    if(Fr.water||Fr.wall){ startFront(i,{go:true,seed:404+i}); autopilot=IDLE; for(var n=0;n<60*(Fr.clock+5) && state==='play';n++){ hp=HULL; update(dt); } autopilot=null; var lp=lastResult||{};
+      okk('['+Fr.key+'] '+(Fr.water?'the water rises and takes the stranded':'the red hats climb the Wall and take the garrison')+' (hull pinned, hands off)', lp.passed===false && lp.lost>0, lp.lost+' lost · '+lp.reason+' @ '+lp.t+'s'); }
+  }
+  // ---- telegraphs: every hazard warned before it could hurt (idle + autopilot, every front) ----
+  var tooShort=[], counted=0;
+  for(var i=0;i<FRONTS.length;i++){ for(var pass=0;pass<2;pass++){ startFront(i,{go:true,seed:300+i*3+pass}); simRun(FRONTS[i].clock+2, pass?makePilot():IDLE);
+      hzLog.forEach(function(e){ counted++; var m=HZ_MIN[e.type]; if(m!=null && e.tele < m-1e-6) tooShort.push(e.type+' '+e.tele.toFixed(2)); }); } }
+  okk('every hazard is TELEGRAPHED for its full warning before it can hit', tooShort.length===0 && counted>20, counted+' hazards checked'+(tooShort.length?' · SHORT: '+tooShort.slice(0,4).join(', '):''));
+
+  // ---- rescue rules (front 1, a quiet rig) ----
+  var b, mid, low;
+  function quiet(idx){ startFront(idx,{go:true,seed:7}); legion=[]; haz=[]; shots=[]; pickups=[]; legionT=1e9; for(var k in hzT) hzT[k]=1e9; (F.ladders||[]).forEach(function(_,j){ ladderSpawned[j]=1; }); low=bandBot(); mid=(BAND_TOP+low)/2; }
+  function park(x,y){ P.x=P.tx=x; P.y=P.ty=y; P.vx=P.vy=0; }
+  function run(s){ for(var n=0;n<Math.round(s*60);n++){ update(dt); } }
+  quiet(0); var f0=friends[0], f1=friends[1], f2=friends[3];
+  park(f2.x,mid); run(0.3); okk('the rope does NOT reach from mid-band (you must fly low)', f2.st==='ground');
+  inp.ray=1; autopilot=function(){ return {ray:1}; }; run(1.0); autopilot=null;
+  okk('the ray cannot lift a friendly (impossible by construction)', f2.st==='ground' && P.lock===null);
+  park(f0.x,low); run(0.2); okk('the rope grabs a friendly within reach', f0.st==='rope');
+  okk('...and only one — the rope holds one', friends.filter(function(f){return f.st==='rope';}).length===1);
+  var sc0=score; park(F.drop.x, maxY()); run(0.3);
+  okk('a delivery at the drop-off counts', f0.st==='safe' && f0.how==='drop' && score-sc0===RESCUE_PTS, rescuedN()+' safe, +'+(score-sc0));
+  quiet(0); f0=friends[1]; f1=friends[3];
+  park(f0.x,low); run(0.2); park(f0.x+90,BAND_TOP); run(0.5); var was=f0.st==='rope'; P.invuln=0; hitPlayer('test');
+  okk('a hit makes them let go', was && f0.st==='fall'); run(1.6);
+  okk('...and a long fall is lost', f0.st==='lost', 'fell from '+Math.round(f0.fallFrom||0));
+  P.invuln=0; P.stun=0; hp=HULL; park(f1.x,low); run(0.2); var r1=f1.st==='rope'; P.invuln=0; hitPlayer('test'); run(0.6);
+  okk('...but a short drop is walked off (and can be picked up again)', r1 && f1.st==='ground');
+  P.invuln=0; P.stun=0; hp=HULL; var f3=friends[5]; park(f3.x,low); run(0.3);
+  spawnGnome('axe', P.x, 1); run(1/60);
+  okk('dragging a rider through the Legion makes them let go', f3.st==='fall');
+  // ladder
+  quiet(1); var X=640; for(var k=0;k<4;k++) friends[k].x=X; friends[0].w=WHO.engineer;
+  park(X,mid); pickups.push({x:P.x,y:P.y,ttl:5}); run(1/60);
+  okk('the LADDER crate replaces the rope', P.gear==='ladder' && ladderT>0);
+  park(X,low); var maxOn=0; for(var n=0;n<8;n++){ run(1/60); maxOn=Math.max(maxOn,onLadder()); }
+  okk('the ladder caps at three', onLadder()===LADDER_CAP, onLadder()+' on');
+  var p0=friends[0].prog; for(var n=0;n<30;n++){ P.tx=P.x+(n%2?-80:80); update(dt); }
+  var gained=friends[0].prog-p0; park(X,mid); run(LADDER_CLIMB+0.4);
+  okk('climbers climb only while you hover', gained<0.25, 'jinking gained '+gained.toFixed(3));
+  okk('climbers are safe once aboard', friends.filter(function(f){return f.how==='aboard';}).length===LADDER_CAP);
+  quiet(0); var gt=friends[2]; park(gt.x,mid); pickups.push({x:P.x,y:P.y,ttl:5}); run(1/60); park(gt.x,low); run(0.3);
+  okk('goats will not climb a ladder (rope only)', P.gear==='ladder' && gt.st==='ground' && gt.w.animal);
+  // ---- the dodge ----
+  quiet(2); park(800,mid); spawnShooter('bolt',false); haz[0].x=300; run(SHOOTER.bolt.setup+SHOOTER.bolt.track+0.05); var hpA=hp, lk=!!haz[0].locked;
+  park(800,mid-160); run(SHOOTER.bolt.lock+1.2);
+  okk('a ballista bolt can be dodged (move after the lock)', lk && hp===hpA && hzLog.length===1, 'hp '+hpA+' -> '+hp);
+  quiet(2); park(friends[0].x,low); run(0.2); var rid=onRope(); park(800,mid); run(0.6); P.invuln=0; P.stun=0;
+  spawnShooter('bolt',false); haz[0].x=320; var hpB=hp; run(SHOOTER.bolt.setup+SHOOTER.bolt.track+SHOOTER.bolt.lock+0.8);
+  okk('a bolt that connects costs hull and the rider lets go', !!rid && hp<hpB && rid.st!=='rope', 'hp '+hpB+' -> '+hp+', rider '+(rid&&rid.st));
+  quiet(2); park(800,mid); spawnShooter('bolt',false); haz[0].x=320; run(SHOOTER.bolt.setup+SHOOTER.bolt.track+SHOOTER.bolt.lock+0.12);
+  var hpS=hp, sc1=score; autopilot=function(){ return {spin:1}; }; run(0.05); autopilot=null; run(0.6);
+  okk('THE SCREW turns a bolt (D8: the spin deflects)', hp===hpS && score>sc1, 'hp '+hpS+' -> '+hp);
+  quiet(3); park(800,mid); spawnThopter(); var hpC=hp; run(THOPTER_TELE*0.5); park(800, mid-150); run(THOPTER_TELE*0.5+2.6);
+  okk('a taken thopter can be dodged (change altitude)', hp===hpC, 'hp '+hpC+' -> '+hp);
+  quiet(3); park(800,mid); spawnThopter(); var hpD=hp; run(THOPTER_TELE+2.6); var tRet=true;
+  okk('a taken thopter that connects costs hull — and RETREATS, never crashes', hp<hpD, 'hp '+hpD+' -> '+hp);
+  quiet(2); park(800,mid); spawnStone(); var hpE=hp; run(0.4); park(1100,mid); run(STONE_TELE+STONE_FLY+0.2);
+  okk('a catapult stone can be dodged (leave the ring)', hp===hpE, 'hp '+hpE+' -> '+hp);
+  quiet(2); park(800,mid); spawnStone(); var hpF=hp; run(STONE_TELE+STONE_FLY+0.2);
+  okk('a stone that lands on you costs hull', hp<hpF);
+  quiet(2); park(800,mid); spawnGlider(); var hpG=hp; run(GLIDER_TELE*0.4); park(800,mid-180); run(GLIDER_TELE+6);
+  okk('a glider can be dodged', hp===hpG, 'hp '+hpG+' -> '+hp);
+  // ---- the ray ----
+  quiet(0); park(700,low); spawnGnome('axe',700,1); legion[0].k={art:'gnome_axe',h:64,val:150,lock:0.85,spd:0}; var sc2=score;
+  autopilot=function(){ return {ray:1}; }; run(1.2); autopilot=null;
+  okk('THE RAY lifts a red hat out of the fight', legion.length===0 || legion[0].gone, '+'+(score-sc2));
+  // ---- retry restarts ----
+  startFront(1,{go:true,seed:9}); score=1234; scoreAtStart=1000; simRun(300, IDLE);
+  var failedOk = state==='failed'; onPress('r');
+  okk('RETRY restarts the front (clock, stranded, hull, score)', failedOk && state==='play' && stageClock===F.clock && rescuedN()===0 && lostN()===0 && hp===HULL && score===1000 && fi===1);
+  // ---- the competent pilot can win every front ----
+  var rates=[];
+  for(var i=0;i<FRONTS.length;i++){ var w=0, N=6, detail=[];
+    for(var s=0;s<N;s++){ startFront(i,{go:true,seed:5000+i*100+s}); simRun(FRONTS[i].clock+4, makePilot()); var lr2=lastResult||{}; if(lr2.passed) w++; detail.push(lr2.passed?'W':(lr2.reason||'?')[0].toUpperCase()); }
+    rates.push(FRONTS[i].key+' '+w+'/'+N);
+    okk('['+FRONTS[i].key+'] a competent pilot can WIN it', w>=Math.ceil(N/2), w+'/'+N+' wins  '+detail.join(''));
+  }
+  // ---- results tally + campaign flow ----
+  startFront(0,{go:true,seed:5000}); campaign=true; score=0; scoreAtStart=0; simRun(FRONTS[0].clock+4, makePilot());
+  var lrw=lastResult||{};
+  okk('a win shows a RESULTS tally (rescued, hull, time, grade)', state==='results' && lrw.tally && lrw.tally.length===5 && !!lrw.grade, (lrw.grade||'?')+' · front '+lrw.frontScore);
+  rt=2; onPress(' '); var m1=state==='march'; onPress(' ');
+  okk('the campaign marches on: Dover -> Nottingham', m1 && state==='brief' && fi===1);
+  fi=3; F=FRONTS[3]; state='march'; onPress(' ');
+  okk('after the last built front the march ends on THE WALL HOLDS (the rest sealed)', state==='end');
+  campaign=false;
+
+  var pass=R.every(function(r){return r.ok;});
+  return { pass:pass, results:R, rates:rates, seed:SEED };
+}
+function selfTestPage(){
+  var out=selfTest(), R=out.results;
+  function render(extra){
+    var pass=out.pass && (!extra || extra.every(function(r){return r.ok;}));
+    var html='<pre style="font:13px ui-monospace,Menlo,monospace;color:#efe3c4;background:#0b0806;padding:18px;margin:0;min-height:100vh;white-space:pre-wrap">'
+      +'<b style="font-size:18px;color:'+(pass?'#9fe08a':'#ff6a4a')+'">PAX GNOMANIA — SELF TEST: '+(pass?'PASS':'FAIL')+'</b>   '+R.length+(extra?'+'+extra.length:'')+' checks\n\n';
+    R.concat(extra||[]).forEach(function(r){ html+=(r.ok?'  <span style="color:#9fe08a">OK  </span>':'  <span style="color:#ff6a4a">FAIL</span>')+'  '+r.n+(r.d?'   <span style="color:#8a7a5a">'+r.d+'</span>':'')+'\n'; });
+    html+='</pre>'; document.body.innerHTML=html; document.title='PAX SELFTEST '+(pass?'PASS':'FAIL');
+  }
+  render(null);
+  // in a browser, also prove every piece of art actually LOADED (a 404 never throws)
+  var t0=performance.now(); (function wait(){ var pend=0, bad=[]; for(var k in IMG){ if(IMG[k].bad) bad.push(k); else if(!IMG[k].ok) pend++; }
+    if(pend && performance.now()-t0<8000) return setTimeout(wait,100);
+    render([{n:'every piece of art in the manifest loaded', ok:bad.length===0&&pend===0, d:Object.keys(IMG).length+' files'+(bad.length?' · MISSING '+bad.join(','):'')+(pend?' · '+pend+' still loading':'')}]); })();
+}
+
+/* ---------- boot ---------- */
+window.PAX={ selfTest:selfTest, FRONTS:FRONTS, MARCH:MARCH, makePilot:makePilot, startFront:startFront, simRun:simRun,
+  _dbg:function(){ return {P:P,friends:friends,legion:legion,haz:haz,simT:simT,F:F,stageClock:stageClock}; },
+  get state(){ return state; }, get lastResult(){ return lastResult; }, get score(){ return score; }, ART:ART, SFX_SLOTS:SFX_SLOTS, MUSIC_SLOTS:MUSIC_SLOTS };
+if(NODE) return;
+if(qp('selftest')!==null){ try{ selfTestPage(); }catch(e){ document.body.innerHTML='<pre style="color:#ff6a4a;padding:18px">SELFTEST THREW: '+e.message+'\n'+e.stack+'</pre>'; document.title='PAX SELFTEST FAIL'; } return; }
+(function boot(){
+  var fr=qp('front'), shot=qp('shot');
+  if(fr!==null){ var n=clamp((+fr||1),1,FRONTS.length)-1; campaign=false; score=0; startFront(n,{go:qp('go')!==null||shot!==null||qp('ff')!==null||qp('demo')!==null});
+    if(qp('demo')!==null){ demo=true; autopilot=makePilot(); }
+    if(shot==='win'){ simRun(F.clock+4, makePilot()); }
+    else if(shot==='fail'){ simRun(F.clock+4, makePilot({idle:true})); }
+    else if(qp('ff')!==null){ simRun(+qp('ff')||10, makePilot({idle:qp('idle')!==null}), true); }
+    if(state!=='play') rt=5;
+    playMusic(state==='play'?F.music:'theme',0.7);
+  }
+  else if(qp('campaign')!==null){ campaign=true; score=0; startFront(0); playMusic('theme',0.7); }
+  else if(qp('march')!==null){ campaign=true; F=FRONTS[0]; fi=0; state='march'; playMusic('theme',0.7); }
+  else if(qp('title')!==null){ toTitle(); }
+  else if(qp('howto')!==null){ state='howto'; playMusic('theme',0.7); }
+  else if(qp('select')!==null){ state='select'; playMusic('theme',0.7); }
+  else { toAttract(); var a=qp('attract'); if(a && +a>0){ atk=clamp(+a,0,ATTRACT.length-1); atT=0; if(ATTRACT[atk].k==='demo'){ demo=true; startFront(0,{go:true,seed:4242}); autopilot=makePilot(); state='attract'; } } }
+  requestAnimationFrame(frame);
+})();
 })();
 </script>
 </body>
