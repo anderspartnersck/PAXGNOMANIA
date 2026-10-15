@@ -89,7 +89,7 @@ var ART={
   eagle_standard:'art/eagle_standard.png', red_war_banner:'art/red_war_banner.png', brazier:'art/brazier.png', boulders:'art/boulders.png',
   wall_top:'art/wall_top.png', wall_thin:'art/wall_thin.png', wall_siege:'art/wall_siege.png', siege_tower:'art/siege_tower.png',
   scaling_wall:'art/scaling_wall.png', fort_strip:'art/fort_strip.png', battle_frieze:'art/battle_frieze.png',
-  hz_dover:'art/hz_dover.png', hills_white_horse:'art/hills_white_horse.png', hills_b:'art/hills_b.png', forest_edge:'art/forest_edge.png',
+  hz_dover:'art/hz_dover.png', dover_downs:'art/dover_downs.png', hills_white_horse:'art/hills_white_horse.png', hills_b:'art/hills_b.png', forest_edge:'art/forest_edge.png',
   forest_dense:'art/forest_dense.png', tree_line:'art/tree_line.png', bush_clump:'art/bush_clump.png', snow_hills:'art/snow_hills.png',
   snow_siege:'art/snow_siege.png', camp_tents:'art/camp_tents.png', palisade_fort:'art/palisade_fort.png', watch_platform:'art/watch_platform.png',
   villa:'art/villa.png', village_strip:'art/village_strip.png', ground_grass:'art/ground_grass.png', ground_dirt:'art/ground_dirt.png',
@@ -143,7 +143,7 @@ var SFX_SLOTS={  // slot: synth placeholder [wave, f0, f1, seconds, volume, nois
   bolt_aim:['sine',900,900,0.08,0.05], bolt_lock:['square',1200,1200,0.10,0.06], bolt_fire:['sawtooth',220,80,0.18,0.14,1],
   arrow_loose:['triangle',800,300,0.12,0.08,1], stone_launch:['sawtooth',120,60,0.30,0.14,1], stone_impact:['square',90,40,0.35,0.18,1],
   thopter_warn:['square',700,700,0.12,0.07], thopter_pass:['sawtooth',180,90,0.6,0.08,1], glider_warn:['triangle',600,600,0.10,0.06],
-  ladders_up:['square',200,160,0.4,0.10,1], horn:['sawtooth',196,196,0.8,0.10],
+  ladders_up:['square',200,160,0.4,0.10,1], swoop:['sawtooth',260,520,0.25,0.05,1], glider_pass:['sawtooth',160,90,0.5,0.06,1], horn:['sawtooth',196,196,0.8,0.10],
   win:['triangle',523,1046,0.6,0.14], fail:['sine',330,110,0.9,0.14], tally:['square',1320,1320,0.03,0.05]
 };
 var AU={ unlocked:false, blocked:false, muted:false, cur:null, curName:'', ac:null, st:{} };
@@ -166,8 +166,11 @@ function unlockAudio(){
   try{ AU.ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
   if(AU.cur && AU.blocked){ var n=AU.curName; AU.curName=''; playMusic(n); }
 }
+var SFX_VARIANTS={ hit:5, thopter_pass:3, swoop:2 };   // slot -> how many files: hit.mp3, hit_2.mp3 ... hit_5.mp3 (one picked at random)
+var SWOOP_SPD=420, SWOOP_CD=1.8;   // a whoosh when you fly faster than this (px/s; the autopilot's top 5%), at most once per SWOOP_CD s
 function sfx(slot){
   if(NODE||AU.off||!AU.unlocked||AU.muted) return;
+  var nv=SFX_VARIANTS[slot]; if(nv){ var v=1+((Math.random()*nv)|0); if(v>1){ var vs=slot+'_'+v; if(!(AU.st[vs]&&AU.st[vs].state==='missing')){ slot=vs; if(!SFX_SLOTS[vs]) SFX_SLOTS[vs]=SFX_SLOTS[slot.replace(/_\d+$/,'')]; } } }
   var s=AU.st[slot];
   if(s===undefined){ var el=new Audio('audio/sfx/'+slot+'.mp3'); AU.st[slot]={el:el,state:'pending'};
     el.oncanplaythrough=function(){ AU.st[slot].state='ok'; }; el.onerror=function(){ AU.st[slot].state='missing'; }; el.load(); s=AU.st[slot]; }
@@ -448,6 +451,7 @@ function update(dt){
   var el=F.clock-stageClock;
   gatherInput(); pump(dt);
   var px=P.x, py=P.y; spring(P,P.tx,P.ty,dt); P.spd=Math.hypot(P.x-px,P.y-py)/Math.max(dt,1e-6);
+  if(P.spd>SWOOP_SPD && !P.swoopOn && simT>=(P.swoopCd||0) && P.stun<=0){ sfx('swoop'); P.swoopCd=simT+SWOOP_CD; } P.swoopOn=P.spd>SWOOP_SPD*0.7;   // FLYER 3/4
   P.bank += (clamp(P.vx/190,-1,1)-P.bank)*Math.min(1,7*dt);
   if(Math.abs(P.vx)>40) P.face = P.vx>0?1:-1;
   if(inp.spin && !spinWas && simT>=P.spinCd && P.stun<=0){ P.spinU=simT+SPIN_TIME; P.spinCd=simT+SPIN_CD; sfx('spin'); stats.spun++; }
@@ -578,7 +582,7 @@ function retreat(h,label){ h.st='retreat'; h.t=0; h.sc=1; if(label) flash(label,
 function spawnGlider(){ var dir=rng()<0.5?1:-1, y=clamp(P.y+rr(-50,50),BAND_TOP,bandBot());
   haz.push({ k:'glider', st:'warn', t:0, dir:dir, x:dir>0?-90:LW+90, y:y, base:y, amp:rr(26,46), ph:rr(0,6), art:rng()<0.5?'glider':'glider_b' }); sfx('glider_warn'); }
 function tickGlider(h,dt){
-  if(h.st==='warn'){ if(h.t>=GLIDER_TELE){ h.st='fly'; h.warned=h.t; h.t=0; hzLog.push({type:'glider', tele:h.warned}); } return; }
+  if(h.st==='warn'){ if(h.t>=GLIDER_TELE){ h.st='fly'; h.warned=h.t; h.t=0; sfx('glider_pass'); hzLog.push({type:'glider', tele:h.warned}); } return; }
   if(h.st==='fly'){ h.x+=h.dir*GLIDER_SPEED*dt; h.y=h.base+Math.sin(h.t*2.2+h.ph)*h.amp;
     if(!h.hit && Math.hypot(h.x-P.x,h.y-P.y)<GLIDER_R){
       if(spinning()){ h.hit=true; retreat(h,'SENT PACKING'); score+=200; sfx('clank'); }
@@ -802,7 +806,7 @@ var SKIES={
   night: {stops:['#04070f','#0b1630','#1b2c4f','#3c5170'], moon:{x:1300,y:170,r:46}, haze:'#26354f', amb:'snow'}
 };
 var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parallax speed, mode
-  dover:[ {n:'hz_dover', dy:12, h:330, sp:4, haze:0.10} ],
+  dover:[ {n:'hz_dover', dy:-70, h:330, sp:3, haze:0.10}, {n:'dover_downs', dy:22, h:300, sp:7} ],   // the cliffs + pharos ridge, then Joe's chalk downs (1014) in front
   nottingham:[ {n:'vale_far_hills', dy:-120, h:230, sp:2, sil:'#2b3a2c'}, {n:'hills_white_horse', dy:-70, h:170, sp:4, haze:0.55},
                {n:'forest_edge', dy:-40, h:150, sp:6, haze:0.42}, {n:'tree_line', dy:14, h:270, sp:10, haze:0.22} ],
   wash:[ {n:'wash_far_hills', dy:-90, h:250, sp:2, sil:'#5e130c'}, {n:'wash_far_ruins', dy:-50, h:190, sp:4, sil:'#3a0a07'},
@@ -1360,7 +1364,8 @@ function selfTestPage(){
 /* ---------- boot ---------- */
 window.PAX={ selfTest:selfTest, FRONTS:FRONTS, MARCH:MARCH, makePilot:makePilot, startFront:startFront, simRun:simRun,
   _dbg:function(){ return {P:P,friends:friends,legion:legion,haz:haz,simT:simT,F:F,stageClock:stageClock}; },
-  get state(){ return state; }, get lastResult(){ return lastResult; }, get score(){ return score; }, ART:ART, SFX_SLOTS:SFX_SLOTS, MUSIC_SLOTS:MUSIC_SLOTS };
+  get state(){ return state; }, get lastResult(){ return lastResult; }, get score(){ return score; }, ART:ART, SFX_SLOTS:SFX_SLOTS, MUSIC_SLOTS:MUSIC_SLOTS,
+  _audio:{ sfx:sfx, music:playMusic, unlock:unlockAudio, AU:AU } };   // a debug handle for headless sound checks
 if(NODE) return;
 if(qp('selftest')!==null){ try{ selfTestPage(); }catch(e){ document.body.innerHTML='<pre style="color:#ff6a4a;padding:18px">SELFTEST THREW: '+e.message+'\n'+e.stack+'</pre>'; document.title='PAX SELFTEST FAIL'; } return; }
 (function boot(){
