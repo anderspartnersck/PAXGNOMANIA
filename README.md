@@ -63,7 +63,7 @@ The game is laid out for a computer screen, 16:9.
 
 ## The fronts
 
-The campaign follows the Legion's march from Dover to Hadrian's Wall. Four
+The campaign follows the Legion's march from Dover to Hadrian's Wall. Five
 fronts are playable now:
 
 1. **THE FALL OF DOVER**: dawn on the white cliffs, the tutorial. The sky is
@@ -76,6 +76,11 @@ fronts are playable now:
 4. **SEGEDUNUM — WALLSEND**: the first section of the Wall. The Legion raises
    scaling ladders along the walkway, and you have to get the garrison down
    before the red hats reach them.
+5. **THE WHITE HORSE VALE**: dawn under the chalk horse on the downs. The host
+   comes out of the east and catches the Legion in the open, half-way through
+   pitching camp, before the fort is up. There are no walls. The catapult, the
+   ballista and the cart hold the red hats while they hack through. On the
+   march it comes between London and the Welsh Wash.
 
 London, Liverpool, York and Wall sections W2 to W5 show on the map as
 **SEALED**. W5 ends with Hadrian and the Gnomean King on top of the Wall.
@@ -87,7 +92,8 @@ London, Liverpool, York and Wall sections W2 to W5 show on the map as
 - [TITLE][title]: straight to the menu.
 - [THE CAMPAIGN][campaign]: the march from Dover.
 - [FRONT 1 · DOVER][f1] · [FRONT 2 · NOTTINGHAM][f2] ·
-  [FRONT 3 · WELSH WASH][f3] · [FRONT 4 · WALLSEND][f4]: one front on its own,
+  [FRONT 3 · WELSH WASH][f3] · [FRONT 4 · WALLSEND][f4] ·
+  [FRONT 5 · THE WHITE HORSE VALE][f5]: one front on its own,
   starting from its briefing card.
 - [CHOOSE A FRONT][select]: the map of the whole march.
 - [HOW TO FLY][howto]: the controls card.
@@ -98,7 +104,7 @@ London, Liverpool, York and Wall sections W2 to W5 show on the map as
 
 ## Status: working build
 
-Playable start to finish across the four fronts, with results, retry and the
+Playable start to finish across the five fronts, with results, retry and the
 campaign map. Still to come:
 
 - **Sound.** The main theme, *Britannia*, plays on the attract and title.
@@ -131,6 +137,7 @@ This bundle is built from the `HADRIAN'S ANCIENT AIR FORCE` repo
 [f2]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=2
 [f3]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=3
 [f4]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=4
+[f5]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=5
 [select]: https://anderspartnersck.github.io/PAXGNOMANIA/?select
 [howto]: https://anderspartnersck.github.io/PAXGNOMANIA/?howto
 [demo]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=1&demo
