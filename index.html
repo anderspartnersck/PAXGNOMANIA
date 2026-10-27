@@ -19,7 +19,7 @@
   URL switches (all documented in the README):
     (none)        the ATTRACT — the TruthJunket special, theme music, any key -> title
     ?title        the title menu            ?campaign   the march from Dover
-    ?front=N      straight to front N (1-4) ?march      the campaign map
+    ?front=N      straight to front N (1-5) ?march      the campaign map
     ?selftest     proof-of-life report      ?demo       autopilot (with ?front=N)
     &go           skip the briefing card    &seed=N     fix the gameplay RNG
     &ff=S         fast-forward S seconds of play under the autopilot (&idle = hands off)
@@ -94,6 +94,10 @@ var ART={
   snow_siege:'art/snow_siege.png', camp_tents:'art/camp_tents.png', palisade_fort:'art/palisade_fort.png', watch_platform:'art/watch_platform.png',
   villa:'art/villa.png', village_strip:'art/village_strip.png', ground_grass:'art/ground_grass.png', ground_dirt:'art/ground_dirt.png',
   ground_flag:'art/ground_flag.png', chalk_boulder:'art/chalk_boulder.png',
+  follower_logs:'art/follower_logs.png', follower_hammer:'art/follower_hammer.png', follower_groma:'art/follower_groma.png',
+  follower_sack:'art/follower_sack.png', legionary_camp:'art/legionary_camp.png',
+  wh_far:'art/layers/wh_far.png', wh_hill:'art/layers/wh_hill.png', wh_near:'art/layers/wh_near.png',
+  wh_onager:'art/wh_onager.png', wh_ballista:'art/wh_ballista.png', wh_cart:'art/wh_cart.png',
   wash_far_hills:'art/layers/wash_far_hills.png', wash_far_ruins:'art/layers/wash_far_ruins.png', wash_mid_camp:'art/layers/wash_mid_camp.png',
   wash_near_wall:'art/layers/wash_near_wall.png', wash_battle_line:'art/layers/wash_battle_line.png',
   vale_far_hills:'art/layers/vale_far_hills.png', vale_mid_ridge:'art/layers/vale_mid_ridge.png', vale_near_ruins:'art/layers/vale_near_ruins.png',
@@ -247,7 +251,12 @@ var WHO={
   leg_b:   {art:'legionary_b',    h:84, name:'LEGIONARY'},
   leg_c:   {art:'legionary_c',    h:92, name:'OPTIO'},
   signifer:{art:'signifer',       h:90, name:'SIGNIFER'},
-  cornicen:{art:'cornicen',       h:90, name:'CORNICEN'}
+  cornicen:{art:'cornicen',       h:90, name:'CORNICEN'},
+  leg_camp:{art:'legionary_camp', h:84, name:'LEGIONARY'},           // THE WHITE HORSE VALE: the legion + its camp followers
+  logs:    {art:'follower_logs',  h:66, name:'CAMP FOLLOWER'},
+  hammer:  {art:'follower_hammer',h:66, name:'CAMP FOLLOWER'},
+  groma:   {art:'follower_groma', h:68, name:'SURVEYOR'},
+  sack:    {art:'follower_sack',  h:62, name:'CAMP FOLLOWER'}
 };
 var LEGION={   // the Red Hat Legion on foot: art, drawn height, ray value, ray lock seconds, walk speed px/s
   axe:   {art:'gnome_axe',      h:64, val:150, lock:0.85, spd:46},
@@ -269,7 +278,8 @@ var HZ_MIN={ bolt:D8_BOLT_TRACK+D8_BOLT_LOCK, arrow:0.50+0.55, upbolt:D8_BOLT_TR
 
 /* =====================================================================
    THE FRONTS — the campaign march (docs/PAX_LEVELS_1014.md §3).
-   Built: DOVER, NOTTINGHAM, WELSH WASH, W1 SEGEDUNUM. The rest are SEALED
+   Built: DOVER, NOTTINGHAM, WELSH WASH, W1 SEGEDUNUM, THE WHITE HORSE VALE (front 5; on the march
+   between London and the Wash — the road west). The rest are SEALED
    (on the map, with their design, not playable yet).
    friends: x, who, rock (stands that many px above the ground)
    ===================================================================== */
@@ -308,12 +318,33 @@ var FRONTS=[
     need:5, drop:{x:150,w:230,label:'THE MILECASTLE'},
     legion:{start:999, every:99, size:0, max:0, kinds:['axe'], from:'both', hunts:1},
     siege:[{at:9,x:1290},{at:20,x:820},{at:31,x:1430},{at:43,x:1000},{at:55,x:640},{at:66,x:1180}],
-    hazards:{ upbolts:{start:9, every:7.5}, thopters:{start:12, every:9.0} }, ladders:[{at:24,x:600}] }
+    hazards:{ upbolts:{start:9, every:7.5}, thopters:{start:12, every:9.0} }, ladders:[{at:24,x:600}] },
+  // THE WHITE HORSE VALE — Joe's June mission (src/suck_up.py WHITE_HORSE_*, _build_white_horse_ambush): the gnomes steal
+  // the initiative; the legion is caught in the OPEN under the chalk horse, mid-camp, before the marching fort goes up; the
+  // Gnomean host has forced-marched from the EAST. NO walls: the construction gear (catapult / ballista / cart) is the only
+  // cover — the red hats must hack through it (GEAR_HP strikes) to reach whoever is behind. brief / wolfe / end lines are
+  // the Python build's own copy (WHITE_HORSE_SUBTITLES, BONUS_FLAVOR); every line marked DRAFT below is new.
+  // The real horse is at Uffington, in Oxfordshire's Vale of White Horse.
+  { key:'vale', title:'THE WHITE HORSE VALE', latin:'THE CHALK DOWNS · AT DAWN' /* DRAFT */, place:'UNDER THE CHALK HORSE', time:'vale', gy:770, clock:66,
+    music:'front_dover' /* DRAFT: Dover's distant-impacts bed until Joe names one */,
+    brief:'Survey stakes. Half a ditch. No wall. And the ground to the east is MOVING. The legion mustered to BUILD a fort — not to fight for their lives in the open.',
+    wolfe:'"They struck before the wall. They struck what was not yet NAMED."',
+    newThing:'THE AMBUSH — the host is already on the camp, out of the EAST. Red hats HUNT the stranded on open ground; the catapult, the ballista and the cart hold them while they hack through. THE RAY lifts them off.' /* DRAFT */,
+    barks:['FROM THE EAST! THE FORT\'S NOT UP — COVER THE LINE!','CAUGHT IN THE OPEN UNDER THAT BLASTED HORSE — FLY!','NO WALLS, NO DITCH, NO TIME! GRAPPLE THEM OFF THE CAMP!'],
+    subs:['The chalk horse has watched this hill a thousand years. It is watching now.','Survey stakes. Half a ditch. No wall. And the ground to the east is MOVING.',
+          'The legion mustered to BUILD a fort — not to fight for their lives in the open.','DR. WOLFE: \'They struck before the wall. They struck what was not yet NAMED.\''],
+    endAll:'THE CAMP HELD.', endHorn:'The legion lives to raise the wall. Barely.',
+    friends:[{x:330,who:'groma'},{x:450,who:'leg_camp'},{x:575,who:'sack'},{x:720,who:'leg_a'},{x:850,who:'logs'},{x:990,who:'signifer'},{x:1110,who:'hammer'}],
+    need:5, drop:{x:150,w:230,label:'THE FORT LINE' /* DRAFT */},
+    gear:[{x:650,kind:'onager'},{x:930,kind:'ballista'},{x:1210,kind:'cart'}],
+    swarm:{n:5, x0:1330, x1:1560},                 // the opening rush: already on the field, already close (canon swarm 9 -> 5 on this stage)
+    legion:{start:3.5, every:4.6, size:2, max:8, kinds:['axe','spear','charge','shield','heavy'], from:'right', hunts:1, stopAt:8},
+    hazards:{}, ladders:[{at:14,x:640}] }
 ];
 // the whole march, in order — built fronts carry their FRONTS index; the rest are sealed (stubbed)
 var MARCH=[
   {name:'THE FALL OF DOVER', f:0}, {name:'NOTTINGHAM HOODS', f:1}, {name:'LONDON CALLING', note:'the bridge evacuation · ballista bolts'},
-  {name:'LONDON PROPER', note:'rooftop rescues while the line holds'}, {name:'THE WELSH WASH', f:2},
+  {name:'LONDON PROPER', note:'rooftop rescues while the line holds'}, {name:'THE WHITE HORSE VALE', f:4}, {name:'THE WELSH WASH', f:2},
   {name:'LIVERPOOL', note:'the evacuation fleet · catapult stones'}, {name:'YORK — EBORACUM', note:'Davius\'s town · the gateway to the Wall'},
   {name:'W1 SEGEDUNUM — WALLSEND', f:3, wall:true}, {name:'W2 CILURNUM — THE TYNE BRIDGE', note:'fire pots close the bridge ends', wall:true},
   {name:'W3 VERCOVICIUM — THE CRAGS', note:'the first vertical CLIMB', wall:true}, {name:'W4 THE TURF WALL — IN FOG', note:'missile ships out of the fog', wall:true},
@@ -326,7 +357,7 @@ var MARCH=[
 var state='attract', simT=0, rt=0;       // simT = sim seconds (play only), rt = real seconds (presentation)
 var F=null, fi=0, campaign=false, demo=false, autopilot=null;
 var score=0, scoreAtStart=0, hp=HULL, stageClock=0, hornSet=false;
-var P=null, friends=[], legion=[], haz=[], shots=[], fx=[], pickups=[], siege=[];
+var P=null, friends=[], legion=[], haz=[], shots=[], fx=[], pickups=[], siege=[], gear=[];
 var hzT={}, legionT=0, waterY=0, ladderT=0, ladderSpawned={}, tipDone={};
 var stats=null, lastResult=null, hzLog=[], msg='', msgCol='#fff', msgT=0, shake=0;
 var ROPEVIS={th:0,om:0,lx:null,pv:0};
@@ -352,19 +383,24 @@ function startFront(idx, opt){
   fi=idx; F=FRONTS[idx]; seed(opt.seed!=null?opt.seed:(SEED+idx*7919));
   if(!opt.retry) scoreAtStart=score; else score=scoreAtStart;
   hp=HULL; simT=0; stageClock=F.clock; hornSet=false;
-  P=newPlayer(); legion=[]; haz=[]; shots=[]; fx=[]; pickups=[]; ladderT=0; ladderSpawned={}; tipDone={}; hzLog=[];
+  P=newPlayer(); legion=[]; haz=[]; shots=[]; fx=[]; pickups=[]; F.barked_=0;
+  nf={left:0,right:0,up:0,down:0}; was={left:0,right:0,up:0,down:0};   // the key-repeat clock is sim time: reset it with the sim (a held arrow across a RETRY froze that direction)
+  ladderT=0; ladderSpawned={}; tipDone={}; hzLog=[];
   friends=F.friends.map(function(d,i){ var w=WHO[d.who]; return { x:d.x, who:d.who, w:w, rock:d.rock||0, st:'ground', y:GY()-(d.rock||0), vy:0, cd:0, prog:0, fade:0, how:'', ph:i*1.7, sink:0 }; });
   hzT={}; var H=F.hazards||{};
   ['bolts','arrows','upbolts','thopters','gliders','stones'].forEach(function(k){ hzT[k]= H[k] ? H[k].start : 1e9; });
   legionT=F.legion.start;
   waterY = F.water ? GY()+F.water.from : 1e9;
   siege=(F.siege||[]).map(function(s){ return { x:s.x, at:s.at, st:'pending', t:0, sent:0, nextT:0, art:(s.x%2?'tower':'ladders') }; });
+  gear=(F.gear||[]).map(function(g){ return { x:g.x, kind:g.kind, G:GEAR[g.kind], hp:GEAR_HP, att:0, hitT:-9, wreck:false }; });
+  if(F.swarm) for(var n=0;n<F.swarm.n;n++) spawnGnome(F.legion.kinds[(rng()*F.legion.kinds.length)|0], rr(F.swarm.x0,F.swarm.x1), -1);
   stats={ beamed:0, dodged:0, hits:0, lost:0, spun:0 };
   lastResult=null; ROPEVIS={th:0,om:0,lx:null,pv:0};
   state = opt.go ? 'play' : 'brief'; rt=0;
   if(state==='play') beginPlay();
 }
 function beginPlay(){ state='play'; flash(F.title, '#e8c66a', 1.8); if(!demo){ sfx('coin'); playMusic(F.music, 0.7); } }
+function barkTick(){ if(F.barks && !F.barked_ && simT>=1.9){ F.barked_=1; flash(F.barks[(SEED+fi)%F.barks.length],'#ffd29a',2.0); } }
 function retryFront(){ startFront(fi,{retry:true, go:true}); }
 
 /* =====================================================================
@@ -423,7 +459,7 @@ function onPress(k){
     var built=MARCH.filter(function(m){return m.f!=null;});
     if(k==='ArrowUp'||k==='w'){ selI=(selI+built.length-1)%built.length; sfx('menu_move'); }
     else if(k==='ArrowDown'||k==='s'){ selI=(selI+1)%built.length; sfx('menu_move'); }
-    else if(/^[1-4]$/.test(k)){ selI=+k-1; campaign=false; score=0; sfx('menu_select'); startFront(built[selI].f); }
+    else if(/^[1-5]$/.test(k)){ selI=+k-1; campaign=false; score=0; sfx('menu_select'); startFront(built[selI].f); }
     else if(go){ campaign=false; score=0; sfx('menu_select'); startFront(built[selI].f); }
     else if(back){ sfx('menu_back'); state='title'; }
     return;
@@ -458,7 +494,7 @@ function update(dt){
   spinWas=inp.spin;
 
   if(F.water && el>=F.water.start) waterY -= F.water.rate*dt;
-  legionTick(dt, el); siegeTick(dt, el); hazardTick(dt, el); shotTick(dt); rayTick(dt); rescueTick(dt, el); tipsTick();
+  legionTick(dt, el); siegeTick(dt, el); hazardTick(dt, el); shotTick(dt); rayTick(dt); rescueTick(dt, el); tipsTick(); barkTick();
   for(var f=fx.length-1;f>=0;f--){ fx[f].t+=dt; if(fx[f].t>fx[f].life) fx.splice(f,1); }
   endCheck();
 }
@@ -480,17 +516,18 @@ function maxY(){ var r=onRope(), m=bandBot(); if(r){ m=Math.min(m, GY()+4-r.w.h-
 
 /* ---------- the Red Hat Legion on foot ---------- */
 function spawnGnome(kindName, x, dir, y){
-  var k=LEGION[kindName]; legion.push({ kind:kindName, k:k, x:x, y:y==null?GY():y, dir:dir, lock:0, lifting:false, gone:false, strikeCd:rr(0.4,1.0), climb:false, hunts:!!F.legion.hunts });
+  var k=LEGION[kindName]; legion.push({ kind:kindName, k:k, x:x, bornX:x, y:y==null?GY():y, dir:dir, lock:0, lifting:false, gone:false, strikeCd:rr(0.4,1.0), climb:false, hunts:!!F.legion.hunts });
 }
 function legionTick(dt, el){
   var Lg=F.legion;
-  if(el>=legionT && stageClock>6){ legionT=el+Lg.every*rr(0.85,1.15);
+  if(el>=legionT && stageClock>(Lg.stopAt||6)){ legionT=el+Lg.every*rr(0.85,1.15);
     var live=0; for(var i=0;i<legion.length;i++) if(!legion[i].gone) live++;
     for(var n=0;n<Lg.size && live<Lg.max;n++,live++){
       var fromL = Lg.from==='left' ? true : Lg.from==='right' ? false : rng()<0.5;
       spawnGnome(Lg.kinds[(rng()*Lg.kinds.length)|0], fromL? -30-n*46 : LW+30+n*46, fromL?1:-1);
     }
   }
+  for(var q=0;q<gear.length;q++){ gear[q].att=0; gear[q].q=0; }
   for(var i=legion.length-1;i>=0;i--){ var g=legion[i];
     if(g.gone){ legion.splice(i,1); continue; }
     if(g.lifting) continue;
@@ -498,7 +535,9 @@ function legionTick(dt, el){
     var tgt=null, td=1e9;
     if(g.hunts) for(var q=0;q<friends.length;q++){ var fr=friends[q]; if(fr.st!=='ground') continue; var d=Math.abs(fr.x-g.x); if(d<td){ td=d; tgt=fr; } }
     if(tgt){ g.dir = tgt.x>g.x?1:-1;
-      if(td>30){ g.x += g.dir*g.k.spd*dt; g.grab=0; g.grabbing=null; }
+      var gb = gear.length ? gearBlock(g,tgt) : null;
+      if(gb){ g.grab=0; g.grabbing=null; hackGear(g,gb,dt); }
+      else if(td>30){ g.x += g.dir*g.k.spd*dt; g.grab=0; g.grabbing=null; }
       else { if(g.grabbing!==tgt){ g.grab=0; g.grabbing=tgt; } g.grab+=dt; if(g.grab>=CAPTURE_TIME){ g.grab=0; g.grabbing=null; loseFriend(tgt,'captured'); } } }
     else {
       g.grab=0; g.grabbing=null;
@@ -508,6 +547,27 @@ function legionTick(dt, el){
     }
   }
 }
+/* ---------- THE WHITE HORSE VALE: the construction gear is the soak (no walls) ----------
+   A red hat whose way to the stranded runs through a standing machine stops and hacks at it; GEAR_HP strikes wreck it, and
+   at most GEAR_CREW swing at once (the rest wait their turn — a knot of red hats, a gift to THE RAY). */
+var GEAR={ onager:{art:'wh_onager', h:96, name:'THE CATAPULT', reach:78}, ballista:{art:'wh_ballista', h:88, name:'THE BALLISTA', reach:50},
+            cart:{art:'wh_cart', h:78, name:'THE CART', reach:72} };   // reach: where a red hat stands to hack it (the machine's half-width)
+var GEAR_HP=3, GEAR_SWING=1.5, GEAR_CREW=2, GEAR_QUEUE=24;
+function gearRank(g,p){ // how many red hats are ahead of this one at this machine (the nearest GEAR_CREW swing, the rest queue)
+  var a=(p.x-g.x)*g.dir, r=0;
+  for(var i=0;i<legion.length;i++){ var o=legion[i]; if(o===g||o.gone||o.lifting||o.climb||o.dir!==g.dir) continue; var b=(p.x-o.x)*o.dir;
+    if(b>-6 && b<p.G.reach+GEAR_QUEUE*6 && (b<a || (b===a && i<legion.indexOf(g)))) r++; }
+  return r; }
+function gearBlock(g,tgt){ for(var i=0;i<gear.length;i++){ var p=gear[i]; if(p.wreck) continue; var ahead=(p.x-g.x)*g.dir;
+    if(ahead<-6 || (tgt.x-p.x)*g.dir<=0) continue;
+    var rk=gearRank(g,p), reach=p.G.reach+GEAR_QUEUE*Math.max(0,rk-GEAR_CREW+1);   // the queue stands back a pace each
+    if(ahead<reach){ g.rank=rk; return p; } } return null; }
+function hackGear(g,p,dt){
+  if(g.rank>=GEAR_CREW){ g.swing=0; p.q++; return; } p.att++;
+  g.swing=(g.swing||0)+dt; if(g.swing<GEAR_SWING) return; g.swing=0; p.hp--; p.hitT=simT; sfx('clank'); fxAdd(p.x+rr(-20,20),GY()-p.G.h*0.5,'spark','#ffd27a',0.3);
+  if(p.hp<=0){ p.wreck=true; fxAdd(p.x,GY()-30,'dust',null,0.8); sfx('stone_impact'); flash(p.G.name+' IS WRECKED — THE WAY IS OPEN','#ff8a5a',1.3); }
+}
+function gearUp(){ var n=0; for(var i=0;i<gear.length;i++) if(!gear[i].wreck) n++; return n; }
 /* ---------- W1: scaling ladders on the Wall ---------- */
 var SIEGE_TELE=3.0, SIEGE_EVERY=4.2, SIEGE_PER=3, CLIMB_V=44;
 function siegeTick(dt, el){
@@ -774,7 +834,7 @@ function makePilot(opts){
       for(var q=0;q<legion.length;q++){ var g=legion[q]; if(g.gone) continue;
         var near=Math.abs(g.x-P.x)<26, inWay=(F.wall||F.legion.hunts) ? Math.abs(g.x-tx)<260 || g.climb : false;
         if(near && (inWay || (r && g.y>=GY()-2 && !g.climb) || g.lifting)){ o.ray=1; return o; }
-        if(F.wall && Math.abs(g.x-P.x)<170 && !r && (g.climb || nearestStrandedTo(g)<220)){ tx=g.x; } }
+        if((F.wall||F.gear) && Math.abs(g.x-P.x)<170 && !r && (g.climb || nearestStrandedTo(g)<220)){ tx=g.x; } }
     }
     var tol=STEP*0.6;
     if(tx<P.tx-tol) o.left=1; else if(tx>P.tx+tol) o.right=1;
@@ -803,7 +863,9 @@ var SKIES={
   dawn:  {stops:['#4f6f9c','#9db4c9','#f0d2a6','#f6b884'], sun:{x:230,y:430,r:54,col:'255,232,190',glow:0.6,disc:0.55}, haze:'#e9d6bb', amb:'gulls'},
   dusk:  {stops:['#0e1f22','#20403a','#7a6a3e','#d68a3c'], sun:{x:1240,y:560,r:58,col:'255,170,90',glow:0.5}, haze:'#3a4a34', amb:'motes'},
   blood: {stops:['#160304','#4a0a08','#9b1f0e','#e2622a'], sun:{x:1060,y:470,r:170,col:'255,120,60',glow:0.75}, haze:'#7a1a0c', amb:'embers'},
-  night: {stops:['#04070f','#0b1630','#1b2c4f','#3c5170'], moon:{x:1300,y:170,r:46}, haze:'#26354f', amb:'snow'}
+  night: {stops:['#04070f','#0b1630','#1b2c4f','#3c5170'], moon:{x:1300,y:170,r:46}, haze:'#26354f', amb:'snow'},
+  // THE WHITE HORSE VALE: a cold wet dawn (the Python build rains on it) — the sun coming up in the EAST, behind the host
+  vale:  {stops:['#3e4a63','#7d8aa0','#d9c7b0','#f2b98a'], sun:{x:1430,y:452,r:46,col:'255,214,160',glow:0.55,disc:0.8}, haze:'#b9b4ae', amb:'drizzle'}
 };
 var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parallax speed, mode
   dover:[ {n:'hz_dover', dy:-70, h:330, sp:3, haze:0.10}, {n:'dover_downs', dy:22, h:300, sp:7} ],   // the cliffs + pharos ridge, then Joe's chalk downs (1014) in front
@@ -812,7 +874,9 @@ var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parall
   wash:[ {n:'wash_far_hills', dy:-90, h:250, sp:2, sil:'#5e130c'}, {n:'wash_far_ruins', dy:-50, h:190, sp:4, sil:'#3a0a07'},
          {n:'wash_mid_camp', dy:-14, h:200, sp:7, sil:'#220505'}, {n:'wash_battle_line', dy:8, h:150, sp:11, sil:'#100202'} ],
   wall:[ {n:'snow_hills', dy:-110, h:160, sp:2, haze:0.62}, {n:'wall_thin', dy:-70, h:70, sp:4, haze:0.55},
-         {n:'wall_siege', dy:-8, h:130, sp:7, haze:0.42} ]
+         {n:'wall_siege', dy:-8, h:130, sp:7, haze:0.42} ],
+  // Blender plates (3D PIPELINE games/hadrian/blender/white_horse.py): the far downs, WHITE HORSE HILL, the half-struck camp
+  vale:[ {n:'wh_far', dy:-160, h:240, sp:1.5}, {n:'wh_hill', dy:-60, h:340, sp:3}, {n:'wh_near', dy:24, h:170, sp:7} ]
 };
 var drift=0;
 function drawStrip(L, gy){
@@ -837,7 +901,7 @@ function drawSky(time){
 function drawGround(){
   var gy=GY();
   if(F.wall){ drawWallFace(); return; }
-  var tile = F.key==='dover'||F.key==='nottingham' ? 'ground_grass' : 'ground_dirt';
+  var tile = F.key==='dover'||F.key==='nottingham'||F.key==='vale' ? 'ground_grass' : 'ground_dirt';
   ctx.fillStyle = F.time==='blood' ? '#1a0806' : F.time==='dusk' ? '#1c2414' : '#33401f'; ctx.fillRect(0,gy,LW,LH-gy);
   if(ok(tile)){ var th=LH-gy+20, tw=th*ar(tile);
     var src = F.time==='blood' ? tinted(tile,'#2a0805',0.62,false) : F.time==='dusk' ? tinted(tile,'#14200f',0.38,false) : IMG[tile];
@@ -855,6 +919,7 @@ function drawWallFace(){
   for(var x=-((drift*14)%60); x<LW; x+=60){ ctx.fillStyle='#3d4352'; ctx.fillRect(x,gy-34,36,30); ctx.fillStyle='#5c6475'; ctx.fillRect(x,gy-34,36,5); }
   // the army at the foot of the Wall (render-only)
   if(ok('battle_frieze')){ var img=tinted('battle_frieze','#0b1222',0.45,false); var h=120, w=h*ar('battle_frieze'); for(var x=-((drift*20)%w); x<LW; x+=w) ctx.drawImage(img,x,LH-h+16,w,h); }
+  drawBattle();   // the live battle line at the foot of the Wall, in front of the frieze
 }
 function drawWater(){
   if(!F.water) return; var wy=waterY; if(wy>LH) return;
@@ -869,6 +934,10 @@ function drawDrop(){
   if(F.key==='dover') spr('camp_tents', d.x+10, s+8, 92, {});
   else if(F.key==='nottingham') spr('palisade_fort', d.x, s+8, 96, {});
   else if(F.key==='wash') { spr('eagle_standard', d.x+60, s+4, 120, {}); spr('brazier', d.x-50, s+2, 52, {}); }
+  else if(F.key==='vale') { // the fort line: survey stakes + cord where the rampart will go, the eagle planted behind it
+    ctx.strokeStyle='#6e5232'; ctx.lineWidth=3; for(var k=0;k<6;k++){ var sx=d.x-d.w/2+10+k*(d.w-20)/5; ctx.beginPath(); ctx.moveTo(sx,s+4); ctx.lineTo(sx+1,s-30); ctx.stroke(); }
+    ctx.strokeStyle='rgba(225,210,170,0.8)'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(d.x-d.w/2+10,s-24); ctx.lineTo(d.x+d.w/2-10,s-22); ctx.stroke();
+    spr('eagle_standard', d.x-40, s+4, 116, {}); spr('brazier', d.x+30, s+2, 46, {}); }
   else if(F.wall){ // the milecastle gate-tower: stone + braziers + the eagle
     ctx.fillStyle='#4a5162'; ctx.fillRect(d.x-90,s-150,180,154); ctx.fillStyle='#5f6779'; for(var k=0;k<5;k++) ctx.fillRect(d.x-90+k*38,s-176,24,28);
     ctx.fillStyle='#1b1f2a'; ctx.beginPath(); ctx.moveTo(d.x-34,s+4); ctx.lineTo(d.x-34,s-70); ctx.arc(d.x,s-70,34,Math.PI,0); ctx.lineTo(d.x+34,s+4); ctx.closePath(); ctx.fill();
@@ -912,6 +981,12 @@ function drawLegion(){
     if(g.grabbing && g.grab>0){ var u=g.grab/CAPTURE_TIME; ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(g.x-30,y-h-24,60,8); ctx.fillStyle=u>0.6?'#ff3b2a':'#ffb347'; ctx.fillRect(g.x-30,y-h-24,60*u,8);
       txt('!',g.x,y-h-38,22,'#ff5a3a','center','bold',Math.floor(rt*8)%2?1:0.4); }
     if(g.lifting && g.lock>0){ ctx.strokeStyle='#ffe9a8'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(g.x,y-h/2,h*0.6,-Math.PI/2,-Math.PI/2+6.283*g.lock); ctx.stroke(); } }
+}
+function drawGear(){
+  for(var i=0;i<gear.length;i++){ var p=gear[i], G=p.G, k=simT-p.hitT, jig=k<0.18?Math.sin(k*90)*3:0;
+    if(p.wreck){ spr(G.art, p.x, GY()+14, G.h*0.92, {a:0.6, rot:(i%2?0.16:-0.14)}); var ph=(rt*0.6+i*0.37)%1; sprC('smoke_puff', p.x+ph*14, GY()-30-ph*70, 60+ph*40, {a:0.45*(1-ph)}); continue; }
+    spr(G.art, p.x+jig, GY()+6, G.h, {});
+    if(p.hp<GEAR_HP || p.att){ for(var n=0;n<GEAR_HP;n++){ ctx.fillStyle=n<p.hp?'#e8c66a':'rgba(40,20,10,0.7)'; ctx.fillRect(p.x-24+n*17,GY()-G.h-16,14,6); } } }
 }
 function drawSiege(){
   for(var i=0;i<siege.length;i++){ var s=siege[i]; if(s.st==='pending') continue;
@@ -1017,16 +1092,92 @@ function drawAmbient(){
     if(kind==='snow'){ var x=(m.x+rt*(10+m.s*20)+Math.sin(rt+m.p)*20)%LW, y=(m.y+rt*(30+m.s*40))%LH; ctx.fillStyle='rgba(235,242,255,'+(0.35+0.4*m.s)+')'; ctx.fillRect(x,y,2+m.s*2,2+m.s*2); }
     else if(kind==='embers'){ var x=(m.x+Math.sin(rt*0.7+m.p)*30)%LW, y=LH-((m.y+rt*(20+m.s*30))%LH); ctx.fillStyle='rgba(255,'+(120+(m.s*80|0))+',60,'+(0.3+0.5*m.s)+')'; ctx.fillRect(x,y,2,2); }
     else if(kind==='motes'){ if(i>30) break; var x=(m.x+Math.sin(rt*0.5+m.p)*40)%LW, y=GY()-80-((m.y*0.5+rt*6)%300); ctx.fillStyle='rgba(255,230,150,'+(0.25+0.4*Math.abs(Math.sin(rt*2+m.p)))+')'; ctx.fillRect(x,y,2.5,2.5); }
+    else if(kind==='drizzle'){ var sp=520+bh(i*7+1)*240, x=(bh(i*13+2)*(LW+300)+rt*sp*0.28)%(LW+300)-150, y=(bh(i*17+3)*LH+rt*sp)%LH;
+      ctx.strokeStyle='rgba(205,214,228,'+(0.10+0.14*bh(i*5+4))+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-5,y-18); ctx.stroke(); }
     else if(kind==='gulls'){ if(i>6) break; var x=(m.x+rt*(24+m.s*20))%(LW+200)-100, y=160+m.y*0.25+Math.sin(rt*2+m.p)*6, wv=Math.sin(rt*8+m.p)*5;
       ctx.strokeStyle='rgba(40,50,70,0.6)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x-9,y-wv); ctx.lineTo(x,y); ctx.lineTo(x+9,y-wv); ctx.stroke(); }
   }
+}
+/* ---------- THE BATTLE LINE — the constant war behind every rescue (Claude 1026) ----------
+   Joe 1026: "work on the pax gnomania constant sprite battle mechanic". The Python build's TOTAL WAR BELOW, rebuilt in
+   sprites: Rome holds the side with the drop (the camp / stockade / ridge / milecastle), the Red Hat Legion the other, and
+   the SEAM where they grind is a live front. YOUR rescues push Rome forward; every soul lost lets the gnomes surge; the
+   clock itself leans toward the gnomes (the siege tightens). Lanes like SUCK UP's traffic: each depth row is a line of
+   SLOTS whose contents are a hash of (slot, row, front) — no rng(), no Math.random, nothing read back by the sim, so the
+   ?selftest and every seed play identically. At the seam the files fight: lunges, the falling and the replacements, dust
+   and clash sparks; behind each line the reserves stand to, standards up, braziers lit; volleys arc over the front. */
+var BATTLE={
+  dover:      { rows:[ {dy:-150, h:17, haze:0.32, keep:0.55}, {dy:-112, h:24, haze:0.18, keep:0.6} ] },    // up on the downs, behind the rescue row
+  nottingham: { rows:[ {dy:-140, h:18, haze:0.40, keep:0.55}, {dy:-104, h:25, haze:0.25, keep:0.6} ] },
+  wash:       { rows:[ {dy:-120, h:20, haze:0.35, keep:0.55}, {dy:-86, h:27, haze:0.20, keep:0.6} ] },
+  wall:       { foot:true, rows:[ {dy:-58, h:52, haze:0.45}, {dy:-8, h:72, haze:0.30} ] },  // at the foot of the Wall (LH-based)
+  vale:       { rome0:0.27, rows:[ {dy:-126, h:19, haze:0.30, keep:0.55}, {dy:-94, h:26, haze:0.16, keep:0.6} ] }   // in the camp; the line starts PRESSED toward the legion (caught by surprise)
+};
+var BT_ROME=['legionary_a','legionary_b','legionary_c','legionary_a','legionary_b'], BT_ROME_STD=['signifer','cornicen'];
+var BT_GNOME=['gnome_axe','gnome_spear','gnome_shield','gnome_charge','gnome_heavy','gnome_axe','gnome_spear'], BT_GNOME_STD=['gnome_bannerman'];
+var BT_GNOME_BACK=['gnome_crossbow'];
+var btFront=null;                                   // the drawn front (screen x), eased toward the target
+function bh(n){ n=(n^61)^(n>>>16); n=(n+(n<<3))|0; n=n^(n>>>4); n=Math.imul(n,0x27d4eb2d); n=n^(n>>>15); return (n>>>0)/4294967296; }
+function battleFrontTarget(){
+  var r=rescuedN(), l=lostN(), el=F.clock-stageClock, u=clamp(el/F.clock,0,1);
+  var B=BATTLE[F.key]||{}, rome = (B.rome0!=null?B.rome0:0.46) + 0.26*r/(r+3) - 0.22*l/(l+2) - 0.10*u + 0.035*Math.sin(rt*0.21) + 0.02*Math.sin(rt*0.53+1.3);
+  rome = clamp(rome, 0.16, 0.84);
+  var romeRight = F.drop.x > LW/2;
+  return { x: romeRight ? LW*(1-rome) : LW*rome, romeRight: romeRight };
+}
+function drawBattle(){
+  var B=BATTLE[F.key]; if(!B) return;
+  var ft=battleFrontTarget(); if(btFront==null || state!=='play') btFront=ft.x; else btFront += (ft.x-btFront)*0.02;
+  var fx0=btFront, romeRight=ft.romeRight, hz=SKIES[F.time].haze, base = B.foot ? LH : GY();
+  for(var ri=0; ri<B.rows.length; ri++){
+    var R=B.rows[ri], h=R.h, yb=base+R.dy, slot=h*0.62, clash=h*1.9, fr=fx0 + (ri?0:-h*0.6)*(romeRight?-1:1);   // the far row's front lags: depth
+    var n0=Math.floor(-slot*2/slot), n1=Math.ceil((LW+slot*2)/slot);
+    for(var n=n0; n<=n1; n++){
+      var hs=n*7919+ri*104729+(F.key.length*31), j=bh(hs), x=n*slot+(j-0.5)*slot*0.5, d=x-fr, ad=Math.abs(d);
+      var romeSide = romeRight ? d>0 : d<0, dirToFront = d<0 ? 1 : -1;
+      if(R.keep && ad>clash && bh(hs+4)>R.keep) continue;                  // open-field rows: a looser order
+      if(ad>clash*3.2 && bh(hs+3)<0.45) continue;                       // the back lines thin out
+      var std = bh(hs+5)<0.09, back = ad>clash*2.2;
+      var art = romeSide ? (std ? BT_ROME_STD[(bh(hs+6)*2)|0] : BT_ROME[(bh(hs+7)*BT_ROME.length)|0])
+                         : (std ? BT_GNOME_STD[0] : (back && bh(hs+8)<0.35 ? BT_GNOME_BACK[0] : BT_GNOME[(bh(hs+7)*BT_GNOME.length)|0]));
+      var hh = h*(romeSide?1.0:0.86)*(0.92+0.16*bh(hs+9)), xx=x, rot=0, a=1;
+      if(ad<clash){   // THE GRINDER: the files lunge, fall and are replaced
+        var per=4.5+4*bh(hs+11), ph=((rt+bh(hs+12)*per)%per)/per;
+        xx += dirToFront*Math.max(0,Math.sin(rt*(5+3*bh(hs+13))+hs))*h*0.22;
+        if(ph>0.86){ var k=(ph-0.86)/0.09; rot=dirToFront*Math.min(1,k)*1.35; a=1-clamp((ph-0.92)/0.05,0,1); }
+        if(ph<0.06){ xx -= dirToFront*(1-ph/0.06)*h*0.9; a=ph/0.06; }   // the replacement steps up from behind
+      } else xx += Math.sin(rt*1.6+hs)*1.2;                                 // the reserves shift on their feet
+      if(a<=0.01) continue;
+      var img = tinted(art, hz, R.haze, false); if(!img) continue;
+      var w=hh*(img.width/img.height);
+      ctx.save(); ctx.globalAlpha=a; ctx.translate(xx, yb-hh/2); if(rot) ctx.rotate(rot); if(dirToFront<0) ctx.scale(-1,1);
+      ctx.drawImage(img,-w/2,-hh/2,w,hh); ctx.restore();
+      if(back && bh(hs+21)<0.05 && ok('brazier')){ var bi=tinted('brazier',hz,R.haze,false); if(bi){ var bw=h*0.45*(bi.width/bi.height); ctx.drawImage(bi, x+slot*0.4-bw/2, yb-h*0.45, bw, h*0.45);
+        ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=0.35+0.2*Math.sin(rt*9+hs); ctx.fillStyle='rgba(255,150,60,0.6)'; ctx.beginPath(); ctx.arc(x+slot*0.4, yb-h*0.48, h*0.22, 0, 6.283); ctx.fill(); ctx.restore(); } }
+    }
+    // the seam: dust + clash sparks, a few at a time, each on its own clock
+    for(var k2=0;k2<5;k2++){ var per2=1.3+bh(ri*13+k2)*1.6, ph2=((rt+bh(k2*7+ri)*per2)%per2)/per2; if(ph2>0.45) continue;
+      var sx=fr+(bh(k2*31+ri*7+Math.floor((rt+bh(k2*7+ri)*per2)/per2))-0.5)*clash*1.4, sy=yb-h*(0.3+0.4*bh(k2+ri*3)), q=ph2/0.45;
+      if(k2<2 && ok('dust_burst')){ var dz=h*(0.6+q*0.6); ctx.save(); ctx.globalAlpha=(1-q)*0.55; ctx.drawImage(tinted('dust_burst',hz,R.haze,false)||IMG.dust_burst, sx-dz*0.65, yb-dz*0.9, dz*1.3, dz); ctx.restore(); }
+      else { ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=(1-q)*0.9; ctx.strokeStyle='rgba(255,226,150,1)'; ctx.lineWidth=1.4;
+        for(var sp=0;sp<4;sp++){ var an=bh(k2*5+sp+ri)*6.283; ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(sx+Math.cos(an)*h*0.22*(0.4+q), sy+Math.sin(an)*h*0.22*(0.4+q)); ctx.stroke(); } ctx.restore(); }
+    }
+  }
+  // volleys over the front: arrows/bolts from each side's back lines, arcing into the other's
+  var R0=B.rows[B.rows.length-1], yb0=base+R0.dy, fr0=fx0;
+  for(var v=0; v<6; v++){ var per3=2.2+bh(v*17)*1.8, ph3=((rt+bh(v*29)*per3)%per3)/per3, cyc=Math.floor((rt+bh(v*29)*per3)/per3);
+    var fromRome = v%2===0, sgn = (fromRome===romeRight) ? -1 : 1;     // which way it flies
+    var x0=fr0 - sgn*(R0.h*(3+3*bh(v*3+cyc))), x1=fr0 + sgn*(R0.h*(1.5+3*bh(v*5+cyc))), apex=R0.h*(2.2+1.5*bh(v+cyc));
+    var px=lerp(x0,x1,ph3), py=yb0-R0.h*0.7-4*apex*ph3*(1-ph3), dx=(x1-x0), dy=-4*apex*(1-2*ph3);
+    var ln=Math.hypot(dx,dy)||1; ctx.strokeStyle= fromRome ? 'rgba(40,30,20,0.75)' : 'rgba(60,20,15,0.75)'; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px-dx/ln*10, py-dy/ln*10); ctx.stroke(); }
 }
 function drawScene(dt){
   drift += (state==='play'?dt:dt*0.5)*1.0;
   drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i], GY());
   if(F.key==='dover'){ spr('chalk_boulder',420,GY()+14,34,{}); spr('chalk_boulder',1150,GY()+12,30,{flip:true}); }
-  drawGround(); drawAmbient();
-  drawDrop(); drawSiege(); drawFriends(); drawLegion(); drawWater();
+  if(!F.wall) drawBattle(); drawGround(); drawAmbient();
+  drawDrop(); drawSiege(); drawGear(); drawFriends(); drawLegion(); drawWater();
   drawRay(); drawHazards(); drawShots(); drawPickups(); drawRope(); drawPlayer(); drawFx();
 }
 
@@ -1055,6 +1206,8 @@ function drawHUD(){
     ctx.fillStyle='#2a0806'; ctx.fillRect(LW-170,106,140,14); ctx.fillStyle='#c0301a'; ctx.fillRect(LW-170,106,140*depth,14); }
   if(F.wall){ var up=0; for(var i=0;i<legion.length;i++) if(!legion[i].gone && !legion[i].climb) up++; panel(LW-316,96,300,34,0.45);
     txt('RED HATS ON THE WALK: '+up,LW-300,113,13,up?'#ff9a7a':'#bfe7a8','left','bold'); }
+  if(gear.length){ var gu=gearUp(); panel(LW-316,96,300,34,0.45); txt('THE CAMP\'S GEAR STANDING: '+gu+' / '+gear.length,LW-300,113,13,gu?'#e8c66a':'#ff9a7a','left','bold'); }
+  if(F.subs && !tipNow){ txt(F.subs[Math.floor(rt/7)%F.subs.length],LW/2,LH-22,15,'#e9dfc8','center','italic',0.72); }
   if(msgT>0) txt(msg,LW/2,170,26,msgCol,'center','bold',clamp(msgT,0,1));
   if(tipNow){ panel(LW/2-430,LH-70,860,46,0.7); txt(tipNow,LW/2,LH-47,18,'#fff3c4','center','bold'); }
   if(demo){ txt('DRAMATIZED RECONSTRUCTION',LW-30,LH-28,14,'#ffffff','right','bold',0.75); }
@@ -1139,7 +1292,7 @@ function drawSelect(){
     if(sel) panel(LW/2-470,y-24,940,48,0.7);
     txt((isB?(++bi)+'.  ':'—  ')+m.name, LW/2-440, y, 22, isB?(sel?'#fff3c4':PARCH):'#6f6656','left','bold');
     txt(isB?(FRONTS[m.f].latin):('SEALED · '+m.note), LW/2+440, y, 14, isB?'#c9b27a':'#5f584a','right', isB?'bold':'italic'); }
-  txt('↑ ↓ or 1–4  ·  SPACE fly it  ·  ESC back',LW/2,LH-28,15,'#bba98a','center','bold');
+  txt('↑ ↓ or 1–5  ·  SPACE fly it  ·  ESC back',LW/2,LH-28,15,'#bba98a','center','bold');
 }
 function drawBrief(dt){
   drift+=dt*0.5; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); drawGround();
@@ -1160,7 +1313,7 @@ function wrap(s,x,y,maxW,size,col,a,weight){ ctx.font=(weight||'bold')+' '+size+
 function drawResults(dt){
   drawScene(dt*0.3); ctx.fillStyle='rgba(0,0,0,0.62)'; ctx.fillRect(0,0,LW,LH);
   var R=lastResult||{tally:[]}, a=clamp(rt/0.4,0,1);
-  txt(F.title+' — HELD',LW/2,140,52,GOLD,'center','bold',a); txt(R.reason==='all'?'EVERYONE WHO COULD BE BROUGHT OUT, WAS.':'THE HORN SOUNDED WITH ENOUGH SAFE.',LW/2,195,20,PARCH,'center','bold',a);
+  txt(F.title+' — HELD',LW/2,140,52,GOLD,'center','bold',a); txt(R.reason==='all'?(F.endAll||'EVERYONE WHO COULD BE BROUGHT OUT, WAS.'):(F.endHorn||'THE HORN SOUNDED WITH ENOUGH SAFE.'),LW/2,195,20,PARCH,'center','bold',a);
   panel(LW/2-420,240,840,380,0.75);
   for(var i=0;i<R.tally.length;i++){ var row=R.tally[i], al=clamp((rt-0.4-i*0.35)/0.3,0,1); if(al>0 && !R['_t'+i]){ R['_t'+i]=1; sfx('tally'); }
     txt(row[0],LW/2-380,290+i*56,24,PARCH,'left','bold',al); txt(row[1],LW/2+60,290+i*56,24,CYAN,'center','bold',al); txt(row[2]?'+'+row[2]:'',LW/2+380,290+i*56,24,GOLD,'right','bold',al,'ui-monospace,Menlo,monospace'); }
@@ -1231,8 +1384,8 @@ function selfTest(){
   var dt=1/60, IDLE=makePilot({idle:true});
   campaign=false; AU.off=true;
   // ---- structure ----
-  okk('four fronts are built, the rest of the march is sealed on the map', FRONTS.length===4 && MARCH.filter(function(m){return m.f!=null;}).length===4 && MARCH.length===12, MARCH.length+' stops on the march');
-  var arts=[]; FRONTS.forEach(function(Fr){ (LAYERS[Fr.key]||[]).forEach(function(L){ arts.push(L.n); }); Fr.friends.forEach(function(d){ arts.push(WHO[d.who].art); }); Fr.legion.kinds.forEach(function(k){ arts.push(LEGION[k].art); }); });
+  okk('five fronts are built, the rest of the march is sealed on the map', FRONTS.length===5 && MARCH.filter(function(m){return m.f!=null;}).length===5 && MARCH.length===13, MARCH.length+' stops on the march');
+  var arts=[]; FRONTS.forEach(function(Fr){ (LAYERS[Fr.key]||[]).forEach(function(L){ arts.push(L.n); }); Fr.friends.forEach(function(d){ arts.push(WHO[d.who].art); }); Fr.legion.kinds.forEach(function(k){ arts.push(LEGION[k].art); }); (Fr.gear||[]).forEach(function(g){ arts.push(GEAR[g.kind].art); }); });
   var missingKeys=arts.filter(function(a){ return !ART[a]; });
   okk('every front draws only manifest art (no stray names)', missingKeys.length===0, missingKeys.join(',')||arts.length+' references');
   okk('no SUCK UP / Gunpowder art in the manifest', !Object.keys(ART).some(function(k){ return /gp_|bradley|saucer|jet|barracks|radar|aa_gun|soldier/.test(ART[k]); }));
@@ -1247,15 +1400,15 @@ function selfTest(){
       maxLive=Math.max(maxLive, legion.length+haz.length+shots.length); }
     var want=Object.keys(Fr.hazards||{});
     okk('['+Fr.key+'] the Legion takes the field', sawLegion || Fr.siege);
-    okk('['+Fr.key+'] every hazard on its card actually spawns', want.every(function(k){return sawHaz[k];}), (want.join(',')||'none (tutorial — the sky is still calm)'));
-    if(!want.length) okk('['+Fr.key+'] the tutorial sky is calm (no hazards)', Object.keys(sawHaz).length===0);
+    okk('['+Fr.key+'] every hazard on its card actually spawns', want.every(function(k){return sawHaz[k];}), (want.join(',')||'none on its card'));
+    if(!want.length) okk('['+Fr.key+'] '+(Fr.tutorial?'the tutorial sky is calm':'the sky is calm — the danger is on the ground')+' (no hazards)', Object.keys(sawHaz).length===0);
     okk('['+Fr.key+'] the field stays bounded', maxLive<60, 'peak '+maxLive+' entities');
     // the untouched front FAILS
     startFront(i,{go:true,seed:202+i}); simRun(Fr.clock+5, IDLE);
     var lr=lastResult||{};
     okk('['+Fr.key+'] an untouched front FAILS (the player is necessary)', lr.passed===false, (lr.reason||'?')+' @ '+lr.t+'s · '+lr.rescued+' safe, '+lr.lost+' lost');
-    if(Fr.water||Fr.wall){ startFront(i,{go:true,seed:404+i}); autopilot=IDLE; for(var n=0;n<60*(Fr.clock+5) && state==='play';n++){ hp=HULL; update(dt); } autopilot=null; var lp=lastResult||{};
-      okk('['+Fr.key+'] '+(Fr.water?'the water rises and takes the stranded':'the red hats climb the Wall and take the garrison')+' (hull pinned, hands off)', lp.passed===false && lp.lost>0, lp.lost+' lost · '+lp.reason+' @ '+lp.t+'s'); }
+    if(Fr.water||Fr.wall||Fr.gear){ startFront(i,{go:true,seed:404+i}); autopilot=IDLE; for(var n=0;n<60*(Fr.clock+5) && state==='play';n++){ hp=HULL; update(dt); } autopilot=null; var lp=lastResult||{};
+      okk('['+Fr.key+'] '+(Fr.water?'the water rises and takes the stranded':Fr.wall?'the red hats climb the Wall and take the garrison':'the host overruns the camp and takes the stranded')+' (hull pinned, hands off)', lp.passed===false && lp.lost>0, lp.lost+' lost · '+lp.reason+' @ '+lp.t+'s'); }
   }
   // ---- telegraphs: every hazard warned before it could hurt (idle + autopilot, every front) ----
   var tooShort=[], counted=0;
@@ -1300,7 +1453,7 @@ function selfTest(){
   // ---- the dodge ----
   quiet(2); park(800,mid); spawnShooter('bolt',false); haz[0].x=300; run(SHOOTER.bolt.setup+SHOOTER.bolt.track+0.05); var hpA=hp, lk=!!haz[0].locked;
   park(800,mid-160); run(SHOOTER.bolt.lock+1.2);
-  okk('a ballista bolt can be dodged (move after the lock)', lk && hp===hpA && hzLog.length===1, 'hp '+hpA+' -> '+hp);
+  okk('a ballista bolt can be dodged (move after the lock)', lk && hp===hpA && hzLog.length===1, 'hp '+hpA+' -> '+hp+'');
   quiet(2); park(friends[0].x,low); run(0.2); var rid=onRope(); park(800,mid); run(0.6); P.invuln=0; P.stun=0;
   spawnShooter('bolt',false); haz[0].x=320; var hpB=hp; run(SHOOTER.bolt.setup+SHOOTER.bolt.track+SHOOTER.bolt.lock+0.8);
   okk('a bolt that connects costs hull and the rider lets go', !!rid && hp<hpB && rid.st!=='rope', 'hp '+hpB+' -> '+hp+', rider '+(rid&&rid.st));
@@ -1321,6 +1474,23 @@ function selfTest(){
   quiet(0); park(700,low); spawnGnome('axe',700,1); legion[0].k={art:'gnome_axe',h:64,val:150,lock:0.85,spd:0}; var sc2=score;
   autopilot=function(){ return {ray:1}; }; run(1.2); autopilot=null;
   okk('THE RAY lifts a red hat out of the fight', legion.length===0 || legion[0].gone, '+'+(score-sc2));
+  // ---- THE WHITE HORSE VALE: the ambush ----
+  var VI=FRONTS.findIndex(function(Fr){ return Fr.key==='vale'; }), VF=FRONTS[VI];
+  startFront(VI,{go:true,seed:61});
+  okk('[vale] the host is already on the field when the stage opens (the gnomes stole the initiative)', legion.length===VF.swarm.n && legion.every(function(g){ return g.x>LW*0.8 && g.dir<0 && g.hunts; }), legion.length+' red hats at t=0, x '+Math.round(Math.min.apply(null,legion.map(function(g){return g.x;})))+'+');
+  var bornMin=1e9; autopilot=IDLE; for(var n=0;n<60*40 && state==='play';n++){ hp=HULL; update(dt); legion.forEach(function(g){ bornMin=Math.min(bornMin,g.bornX); }); } autopilot=null;
+  okk('[vale] every red hat comes out of the EAST (screen right)', bornMin>LW*0.8, 'westmost spawn x '+Math.round(bornMin));
+  startFront(VI,{go:true,seed:61}); var vt=battleFrontTarget().x; startFront(0,{go:true,seed:61}); var dt0=battleFrontTarget().x;
+  okk('[vale] the battle line starts PRESSED toward the legion (caught by surprise)', vt < dt0-100 && vt < LW*0.32, 'front x '+Math.round(vt)+' vs Dover '+Math.round(dt0));
+  quiet(VI); var cart=gear.filter(function(p){ return p.kind==='cart'; })[0], behind=friends.filter(function(f){ return f.x<cart.x; }).length;
+  okk('[vale] no walls — the camp\'s catapult, ballista and cart are the only cover', gear.length===3 && !VF.wall && !VF.siege && behind===friends.length, gear.map(function(p){return p.kind;}).join(','));
+  park(300,BAND_TOP); spawnGnome('axe', cart.x+cart.G.reach-4, -1); var hg=legion[0]; hg.hunts=true;
+  run(GEAR_HP*GEAR_SWING-0.25); var heldAt=hg.x, standing=!cart.wreck;
+  run(0.6); var wrecked=cart.wreck; run(2.5);
+  okk('[vale] a red hat must hack through a machine ('+GEAR_HP+' strikes) before it can reach the stranded behind it', standing && heldAt>=cart.x-8 && wrecked && hg.x<cart.x-20, 'held at '+Math.round(heldAt)+' (cart '+cart.x+') · wrecked '+wrecked+' · then x '+Math.round(hg.x));
+  quiet(VI); cart=gear[2]; park(300,BAND_TOP); for(var k=0;k<4;k++){ spawnGnome('axe', cart.x+60+k*20, -1); legion[k].hunts=true; } run(2.6);
+  okk('[vale] only '+GEAR_CREW+' swing at a machine at once (the rest bunch up behind — a target for THE RAY)', cart.att===GEAR_CREW && cart.q===2 && legion.filter(function(g){ return Math.abs(g.x-cart.x)<cart.G.reach+GEAR_QUEUE*2+4; }).length===4, cart.att+' swinging, the rest at '+legion.map(function(g){ return Math.round(g.x-cart.x); }).join('/'));
+  okk('[vale] on the march between London and the Welsh Wash (the road west)', nextBuilt(1)===VI && nextBuilt(VI)===2);
   // ---- retry restarts ----
   startFront(1,{go:true,seed:9}); score=1234; scoreAtStart=1000; simRun(300, IDLE);
   var failedOk = state==='failed'; onPress('r');
