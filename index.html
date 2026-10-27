@@ -80,6 +80,8 @@ var ART={
   goat:'art/goat.png', sheep:'art/sheep.png', goat_piebald:'art/goat_piebald.png',
   legionary_a:'art/legionary_a.png', legionary_b:'art/legionary_b.png', legionary_c:'art/legionary_c.png', signifer:'art/signifer.png', cornicen:'art/cornicen.png',
   gnome_axe:'art/gnome_axe.png', gnome_spear:'art/gnome_spear.png', gnome_shield:'art/gnome_shield.png', gnome_charge:'art/gnome_charge.png',
+  gn_wizard:'art/gnome3d/gn_wizard.png', gn_wizard_b:'art/gnome3d/gn_wizard_b.png', gn_wizard_raise:'art/gnome3d/gn_wizard_raise.png',
+  gn_wizard_cast:'art/gnome3d/gn_wizard_cast.png',   // the gnome-war WIZARDS, lit 3D reliefs (3D PIPELINE gnome3d.py; Joe 1026: shared with SUCK UP)
   gnome_crossbow:'art/gnome_crossbow.png', gnome_heavy:'art/gnome_heavy.png', gnome_general:'art/gnome_general.png', gnome_bannerman:'art/gnome_bannerman.png',
   gnome_climber_a:'art/gnome_climber_a.png', gnome_climber_b:'art/gnome_climber_b.png',
   bolt_crew:'art/bolt_crew.png', catapult_crew:'art/catapult_crew.png', stone:'art/stone.png', glider:'art/glider.png', glider_b:'art/glider_b.png',
@@ -1116,6 +1118,7 @@ var BATTLE={
 var BT_ROME=['legionary_a','legionary_b','legionary_c','legionary_a','legionary_b'], BT_ROME_STD=['signifer','cornicen'];
 var BT_GNOME=['gnome_axe','gnome_spear','gnome_shield','gnome_charge','gnome_heavy','gnome_axe','gnome_spear'], BT_GNOME_STD=['gnome_bannerman'];
 var BT_GNOME_BACK=['gnome_crossbow'];
+var BT_GNOME_WIZ=['gn_wizard','gn_wizard_b','gn_wizard_raise','gn_wizard_cast'];   // Joe 1026: "the wizards especially in pax gnomania" — the Legion's back ranks
 var btFront=null;                                   // the drawn front (screen x), eased toward the target
 function bh(n){ n=(n^61)^(n>>>16); n=(n+(n<<3))|0; n=n^(n>>>4); n=Math.imul(n,0x27d4eb2d); n=n^(n>>>15); return (n>>>0)/4294967296; }
 function battleFrontTarget(){
@@ -1138,8 +1141,10 @@ function drawBattle(){
       if(R.keep && ad>clash && bh(hs+4)>R.keep) continue;                  // open-field rows: a looser order
       if(ad>clash*3.2 && bh(hs+3)<0.45) continue;                       // the back lines thin out
       var std = bh(hs+5)<0.09, back = ad>clash*2.2;
+      var wiz = !romeSide && !std && back && bh(hs+8)>=0.35 && bh(hs+8)<0.52;     // a wizard stands in the gnome reserves
       var art = romeSide ? (std ? BT_ROME_STD[(bh(hs+6)*2)|0] : BT_ROME[(bh(hs+7)*BT_ROME.length)|0])
-                         : (std ? BT_GNOME_STD[0] : (back && bh(hs+8)<0.35 ? BT_GNOME_BACK[0] : BT_GNOME[(bh(hs+7)*BT_GNOME.length)|0]));
+                         : (std ? BT_GNOME_STD[0] : wiz ? BT_GNOME_WIZ[(bh(hs+14)*BT_GNOME_WIZ.length)|0]
+                                : (back && bh(hs+8)<0.35 ? BT_GNOME_BACK[0] : BT_GNOME[(bh(hs+7)*BT_GNOME.length)|0]));
       var hh = h*(romeSide?1.0:0.86)*(0.92+0.16*bh(hs+9)), xx=x, rot=0, a=1;
       if(ad<clash){   // THE GRINDER: the files lunge, fall and are replaced
         var per=4.5+4*bh(hs+11), ph=((rt+bh(hs+12)*per)%per)/per;
@@ -1152,6 +1157,9 @@ function drawBattle(){
       var w=hh*(img.width/img.height);
       ctx.save(); ctx.globalAlpha=a; ctx.translate(xx, yb-hh/2); if(rot) ctx.rotate(rot); if(dirToFront<0) ctx.scale(-1,1);
       ctx.drawImage(img,-w/2,-hh/2,w,hh); ctx.restore();
+      if(wiz && art==='gn_wizard_cast'){ var wp=0.5+0.5*Math.sin(rt*(2.2+bh(hs+15))+hs);   // the staff orb breathes (render-only glow over the lit relief)
+        ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=(0.18+0.32*wp)*(1-R.haze*0.6); ctx.fillStyle='rgba(120,190,255,0.9)';
+        ctx.beginPath(); ctx.arc(xx+dirToFront*w*0.3, yb-hh*0.86, hh*(0.10+0.06*wp), 0, 6.283); ctx.fill(); ctx.restore(); }
       if(back && bh(hs+21)<0.05 && ok('brazier')){ var bi=tinted('brazier',hz,R.haze,false); if(bi){ var bw=h*0.45*(bi.width/bi.height); ctx.drawImage(bi, x+slot*0.4-bw/2, yb-h*0.45, bw, h*0.45);
         ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=0.35+0.2*Math.sin(rt*9+hs); ctx.fillStyle='rgba(255,150,60,0.6)'; ctx.beginPath(); ctx.arc(x+slot*0.4, yb-h*0.48, h*0.22, 0, 6.283); ctx.fill(); ctx.restore(); } }
     }
