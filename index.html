@@ -19,7 +19,7 @@
   URL switches (all documented in the README):
     (none)        the ATTRACT — the TruthJunket special, theme music, any key -> title
     ?title        the title menu            ?campaign   the march from Dover
-    ?front=N      straight to front N (1-5) ?march      the campaign map
+    ?front=N      straight to front N (1-6) ?march      the campaign map
     ?selftest     proof-of-life report      ?demo       autopilot (with ?front=N)
     &go           skip the briefing card    &seed=N     fix the gameplay RNG
     &ff=S         fast-forward S seconds of play under the autopilot (&idle = hands off)
@@ -98,6 +98,15 @@ var ART={
   ground_flag:'art/ground_flag.png', chalk_boulder:'art/chalk_boulder.png',
   follower_logs:'art/follower_logs.png', follower_hammer:'art/follower_hammer.png', follower_groma:'art/follower_groma.png',
   follower_sack:'art/follower_sack.png', legionary_camp:'art/legionary_camp.png',
+  civ_bundle:'art/civ_bundle.png', civ_brown:'art/civ_brown.png', civ_basket:'art/civ_basket.png', civ_child:'art/civ_child.png',
+  civ_tool:'art/civ_tool.png', civ_old:'art/civ_old.png', civ_youth:'art/civ_youth.png', civ_woman:'art/civ_woman.png',
+  civ_scribe:'art/civ_scribe.png', engineer_plans:'art/engineer_plans.png',          // LONDON CALLING: the civilians on the bridge
+  timber_pile:'art/timber_pile.png',
+  lon_far_bank:'art/layers/lon_far_bank.png', lon_bridge:'art/lon_bridge.png', lon_embankment:'art/lon_embankment.png',
+  lon_water:'art/layers/lon_water.png',                                                // LONDON CALLING: Joe's painted London set (1027)
+  lon_south_bank:'art/lon_south_bank.png',
+  lon_reeds_a:'art/lon_reeds_a.png', lon_reeds_b:'art/lon_reeds_b.png', lon_reeds_c:'art/lon_reeds_c.png', lon_reeds_d:'art/lon_reeds_d.png',
+  lon_bush_a:'art/lon_bush_a.png', lon_bush_b:'art/lon_bush_b.png', lon_mixed_a:'art/lon_mixed_a.png',
   wh_far:'art/layers/wh_far.png', wh_hill:'art/layers/wh_hill.png', wh_near:'art/layers/wh_near.png',
   wh_onager:'art/wh_onager.png', wh_ballista:'art/wh_ballista.png', wh_cart:'art/wh_cart.png',
   wash_far_hills:'art/layers/wash_far_hills.png', wash_far_ruins:'art/layers/wash_far_ruins.png', wash_mid_camp:'art/layers/wash_mid_camp.png',
@@ -109,6 +118,12 @@ var ART={
   turning_screw:'art/plates/turning_screw.jpg', legion_wolfe:'art/plates/legion_wolfe.jpg', pax_open:'art/plates/pax_open.jpg',
   wolfe_1:'art/plates/wolfe_1.jpg', wolfe_2:'art/plates/wolfe_2.jpg', wolfe_4:'art/plates/wolfe_4.jpg', wolfe_6:'art/plates/wolfe_6.jpg'
 };
+/* CUTOUT_ASSETS_BEGIN */
+var CUTOUT_RIGS={"engineer":{"height":128,"fps":12,"cycles":{"idle":12,"walk":8,"hammer":8,"carry":8,"wave":8,"rope":12,"land":10},"grades":{"day":{"file":"art/cutout/engineer_day.png","frames":{"idle_d00":{"box":[0,0,70,139],"origin":[32.78,131.12]},"idle_d01":{"box":[72,0,70,139],"origin":[32.78,131.12]},"idle_d02":{"box":[144,0,70,139],"origin":[32.78,131.12]},"idle_d03":{"box":[216,0,70,139],"origin":[32.78,131.12]},"idle_d04":{"box":[288,0,70,139],"origin":[32.78,131.12]},"idle_d05":{"box":[360,0,70,139],"origin":[32.78,131.12]},"idle_d06":{"box":[432,0,70,139],"origin":[32.78,131.12]},"idle_d07":{"box":[504,0,70,139],"origin":[32.78,131.12]},"idle_d08":{"box":[576,0,70,139],"origin":[32.78,131.12]},"idle_d09":{"box":[648,0,70,139],"origin":[32.78,131.12]},"idle_d10":{"box":[720,0,70,139],"origin":[32.78,131.12]},"idle_d11":{"box":[792,0,70,139],"origin":[32.78,131.12]},"walk_d00":{"box":[864,0,76,139],"origin":[34.58,131.48]},"walk_d01":{"box":[942,0,76,139],"origin":[34.58,131.48]},"walk_d02":{"box":[1020,0,76,139],"origin":[34.58,131.48]},"walk_d03":{"box":[1098,0,76,139],"origin":[34.58,131.48]},"walk_d04":{"box":[1176,0,76,139],"origin":[34.58,131.48]},"walk_d05":{"box":[1254,0,76,139],"origin":[34.58,131.48]},"walk_d06":{"box":[1332,0,76,139],"origin":[34.58,131.48]},"walk_d07":{"box":[1410,0,76,139],"origin":[34.58,131.48]},"hammer_d00":{"box":[1488,0,130,140],"origin":[72.74,132.74]},"hammer_d01":{"box":[1620,0,130,140],"origin":[72.74,132.74]},"hammer_d02":{"box":[1752,0,130,140],"origin":[72.74,132.74]},"hammer_d03":{"box":[1884,0,130,140],"origin":[72.74,132.74]},"hammer_d04":{"box":[0,142,130,140],"origin":[72.74,132.74]},"hammer_d05":{"box":[132,142,130,140],"origin":[72.74,132.74]},"hammer_d06":{"box":[264,142,130,140],"origin":[72.74,132.74]},"hammer_d07":{"box":[396,142,130,140],"origin":[72.74,132.74]},"carry_d00":{"box":[528,142,79,138],"origin":[37.45,130.04]},"carry_d01":{"box":[609,142,79,138],"origin":[37.45,130.04]},"carry_d02":{"box":[690,142,79,138],"origin":[37.45,130.04]},"carry_d03":{"box":[771,142,79,138],"origin":[37.45,130.04]},"carry_d04":{"box":[852,142,79,138],"origin":[37.45,130.04]},"carry_d05":{"box":[933,142,79,138],"origin":[37.45,130.04]},"carry_d06":{"box":[1014,142,79,138],"origin":[37.45,130.04]},"carry_d07":{"box":[1095,142,79,138],"origin":[37.45,130.04]},"wave_d00":{"box":[1176,142,66,141],"origin":[28.88,133.1]},"wave_d01":{"box":[1244,142,66,141],"origin":[28.88,133.1]},"wave_d02":{"box":[1312,142,66,141],"origin":[28.88,133.1]},"wave_d03":{"box":[1380,142,66,141],"origin":[28.88,133.1]},"wave_d04":{"box":[1448,142,66,141],"origin":[28.88,133.1]},"wave_d05":{"box":[1516,142,66,141],"origin":[28.88,133.1]},"wave_d06":{"box":[1584,142,66,141],"origin":[28.88,133.1]},"wave_d07":{"box":[1652,142,66,141],"origin":[28.88,133.1]},"rope_d00":{"box":[1720,142,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d01":{"box":[1792,142,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d02":{"box":[1864,142,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d03":{"box":[1936,142,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d04":{"box":[0,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d05":{"box":[72,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d06":{"box":[144,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d07":{"box":[216,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d08":{"box":[288,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d09":{"box":[360,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d10":{"box":[432,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d11":{"box":[504,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"land_d00":{"box":[576,293,86,168],"origin":[32.06,160.22]},"land_d01":{"box":[664,293,86,168],"origin":[32.06,160.22]},"land_d02":{"box":[752,293,86,168],"origin":[32.06,160.22]},"land_d03":{"box":[840,293,86,168],"origin":[32.06,160.22]},"land_d04":{"box":[928,293,86,168],"origin":[32.06,160.22]},"land_d05":{"box":[1016,293,86,168],"origin":[32.06,160.22]},"land_d06":{"box":[1104,293,86,168],"origin":[32.06,160.22]},"land_d07":{"box":[1192,293,86,168],"origin":[32.06,160.22]},"land_d08":{"box":[1280,293,86,168],"origin":[32.06,160.22]},"land_d09":{"box":[1368,293,86,168],"origin":[32.06,160.22]}}},"night":{"file":"art/cutout/engineer_night.png","frames":{"idle_d00":{"box":[0,0,70,139],"origin":[32.78,131.12]},"idle_d01":{"box":[72,0,70,139],"origin":[32.78,131.12]},"idle_d02":{"box":[144,0,70,139],"origin":[32.78,131.12]},"idle_d03":{"box":[216,0,70,139],"origin":[32.78,131.12]},"idle_d04":{"box":[288,0,70,139],"origin":[32.78,131.12]},"idle_d05":{"box":[360,0,70,139],"origin":[32.78,131.12]},"idle_d06":{"box":[432,0,70,139],"origin":[32.78,131.12]},"idle_d07":{"box":[504,0,70,139],"origin":[32.78,131.12]},"idle_d08":{"box":[576,0,70,139],"origin":[32.78,131.12]},"idle_d09":{"box":[648,0,70,139],"origin":[32.78,131.12]},"idle_d10":{"box":[720,0,70,139],"origin":[32.78,131.12]},"idle_d11":{"box":[792,0,70,139],"origin":[32.78,131.12]},"walk_d00":{"box":[864,0,76,139],"origin":[34.58,131.48]},"walk_d01":{"box":[942,0,76,139],"origin":[34.58,131.48]},"walk_d02":{"box":[1020,0,76,139],"origin":[34.58,131.48]},"walk_d03":{"box":[1098,0,76,139],"origin":[34.58,131.48]},"walk_d04":{"box":[1176,0,76,139],"origin":[34.58,131.48]},"walk_d05":{"box":[1254,0,76,139],"origin":[34.58,131.48]},"walk_d06":{"box":[1332,0,76,139],"origin":[34.58,131.48]},"walk_d07":{"box":[1410,0,76,139],"origin":[34.58,131.48]},"hammer_d00":{"box":[1488,0,130,140],"origin":[72.74,132.74]},"hammer_d01":{"box":[1620,0,130,140],"origin":[72.74,132.74]},"hammer_d02":{"box":[1752,0,130,140],"origin":[72.74,132.74]},"hammer_d03":{"box":[1884,0,130,140],"origin":[72.74,132.74]},"hammer_d04":{"box":[0,142,130,140],"origin":[72.74,132.74]},"hammer_d05":{"box":[132,142,130,140],"origin":[72.74,132.74]},"hammer_d06":{"box":[264,142,130,140],"origin":[72.74,132.74]},"hammer_d07":{"box":[396,142,130,140],"origin":[72.74,132.74]},"carry_d00":{"box":[528,142,79,138],"origin":[37.45,130.04]},"carry_d01":{"box":[609,142,79,138],"origin":[37.45,130.04]},"carry_d02":{"box":[690,142,79,138],"origin":[37.45,130.04]},"carry_d03":{"box":[771,142,79,138],"origin":[37.45,130.04]},"carry_d04":{"box":[852,142,79,138],"origin":[37.45,130.04]},"carry_d05":{"box":[933,142,79,138],"origin":[37.45,130.04]},"carry_d06":{"box":[1014,142,79,138],"origin":[37.45,130.04]},"carry_d07":{"box":[1095,142,79,138],"origin":[37.45,130.04]},"wave_d00":{"box":[1176,142,66,141],"origin":[28.88,133.1]},"wave_d01":{"box":[1244,142,66,141],"origin":[28.88,133.1]},"wave_d02":{"box":[1312,142,66,141],"origin":[28.88,133.1]},"wave_d03":{"box":[1380,142,66,141],"origin":[28.88,133.1]},"wave_d04":{"box":[1448,142,66,141],"origin":[28.88,133.1]},"wave_d05":{"box":[1516,142,66,141],"origin":[28.88,133.1]},"wave_d06":{"box":[1584,142,66,141],"origin":[28.88,133.1]},"wave_d07":{"box":[1652,142,66,141],"origin":[28.88,133.1]},"rope_d00":{"box":[1720,142,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d01":{"box":[1792,142,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d02":{"box":[1864,142,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d03":{"box":[1936,142,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d04":{"box":[0,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d05":{"box":[72,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d06":{"box":[144,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d07":{"box":[216,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d08":{"box":[288,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d09":{"box":[360,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d10":{"box":[432,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"rope_d11":{"box":[504,293,70,149],"origin":[32.82,133.63],"grip":[44.32,30.36]},"land_d00":{"box":[576,293,86,168],"origin":[32.06,160.22]},"land_d01":{"box":[664,293,86,168],"origin":[32.06,160.22]},"land_d02":{"box":[752,293,86,168],"origin":[32.06,160.22]},"land_d03":{"box":[840,293,86,168],"origin":[32.06,160.22]},"land_d04":{"box":[928,293,86,168],"origin":[32.06,160.22]},"land_d05":{"box":[1016,293,86,168],"origin":[32.06,160.22]},"land_d06":{"box":[1104,293,86,168],"origin":[32.06,160.22]},"land_d07":{"box":[1192,293,86,168],"origin":[32.06,160.22]},"land_d08":{"box":[1280,293,86,168],"origin":[32.06,160.22]},"land_d09":{"box":[1368,293,86,168],"origin":[32.06,160.22]}}}}},"redhat":{"height":128,"fps":12,"cycles":{"idle":8,"walk":8,"brace":6},"grades":{"day":{"file":"art/cutout/redhat_day.png","frames":{"idle_d00":{"box":[0,0,60,136],"origin":[34.84,131.33]},"idle_d01":{"box":[62,0,60,136],"origin":[34.84,131.33]},"idle_d02":{"box":[124,0,60,136],"origin":[34.84,131.33]},"idle_d03":{"box":[186,0,60,136],"origin":[34.84,131.33]},"idle_d04":{"box":[248,0,60,136],"origin":[34.84,131.33]},"idle_d05":{"box":[310,0,60,136],"origin":[34.84,131.33]},"idle_d06":{"box":[372,0,60,136],"origin":[34.84,131.33]},"idle_d07":{"box":[434,0,60,136],"origin":[34.84,131.33]},"walk_d00":{"box":[496,0,72,137],"origin":[37.87,132.56]},"walk_d01":{"box":[570,0,72,137],"origin":[37.87,132.56]},"walk_d02":{"box":[644,0,72,137],"origin":[37.87,132.56]},"walk_d03":{"box":[718,0,72,137],"origin":[37.87,132.56]},"walk_d04":{"box":[792,0,72,137],"origin":[37.87,132.56]},"walk_d05":{"box":[866,0,72,137],"origin":[37.87,132.56]},"walk_d06":{"box":[940,0,72,137],"origin":[37.87,132.56]},"walk_d07":{"box":[1014,0,72,137],"origin":[37.87,132.56]},"brace_d00":{"box":[1088,0,73,136],"origin":[34.63,131.51]},"brace_d01":{"box":[1163,0,73,136],"origin":[34.63,131.51]},"brace_d02":{"box":[1238,0,73,136],"origin":[34.63,131.51]},"brace_d03":{"box":[1313,0,73,136],"origin":[34.63,131.51]},"brace_d04":{"box":[1388,0,73,136],"origin":[34.63,131.51]},"brace_d05":{"box":[1463,0,73,136],"origin":[34.63,131.51]}}},"night":{"file":"art/cutout/redhat_night.png","frames":{"idle_d00":{"box":[0,0,60,136],"origin":[34.84,131.33]},"idle_d01":{"box":[62,0,60,136],"origin":[34.84,131.33]},"idle_d02":{"box":[124,0,60,136],"origin":[34.84,131.33]},"idle_d03":{"box":[186,0,60,136],"origin":[34.84,131.33]},"idle_d04":{"box":[248,0,60,136],"origin":[34.84,131.33]},"idle_d05":{"box":[310,0,60,136],"origin":[34.84,131.33]},"idle_d06":{"box":[372,0,60,136],"origin":[34.84,131.33]},"idle_d07":{"box":[434,0,60,136],"origin":[34.84,131.33]},"walk_d00":{"box":[496,0,72,137],"origin":[37.87,132.56]},"walk_d01":{"box":[570,0,72,137],"origin":[37.87,132.56]},"walk_d02":{"box":[644,0,72,137],"origin":[37.87,132.56]},"walk_d03":{"box":[718,0,72,137],"origin":[37.87,132.56]},"walk_d04":{"box":[792,0,72,137],"origin":[37.87,132.56]},"walk_d05":{"box":[866,0,72,137],"origin":[37.87,132.56]},"walk_d06":{"box":[940,0,72,137],"origin":[37.87,132.56]},"walk_d07":{"box":[1014,0,72,137],"origin":[37.87,132.56]},"brace_d00":{"box":[1088,0,73,136],"origin":[34.63,131.51]},"brace_d01":{"box":[1163,0,73,136],"origin":[34.63,131.51]},"brace_d02":{"box":[1238,0,73,136],"origin":[34.63,131.51]},"brace_d03":{"box":[1313,0,73,136],"origin":[34.63,131.51]},"brace_d04":{"box":[1388,0,73,136],"origin":[34.63,131.51]},"brace_d05":{"box":[1463,0,73,136],"origin":[34.63,131.51]}}}}},"legionary":{"height":128,"fps":12,"cycles":{"idle":8,"walk":8,"brace":6},"grades":{"day":{"file":"art/cutout/legionary_day.png","frames":{"idle_d00":{"box":[0,0,57,137],"origin":[29.27,131.55]},"idle_d01":{"box":[59,0,57,137],"origin":[29.27,131.55]},"idle_d02":{"box":[118,0,57,137],"origin":[29.27,131.55]},"idle_d03":{"box":[177,0,57,137],"origin":[29.27,131.55]},"idle_d04":{"box":[236,0,57,137],"origin":[29.27,131.55]},"idle_d05":{"box":[295,0,57,137],"origin":[29.27,131.55]},"idle_d06":{"box":[354,0,57,137],"origin":[29.27,131.55]},"idle_d07":{"box":[413,0,57,137],"origin":[29.27,131.55]},"walk_d00":{"box":[472,0,81,138],"origin":[37.58,132.85]},"walk_d01":{"box":[555,0,81,138],"origin":[37.58,132.85]},"walk_d02":{"box":[638,0,81,138],"origin":[37.58,132.85]},"walk_d03":{"box":[721,0,81,138],"origin":[37.58,132.85]},"walk_d04":{"box":[804,0,81,138],"origin":[37.58,132.85]},"walk_d05":{"box":[887,0,81,138],"origin":[37.58,132.85]},"walk_d06":{"box":[970,0,81,138],"origin":[37.58,132.85]},"walk_d07":{"box":[1053,0,81,138],"origin":[37.58,132.85]},"brace_d00":{"box":[1136,0,68,137],"origin":[29.03,131.73]},"brace_d01":{"box":[1206,0,68,137],"origin":[29.03,131.73]},"brace_d02":{"box":[1276,0,68,137],"origin":[29.03,131.73]},"brace_d03":{"box":[1346,0,68,137],"origin":[29.03,131.73]},"brace_d04":{"box":[1416,0,68,137],"origin":[29.03,131.73]},"brace_d05":{"box":[1486,0,68,137],"origin":[29.03,131.73]}}},"night":{"file":"art/cutout/legionary_night.png","frames":{"idle_d00":{"box":[0,0,57,137],"origin":[29.27,131.55]},"idle_d01":{"box":[59,0,57,137],"origin":[29.27,131.55]},"idle_d02":{"box":[118,0,57,137],"origin":[29.27,131.55]},"idle_d03":{"box":[177,0,57,137],"origin":[29.27,131.55]},"idle_d04":{"box":[236,0,57,137],"origin":[29.27,131.55]},"idle_d05":{"box":[295,0,57,137],"origin":[29.27,131.55]},"idle_d06":{"box":[354,0,57,137],"origin":[29.27,131.55]},"idle_d07":{"box":[413,0,57,137],"origin":[29.27,131.55]},"walk_d00":{"box":[472,0,81,138],"origin":[37.58,132.85]},"walk_d01":{"box":[555,0,81,138],"origin":[37.58,132.85]},"walk_d02":{"box":[638,0,81,138],"origin":[37.58,132.85]},"walk_d03":{"box":[721,0,81,138],"origin":[37.58,132.85]},"walk_d04":{"box":[804,0,81,138],"origin":[37.58,132.85]},"walk_d05":{"box":[887,0,81,138],"origin":[37.58,132.85]},"walk_d06":{"box":[970,0,81,138],"origin":[37.58,132.85]},"walk_d07":{"box":[1053,0,81,138],"origin":[37.58,132.85]},"brace_d00":{"box":[1136,0,68,137],"origin":[29.03,131.73]},"brace_d01":{"box":[1206,0,68,137],"origin":[29.03,131.73]},"brace_d02":{"box":[1276,0,68,137],"origin":[29.03,131.73]},"brace_d03":{"box":[1346,0,68,137],"origin":[29.03,131.73]},"brace_d04":{"box":[1416,0,68,137],"origin":[29.03,131.73]},"brace_d05":{"box":[1486,0,68,137],"origin":[29.03,131.73]}}}}},"man":{"height":128,"fps":12,"cycles":{"idle":8,"walk":8,"brace":6},"grades":{"day":{"file":"art/cutout/man_day.png","frames":{"idle_d00":{"box":[0,0,52,138],"origin":[23.76,132.17]},"idle_d01":{"box":[54,0,52,138],"origin":[23.76,132.17]},"idle_d02":{"box":[108,0,52,138],"origin":[23.76,132.17]},"idle_d03":{"box":[162,0,52,138],"origin":[23.76,132.17]},"idle_d04":{"box":[216,0,52,138],"origin":[23.76,132.17]},"idle_d05":{"box":[270,0,52,138],"origin":[23.76,132.17]},"idle_d06":{"box":[324,0,52,138],"origin":[23.76,132.17]},"idle_d07":{"box":[378,0,52,138],"origin":[23.76,132.17]},"walk_d00":{"box":[432,0,68,140],"origin":[33.1,133.68]},"walk_d01":{"box":[502,0,68,140],"origin":[33.1,133.68]},"walk_d02":{"box":[572,0,68,140],"origin":[33.1,133.68]},"walk_d03":{"box":[642,0,68,140],"origin":[33.1,133.68]},"walk_d04":{"box":[712,0,68,140],"origin":[33.1,133.68]},"walk_d05":{"box":[782,0,68,140],"origin":[33.1,133.68]},"walk_d06":{"box":[852,0,68,140],"origin":[33.1,133.68]},"walk_d07":{"box":[922,0,68,140],"origin":[33.1,133.68]},"brace_d00":{"box":[992,0,68,138],"origin":[24.36,131.95]},"brace_d01":{"box":[1062,0,68,138],"origin":[24.36,131.95]},"brace_d02":{"box":[1132,0,68,138],"origin":[24.36,131.95]},"brace_d03":{"box":[1202,0,68,138],"origin":[24.36,131.95]},"brace_d04":{"box":[1272,0,68,138],"origin":[24.36,131.95]},"brace_d05":{"box":[1342,0,68,138],"origin":[24.36,131.95]}}},"night":{"file":"art/cutout/man_night.png","frames":{"idle_d00":{"box":[0,0,52,138],"origin":[23.76,132.17]},"idle_d01":{"box":[54,0,52,138],"origin":[23.76,132.17]},"idle_d02":{"box":[108,0,52,138],"origin":[23.76,132.17]},"idle_d03":{"box":[162,0,52,138],"origin":[23.76,132.17]},"idle_d04":{"box":[216,0,52,138],"origin":[23.76,132.17]},"idle_d05":{"box":[270,0,52,138],"origin":[23.76,132.17]},"idle_d06":{"box":[324,0,52,138],"origin":[23.76,132.17]},"idle_d07":{"box":[378,0,52,138],"origin":[23.76,132.17]},"walk_d00":{"box":[432,0,68,140],"origin":[33.1,133.68]},"walk_d01":{"box":[502,0,68,140],"origin":[33.1,133.68]},"walk_d02":{"box":[572,0,68,140],"origin":[33.1,133.68]},"walk_d03":{"box":[642,0,68,140],"origin":[33.1,133.68]},"walk_d04":{"box":[712,0,68,140],"origin":[33.1,133.68]},"walk_d05":{"box":[782,0,68,140],"origin":[33.1,133.68]},"walk_d06":{"box":[852,0,68,140],"origin":[33.1,133.68]},"walk_d07":{"box":[922,0,68,140],"origin":[33.1,133.68]},"brace_d00":{"box":[992,0,68,138],"origin":[24.36,131.95]},"brace_d01":{"box":[1062,0,68,138],"origin":[24.36,131.95]},"brace_d02":{"box":[1132,0,68,138],"origin":[24.36,131.95]},"brace_d03":{"box":[1202,0,68,138],"origin":[24.36,131.95]},"brace_d04":{"box":[1272,0,68,138],"origin":[24.36,131.95]},"brace_d05":{"box":[1342,0,68,138],"origin":[24.36,131.95]}}}}},"woman":{"height":128,"fps":12,"cycles":{"idle":8,"walk":8,"brace":6},"grades":{"day":{"file":"art/cutout/woman_day.png","frames":{"idle_d00":{"box":[0,0,52,137],"origin":[23.88,131.73]},"idle_d01":{"box":[54,0,52,137],"origin":[23.88,131.73]},"idle_d02":{"box":[108,0,52,137],"origin":[23.88,131.73]},"idle_d03":{"box":[162,0,52,137],"origin":[23.88,131.73]},"idle_d04":{"box":[216,0,52,137],"origin":[23.88,131.73]},"idle_d05":{"box":[270,0,52,137],"origin":[23.88,131.73]},"idle_d06":{"box":[324,0,52,137],"origin":[23.88,131.73]},"idle_d07":{"box":[378,0,52,137],"origin":[23.88,131.73]},"walk_d00":{"box":[432,0,51,138],"origin":[23.24,133.08]},"walk_d01":{"box":[485,0,51,138],"origin":[23.24,133.08]},"walk_d02":{"box":[538,0,51,138],"origin":[23.24,133.08]},"walk_d03":{"box":[591,0,51,138],"origin":[23.24,133.08]},"walk_d04":{"box":[644,0,51,138],"origin":[23.24,133.08]},"walk_d05":{"box":[697,0,51,138],"origin":[23.24,133.08]},"walk_d06":{"box":[750,0,51,138],"origin":[23.24,133.08]},"walk_d07":{"box":[803,0,51,138],"origin":[23.24,133.08]},"brace_d00":{"box":[856,0,72,137],"origin":[27.39,131.53]},"brace_d01":{"box":[930,0,72,137],"origin":[27.39,131.53]},"brace_d02":{"box":[1004,0,72,137],"origin":[27.39,131.53]},"brace_d03":{"box":[1078,0,72,137],"origin":[27.39,131.53]},"brace_d04":{"box":[1152,0,72,137],"origin":[27.39,131.53]},"brace_d05":{"box":[1226,0,72,137],"origin":[27.39,131.53]}}},"night":{"file":"art/cutout/woman_night.png","frames":{"idle_d00":{"box":[0,0,52,137],"origin":[23.88,131.73]},"idle_d01":{"box":[54,0,52,137],"origin":[23.88,131.73]},"idle_d02":{"box":[108,0,52,137],"origin":[23.88,131.73]},"idle_d03":{"box":[162,0,52,137],"origin":[23.88,131.73]},"idle_d04":{"box":[216,0,52,137],"origin":[23.88,131.73]},"idle_d05":{"box":[270,0,52,137],"origin":[23.88,131.73]},"idle_d06":{"box":[324,0,52,137],"origin":[23.88,131.73]},"idle_d07":{"box":[378,0,52,137],"origin":[23.88,131.73]},"walk_d00":{"box":[432,0,51,138],"origin":[23.24,133.08]},"walk_d01":{"box":[485,0,51,138],"origin":[23.24,133.08]},"walk_d02":{"box":[538,0,51,138],"origin":[23.24,133.08]},"walk_d03":{"box":[591,0,51,138],"origin":[23.24,133.08]},"walk_d04":{"box":[644,0,51,138],"origin":[23.24,133.08]},"walk_d05":{"box":[697,0,51,138],"origin":[23.24,133.08]},"walk_d06":{"box":[750,0,51,138],"origin":[23.24,133.08]},"walk_d07":{"box":[803,0,51,138],"origin":[23.24,133.08]},"brace_d00":{"box":[856,0,72,137],"origin":[27.39,131.53]},"brace_d01":{"box":[930,0,72,137],"origin":[27.39,131.53]},"brace_d02":{"box":[1004,0,72,137],"origin":[27.39,131.53]},"brace_d03":{"box":[1078,0,72,137],"origin":[27.39,131.53]},"brace_d04":{"box":[1152,0,72,137],"origin":[27.39,131.53]},"brace_d05":{"box":[1226,0,72,137],"origin":[27.39,131.53]}}}}},"elder":{"height":128,"fps":12,"cycles":{"idle":8,"walk":8,"brace":6},"grades":{"day":{"file":"art/cutout/elder_day.png","frames":{"idle_d00":{"box":[0,0,54,138],"origin":[23.87,132.17]},"idle_d01":{"box":[56,0,54,138],"origin":[23.87,132.17]},"idle_d02":{"box":[112,0,54,138],"origin":[23.87,132.17]},"idle_d03":{"box":[168,0,54,138],"origin":[23.87,132.17]},"idle_d04":{"box":[224,0,54,138],"origin":[23.87,132.17]},"idle_d05":{"box":[280,0,54,138],"origin":[23.87,132.17]},"idle_d06":{"box":[336,0,54,138],"origin":[23.87,132.17]},"idle_d07":{"box":[392,0,54,138],"origin":[23.87,132.17]},"walk_d00":{"box":[448,0,68,140],"origin":[31.91,133.68]},"walk_d01":{"box":[518,0,68,140],"origin":[31.91,133.68]},"walk_d02":{"box":[588,0,68,140],"origin":[31.91,133.68]},"walk_d03":{"box":[658,0,68,140],"origin":[31.91,133.68]},"walk_d04":{"box":[728,0,68,140],"origin":[31.91,133.68]},"walk_d05":{"box":[798,0,68,140],"origin":[31.91,133.68]},"walk_d06":{"box":[868,0,68,140],"origin":[31.91,133.68]},"walk_d07":{"box":[938,0,68,140],"origin":[31.91,133.68]},"brace_d00":{"box":[1008,0,69,138],"origin":[23.82,131.95]},"brace_d01":{"box":[1079,0,69,138],"origin":[23.82,131.95]},"brace_d02":{"box":[1150,0,69,138],"origin":[23.82,131.95]},"brace_d03":{"box":[1221,0,69,138],"origin":[23.82,131.95]},"brace_d04":{"box":[1292,0,69,138],"origin":[23.82,131.95]},"brace_d05":{"box":[1363,0,69,138],"origin":[23.82,131.95]}}},"night":{"file":"art/cutout/elder_night.png","frames":{"idle_d00":{"box":[0,0,54,138],"origin":[23.87,132.17]},"idle_d01":{"box":[56,0,54,138],"origin":[23.87,132.17]},"idle_d02":{"box":[112,0,54,138],"origin":[23.87,132.17]},"idle_d03":{"box":[168,0,54,138],"origin":[23.87,132.17]},"idle_d04":{"box":[224,0,54,138],"origin":[23.87,132.17]},"idle_d05":{"box":[280,0,54,138],"origin":[23.87,132.17]},"idle_d06":{"box":[336,0,54,138],"origin":[23.87,132.17]},"idle_d07":{"box":[392,0,54,138],"origin":[23.87,132.17]},"walk_d00":{"box":[448,0,68,140],"origin":[31.91,133.68]},"walk_d01":{"box":[518,0,68,140],"origin":[31.91,133.68]},"walk_d02":{"box":[588,0,68,140],"origin":[31.91,133.68]},"walk_d03":{"box":[658,0,68,140],"origin":[31.91,133.68]},"walk_d04":{"box":[728,0,68,140],"origin":[31.91,133.68]},"walk_d05":{"box":[798,0,68,140],"origin":[31.91,133.68]},"walk_d06":{"box":[868,0,68,140],"origin":[31.91,133.68]},"walk_d07":{"box":[938,0,68,140],"origin":[31.91,133.68]},"brace_d00":{"box":[1008,0,69,138],"origin":[23.82,131.95]},"brace_d01":{"box":[1079,0,69,138],"origin":[23.82,131.95]},"brace_d02":{"box":[1150,0,69,138],"origin":[23.82,131.95]},"brace_d03":{"box":[1221,0,69,138],"origin":[23.82,131.95]},"brace_d04":{"box":[1292,0,69,138],"origin":[23.82,131.95]},"brace_d05":{"box":[1363,0,69,138],"origin":[23.82,131.95]}}}}},"scorpion":{"height":216,"grades":{"night":{"file":"art/cutout/scorpion_night.png","frames":{"idle_1":{"box":[0,0,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"idle_2":{"box":[386,0,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"wind_1":{"box":[772,0,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"wind_2":{"box":[1158,0,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"wind_3":{"box":[1544,0,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"wind_4":{"box":[0,218,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"wind_5":{"box":[386,218,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"wind_6":{"box":[772,218,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"wind_7":{"box":[1158,218,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"wind_8":{"box":[1544,218,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"load_1":{"box":[0,436,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"load_2":{"box":[386,436,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"aim_down":{"box":[772,436,384,216],"origin":[192.0,204.8],"launch":[296.84,97.42]},"aim_level":{"box":[1158,436,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"aim_up":{"box":[1544,436,384,216],"origin":[192.0,204.8],"launch":[286.57,60.91]},"fire_1_smear":{"box":[0,654,384,216],"origin":[192.0,204.8],"launch":[291.26,82.38]},"fire_2":{"box":[386,654,384,216],"origin":[192.0,204.8],"launch":[285.16,79.03]},"fire_3":{"box":[772,654,384,216],"origin":[192.0,204.8],"launch":[280.72,76.62]},"fire_4":{"box":[1158,654,384,216],"origin":[192.0,204.8],"launch":[287.96,81.46]},"fire_5":{"box":[1544,654,384,216],"origin":[192.0,204.8],"launch":[292.32,83.92]},"empty":{"box":[0,872,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_01":{"box":[386,872,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_02":{"box":[772,872,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_03":{"box":[1158,872,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_04":{"box":[1544,872,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_05":{"box":[0,1090,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_06":{"box":[386,1090,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_07":{"box":[772,1090,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_08":{"box":[1158,1090,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_09":{"box":[1544,1090,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_10":{"box":[0,1308,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_11":{"box":[386,1308,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_12":{"box":[772,1308,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_13":{"box":[1158,1308,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_14":{"box":[1544,1308,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_15":{"box":[0,1526,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]},"roll_16":{"box":[386,1526,384,216],"origin":[192.0,204.8],"launch":[293.92,83.92]}}}}}};
+/* CUTOUT_ASSETS_END */
+Object.keys(CUTOUT_RIGS).forEach(function(n){ Object.keys(CUTOUT_RIGS[n].grades).forEach(function(g){
+  ART['rig_'+n+'_'+g]=CUTOUT_RIGS[n].grades[g].file;
+}); });
 var IMG={};
 (function(){ for(var k in ART){ var im = NODE ? {} : new Image(); im.ok=false; im.bad=false;
   if(!NODE){ im.onload=function(){ this.ok=true; }; im.onerror=function(){ this.bad=true; }; im.src=ART[k]; } IMG[k]=im; } })();
@@ -122,6 +137,30 @@ function spr(n,x,yb,h,o){ o=o||{}; if(!ok(n)) return false; var w=h*ar(n);
 function sprC(n,x,y,w,o){ o=o||{}; if(!ok(n)) return false; var h=w/ar(n);
   ctx.save(); ctx.globalAlpha=(o.a==null?1:o.a); ctx.translate(x,y); if(o.rot) ctx.rotate(o.rot); if(o.flip) ctx.scale(-1,1); if(o.sc) ctx.scale(o.sc,o.sc);
   ctx.drawImage(IMG[n],-w/2,-h/2,w,h); ctx.restore(); return true; }
+// Painted cutouts, Cycles relief + contact shadow. All coordinates use the
+// exported foot/grip anchors; no canvas-edge bob when a pose changes bounds.
+function rigFrame(n,key){ if(qp('cutouts')==='0') return null; var r=CUTOUT_RIGS[n]; if(!r) return null;
+  var grade=/^(day|dawn|vale)$/.test(F?F.time:'day')?'day':'night'; if(!r.grades[grade]) grade='night';
+  var a=r.grades[grade], im=IMG['rig_'+n+'_'+grade];
+  return im&&im.ok&&a.frames[key]?{r:r,f:a.frames[key],im:im}:null; }
+function rigDraw(n,key,x,y,k,o,anchor){ o=o||{}; var a=rigFrame(n,key); if(!a) return false;
+  var b=a.f.box, p=a.f[anchor||'origin']||a.f.origin;
+  ctx.save(); ctx.globalAlpha=o.a==null?1:o.a; ctx.translate(x,y); if(o.rot) ctx.rotate(o.rot);
+  ctx.scale(o.flip?-k:k,k); ctx.drawImage(a.im,b[0],b[1],b[2],b[3],-p[0],-p[1],b[2],b[3]); ctx.restore(); return true; }
+function rigCycle(n,cycle,x,y,h,o){ var r=CUTOUT_RIGS[n]; if(!r||!r.cycles[cycle]) return false;
+  var d=Math.floor((rt+(o&&o.phase||0))*r.fps)%r.cycles[cycle];
+  return rigDraw(n,cycle+'_d'+('0'+d).slice(-2),x,y,h/r.height,o); }
+function actorRig(art){
+  if(art==='gnome_engineer'||art==='engineer_plans') return 'engineer';
+  if(art==='gnome_shield'||art==='gnome_heavy') return 'redhat';
+  if(/^legionary_[abc]$/.test(art)) return 'legionary';
+  if(art==='villager_man'||art==='civ_brown'||art==='civ_tool') return 'man';
+  if(art==='villager_mother'||art==='civ_woman') return 'woman';
+  if(art==='villager_elder'||art==='civ_old') return 'elder';
+  return null;
+}
+function actorSpr(art,x,y,h,o,cycle){ var n=actorRig(art);
+  return n&&rigCycle(n,cycle||'idle',x,y,h,o)||spr(art,x,y,h,o); }
 // TINT CACHE: silhouette recolour (sil) or atmospheric haze (haze 0..1 toward a colour)
 var TINT={};
 function tinted(n,col,amt,sil){
@@ -258,7 +297,17 @@ var WHO={
   logs:    {art:'follower_logs',  h:66, name:'CAMP FOLLOWER'},
   hammer:  {art:'follower_hammer',h:66, name:'CAMP FOLLOWER'},
   groma:   {art:'follower_groma', h:68, name:'SURVEYOR'},
-  sack:    {art:'follower_sack',  h:62, name:'CAMP FOLLOWER'}
+  sack:    {art:'follower_sack',  h:62, name:'CAMP FOLLOWER'},
+  c_bundle:{art:'civ_bundle',     h:62, name:'CIVILIAN'},             // LONDON CALLING: the south bank in flight — many, and light
+  c_brown: {art:'civ_brown',      h:64, name:'CIVILIAN'},
+  c_basket:{art:'civ_basket',     h:58, name:'CIVILIAN'},
+  c_child: {art:'civ_child',      h:46, name:'A CHILD'},
+  c_tool:  {art:'civ_tool',       h:60, name:'CIVILIAN'},
+  c_old:   {art:'civ_old',        h:54, name:'CIVILIAN'},
+  c_youth: {art:'civ_youth',      h:54, name:'CIVILIAN'},
+  c_woman: {art:'civ_woman',      h:62, name:'CIVILIAN'},
+  c_scribe:{art:'civ_scribe',     h:58, name:'THE CLERK'},
+  c_eng:   {art:'engineer_plans', h:70, name:'ENGINEER'}
 };
 var LEGION={   // the Red Hat Legion on foot: art, drawn height, ray value, ray lock seconds, walk speed px/s
   axe:   {art:'gnome_axe',      h:64, val:150, lock:0.85, spd:46},
@@ -281,7 +330,7 @@ var HZ_MIN={ bolt:D8_BOLT_TRACK+D8_BOLT_LOCK, arrow:0.50+0.55, upbolt:D8_BOLT_TR
 /* =====================================================================
    THE FRONTS — the campaign march (docs/PAX_LEVELS_1014.md §3).
    Built: DOVER, NOTTINGHAM, WELSH WASH, W1 SEGEDUNUM, THE WHITE HORSE VALE (front 5; on the march
-   between London and the Wash — the road west). The rest are SEALED
+   between London and the Wash — the road west), LONDON CALLING (front 6; march stop 3). The rest are SEALED
    (on the map, with their design, not playable yet).
    friends: x, who, rock (stands that many px above the ground)
    ===================================================================== */
@@ -341,11 +390,37 @@ var FRONTS=[
     gear:[{x:650,kind:'onager'},{x:930,kind:'ballista'},{x:1210,kind:'cart'}],
     swarm:{n:5, x0:1330, x1:1560},                 // the opening rush: already on the field, already close (canon swarm 9 -> 5 on this stage)
     legion:{start:3.5, every:4.6, size:2, max:8, kinds:['axe','spear','charge','shield','heavy'], from:'right', hunts:1, stopAt:8},
-    hazards:{}, ladders:[{at:14,x:640}] }
+    hazards:{}, ladders:[{at:14,x:640}] },
+  // LONDON CALLING — march stop 3 (docs/PAX_LEVELS_1014.md §3; canon docs/HADRIAN-CAMPAIGN.md §IV). The gnomes don't storm
+  // Londinium, they ANNOUNCE it: the south bank is one long evacuation already in progress, and the bridge is choked — the
+  // Legion lets the crowd onto it, because a crowd on a bridge can't fight. Rescue, scrolling right: many light civilians on
+  // the Thames bridge; the south bank (left) is the gnomes' side — skirmishers pick the bridge's south end, scorpion crews on
+  // the bank loose BALLISTA BOLTS (the new aimed hazard: SHOOTER.bolt, the D8 telegraph), and THE PRESS of the crowd comes up
+  // the deck from the south: whoever it reaches goes over the rail into the river. Bring them north to the bank.
+  // brief / wolfe / the Davius sub are the canon doc's own copy; every line marked DRAFT is new.
+  { key:'london', title:'LONDON CALLING', latin:'LONDINIUM · THE BRIDGE · BY NIGHT' /* DRAFT */, place:'THE THAMES BRIDGE', time:'city', gy:700, clock:90,
+    music:'front_nottingham' /* DRAFT: Nottingham's bed until Joe names a London one */,
+    brief:'The gnomes don\'t storm Londinium. They ANNOUNCE it — beacon to beacon, the warning outrunning the army. The bridge is choked; everyone is crossing north, and the Legion is letting them. A crowd on a bridge is a crowd that can\'t fight.',
+    wolfe:'"Why does the song say \'London Calling\'? Who is London CALLING? You do not phone a city. Unless. Unless the city phones YOU."',
+    newThing:'BALLISTA BOLTS — scorpion crews on the south bank: a dotted line tracks you, turns RED, then the bolt flies down it. Move off the red line; F turns it. THE PRESS comes up the bridge from the south: whoever it reaches goes in the river.' /* DRAFT */,
+    barks:['THE PRESS IS ON THE BRIDGE — LIFT THEM BEFORE IT REACHES THEM!' /* DRAFT */,'BOLTS FROM THE SOUTH BANK! KEEP OFF THE RED LINE!' /* DRAFT */,'NORTH! EVERYONE NORTH! SET THEM DOWN ON THE BANK!' /* DRAFT */],
+    subs:['London was calling — a signal-fire relay screaming north that the south had fallen, and the city was next.',
+          'Panic, not battle. The bridge is choked. The press is coming up the deck.' /* DRAFT */,
+          'DAVIUS: \'Never liked the city. Too many people, not enough goats.\'',
+          'DR. WOLFE: \'A bridge is a road with nowhere to run. They built a whole city at the end of one. Ask yourself why.\'' /* DRAFT: the new Wolfe beat */],
+    endAll:'THE BRIDGE IS CLEAR.' /* DRAFT */, endHorn:'Londinium has its people. Next, it will want its river.' /* DRAFT */,
+    friends:[{x:285,who:'c_bundle'},{x:368,who:'c_old'},{x:452,who:'c_tool'},{x:535,who:'mother'},{x:618,who:'c_child'},{x:700,who:'c_brown'},
+             {x:783,who:'c_eng'},{x:866,who:'c_youth'},{x:950,who:'c_basket'},{x:1033,who:'c_scribe'},{x:1116,who:'c_woman'},{x:1200,who:'man'}],
+    need:8, drop:{x:1450,w:230,label:'THE NORTH BANK' /* DRAFT */},
+    bridge:{x0:170, x1:1322},                    // the deck between the banks (render + the press's stop)
+    press:{start:5, from:110, rate:12.5},        // THE PRESS: the crush comes up the deck at rate px/s; it stops at the north end
+    boltFrom:'south',                           // every scorpion crew is on the SOUTH bank (screen left)
+    legion:{start:4, every:6.5, size:1, max:4, kinds:['axe','spear','charge'], from:'left', hunts:0, xmax:760},   // skirmishers picking the south end
+    hazards:{ bolts:{start:4, every:4.4} }, ladders:[{at:13,x:760},{at:41,x:980}] }
 ];
 // the whole march, in order — built fronts carry their FRONTS index; the rest are sealed (stubbed)
 var MARCH=[
-  {name:'THE FALL OF DOVER', f:0}, {name:'NOTTINGHAM HOODS', f:1}, {name:'LONDON CALLING', note:'the bridge evacuation · ballista bolts'},
+  {name:'THE FALL OF DOVER', f:0}, {name:'NOTTINGHAM HOODS', f:1}, {name:'LONDON CALLING', f:5},
   {name:'LONDON PROPER', note:'rooftop rescues while the line holds'}, {name:'THE WHITE HORSE VALE', f:4}, {name:'THE WELSH WASH', f:2},
   {name:'LIVERPOOL', note:'the evacuation fleet · catapult stones'}, {name:'YORK — EBORACUM', note:'Davius\'s town · the gateway to the Wall'},
   {name:'W1 SEGEDUNUM — WALLSEND', f:3, wall:true}, {name:'W2 CILURNUM — THE TYNE BRIDGE', note:'fire pots close the bridge ends', wall:true},
@@ -360,7 +435,7 @@ var state='attract', simT=0, rt=0;       // simT = sim seconds (play only), rt =
 var F=null, fi=0, campaign=false, demo=false, autopilot=null;
 var score=0, scoreAtStart=0, hp=HULL, stageClock=0, hornSet=false;
 var P=null, friends=[], legion=[], haz=[], shots=[], fx=[], pickups=[], siege=[], gear=[];
-var hzT={}, legionT=0, waterY=0, ladderT=0, ladderSpawned={}, tipDone={};
+var hzT={}, legionT=0, waterY=0, pressX=-1e9, ladderT=0, ladderSpawned={}, tipDone={};
 var stats=null, lastResult=null, hzLog=[], msg='', msgCol='#fff', msgT=0, shake=0;
 var ROPEVIS={th:0,om:0,lx:null,pv:0};
 
@@ -369,6 +444,7 @@ function bandBot(){ return GY()-30-ANCHOR-ROPE_LEN; }
 function ropeEndY(){ return P.y+ANCHOR+ROPE_LEN; }
 function dropSurf(){ return GY()+(F.drop.surf||0); }
 function inDrop(x){ return Math.abs(x-F.drop.x) <= F.drop.w/2; }
+function pressStop(){ return F.bridge ? F.bridge.x1-24 : F.drop.x-F.drop.w/2-20; }   // THE PRESS never leaves the bridge
 function surfAt(x){ return inDrop(x) ? dropSurf() : GY(); }
 function flash(m,c,s){ msg=m; msgCol=c||'#efe3c4'; msgT=s||1.2; }
 function rescuedN(){ var n=0; for(var i=0;i<friends.length;i++) if(friends[i].st==='safe') n++; return n; }
@@ -393,6 +469,7 @@ function startFront(idx, opt){
   ['bolts','arrows','upbolts','thopters','gliders','stones'].forEach(function(k){ hzT[k]= H[k] ? H[k].start : 1e9; });
   legionT=F.legion.start;
   waterY = F.water ? GY()+F.water.from : 1e9;
+  pressX = F.press ? F.press.from : -1e9;
   siege=(F.siege||[]).map(function(s){ return { x:s.x, at:s.at, st:'pending', t:0, sent:0, nextT:0, art:(s.x%2?'tower':'ladders') }; });
   gear=(F.gear||[]).map(function(g){ return { x:g.x, kind:g.kind, G:GEAR[g.kind], hp:GEAR_HP, att:0, hitT:-9, wreck:false }; });
   if(F.swarm) for(var n=0;n<F.swarm.n;n++) spawnGnome(F.legion.kinds[(rng()*F.legion.kinds.length)|0], rr(F.swarm.x0,F.swarm.x1), -1);
@@ -461,7 +538,7 @@ function onPress(k){
     var built=MARCH.filter(function(m){return m.f!=null;});
     if(k==='ArrowUp'||k==='w'){ selI=(selI+built.length-1)%built.length; sfx('menu_move'); }
     else if(k==='ArrowDown'||k==='s'){ selI=(selI+1)%built.length; sfx('menu_move'); }
-    else if(/^[1-5]$/.test(k)){ selI=+k-1; campaign=false; score=0; sfx('menu_select'); startFront(built[selI].f); }
+    else if(/^[1-9]$/.test(k) && +k<=built.length){ selI=+k-1; campaign=false; score=0; sfx('menu_select'); startFront(built[selI].f); }
     else if(go){ campaign=false; score=0; sfx('menu_select'); startFront(built[selI].f); }
     else if(back){ sfx('menu_back'); state='title'; }
     return;
@@ -496,6 +573,7 @@ function update(dt){
   spinWas=inp.spin;
 
   if(F.water && el>=F.water.start) waterY -= F.water.rate*dt;
+  if(F.press && el>=F.press.start) pressX = Math.min(pressStop(), pressX + F.press.rate*dt);
   legionTick(dt, el); siegeTick(dt, el); hazardTick(dt, el); shotTick(dt); rayTick(dt); rescueTick(dt, el); tipsTick(); barkTick();
   for(var f=fx.length-1;f>=0;f--){ fx[f].t+=dt; if(fx[f].t>fx[f].life) fx.splice(f,1); }
   endCheck();
@@ -606,6 +684,7 @@ function spawnShooter(type, up){
   if(liveShooters()>=2) return;
   var S=SHOOTER[type], x;
   if(type==='arrow'){ do { x=rr(240,LW-120); } while(Math.abs(x-P.x)<220); }
+  else if(F.boltFrom==='south' && !up) x = rr(40,230);   // LONDON: every crew is on the south bank
   else { x = rng()<0.5 ? rr(60,300) : rr(LW-300,LW-60); if(up) x=rr(120,LW-120); }
   var gy = up ? LH-24 : GY();
   haz.push({ k:'shooter', type:type, S:S, up:!!up, st:'setup', t:0, x:x, gy:gy, y:gy-S.crewH*0.6, ax:P.x, ay:P.y, aimT:0 });
@@ -715,7 +794,7 @@ function saveFriend(f,how){ if(f.st==='safe'||f.st==='lost') return;
 }
 function loseFriend(f,how){ if(f.st==='safe'||f.st==='lost') return;
   f.st='lost'; f.how=how; f.fade=1; stats.lost++; sfx('lost');
-  flash(how==='captured'?'THE LEGION TOOK ONE OF OURS': how==='drowned'?'THE WASH TOOK ONE':'LOST IN THE FALL','#ff8a5a',1.2); }
+  flash(how==='captured'?'THE LEGION TOOK ONE OF OURS': how==='drowned'?'THE WASH TOOK ONE': how==='swept'?'THE PRESS PUT ONE IN THE RIVER':'LOST IN THE FALL','#ff8a5a',1.2); }
 function releaseFriend(f,why){ if(f.st!=='rope'&&f.st!=='ladder') return false;
   f.st='fall'; f.vy=0; f.fallFrom=f.y; f.cd=REGRAB; f.prog=0; sfx('let_go'); if(why) flash(why,'#ffb347',1.0); return true; }
 function releaseAll(why){ var any=false; for(var i=0;i<friends.length;i++) if(releaseFriend(friends[i])) any=true; if(any&&why) flash(why,'#ffb347',1.0); return any; }
@@ -736,6 +815,7 @@ function rescueTick(dt, el){
     if(f.st==='ground'){
       var stand=GY()-f.rock;
       if(F.water){ var depth=stand-waterY; f.sink=clamp(depth/(f.w.h*0.55),0,1); if(depth>f.w.h*0.55){ f.y=stand; loseFriend(f,'drowned'); continue; } }
+      if(F.press && f.x < pressX-6){ loseFriend(f,'swept'); continue; }   // THE PRESS reached them: over the rail, into the river
       if(f.cd>0||P.stun>0) continue;
       var top=stand-f.w.h;
       if(Math.abs(f.x-ex)<GRAB_R && ey>=top-14 && ey<=stand){
@@ -845,7 +925,8 @@ function makePilot(opts){
   };
 }
 function strandedDanger(f){ // seconds until this one is lost (water / a climbing red hat), lower = sooner
-  var t=999; if(F.water){ var stand=GY()-f.rock, drownY=stand-f.w.h*0.55; t=(waterY-drownY)/Math.max(0.01,F.water.rate); }
+  var t=999; if(F.press){ t=(f.x-pressX)/Math.max(0.01,F.press.rate); }
+  if(F.water){ var stand=GY()-f.rock, drownY=stand-f.w.h*0.55; t=Math.min(t,(waterY-drownY)/Math.max(0.01,F.water.rate)); }
   if(F.legion.hunts) for(var q=0;q<legion.length;q++){ var g=legion[q]; if(!g.gone){ var d=Math.abs(g.x-f.x)+(g.climb?(g.y-GY()):0); t=Math.min(t,d/50); } }
   return t; }
 function nearestStrandedTo(g){ var b=1e9; for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.st==='ground') b=Math.min(b,Math.abs(f.x-g.x)); } return b; }
@@ -867,7 +948,9 @@ var SKIES={
   blood: {stops:['#160304','#4a0a08','#9b1f0e','#e2622a'], sun:{x:1060,y:470,r:170,col:'255,120,60',glow:0.75}, haze:'#7a1a0c', amb:'embers'},
   night: {stops:['#04070f','#0b1630','#1b2c4f','#3c5170'], moon:{x:1300,y:170,r:46}, haze:'#26354f', amb:'snow'},
   // THE WHITE HORSE VALE: a cold wet dawn (the Python build rains on it) — the sun coming up in the EAST, behind the host
-  vale:  {stops:['#3e4a63','#7d8aa0','#d9c7b0','#f2b98a'], sun:{x:1430,y:452,r:46,col:'255,214,160',glow:0.55,disc:0.8}, haze:'#b9b4ae', amb:'drizzle'}
+  vale:  {stops:['#3e4a63','#7d8aa0','#d9c7b0','#f2b98a'], sun:{x:1430,y:452,r:46,col:'255,214,160',glow:0.55,disc:0.8}, haze:'#b9b4ae', amb:'drizzle'},
+  // LONDON CALLING: the city's first night under threat — lamplit, warm at the horizon where the signal fires run north
+  city:  {stops:['#060817','#141a38','#3b2a48','#a8583a'], moon:{x:250,y:140,r:34}, haze:'#2c2842', amb:'embers'}
 };
 var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parallax speed, mode
   dover:[ {n:'hz_dover', dy:-70, h:330, sp:3, haze:0.10}, {n:'dover_downs', dy:22, h:300, sp:7} ],   // the cliffs + pharos ridge, then Joe's chalk downs (1014) in front
@@ -878,10 +961,13 @@ var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parall
   wall:[ {n:'snow_hills', dy:-110, h:160, sp:2, haze:0.62}, {n:'wall_thin', dy:-70, h:70, sp:4, haze:0.55},
          {n:'wall_siege', dy:-8, h:130, sp:7, haze:0.42} ],
   // Blender plates (3D PIPELINE games/hadrian/blender/white_horse.py): the far downs, WHITE HORSE HILL, the half-struck camp
-  vale:[ {n:'wh_far', dy:-160, h:240, sp:1.5}, {n:'wh_hill', dy:-60, h:340, sp:3}, {n:'wh_near', dy:24, h:170, sp:7} ]
+  vale:[ {n:'wh_far', dy:-160, h:240, sp:1.5}, {n:'wh_hill', dy:-60, h:340, sp:3}, {n:'wh_near', dy:24, h:170, sp:7} ],
+  // LONDON CALLING: low hills beyond the city, Londinium on the far bank (stand-in props, signal fires), the river behind the bridge
+  london:[ {n:'hills_b', dy:-176, h:96, sp:1.2, sil:'#1a1d36'}, {fn:'londinium'}, {fn:'thamesBack'} ]
 };
 var drift=0;
 function drawStrip(L, gy){
+  if(L.fn){ STRIPFN[L.fn](gy, L); return; }
   var img = L.sil ? tinted(L.n, L.sil, 1, true) : (L.haze ? tinted(L.n, SKIES[F.time].haze, L.haze, false) : IMG[L.n]);
   if(!img || (!L.sil && !L.haze && !ok(L.n))) return;
   var iw=img.width||img.naturalWidth, ih=img.height||img.naturalHeight; if(!iw) return;
@@ -903,6 +989,7 @@ function drawSky(time){
 function drawGround(){
   var gy=GY();
   if(F.wall){ drawWallFace(); return; }
+  if(F.bridge){ drawBridge(); return; }
   var tile = F.key==='dover'||F.key==='nottingham'||F.key==='vale' ? 'ground_grass' : 'ground_dirt';
   ctx.fillStyle = F.time==='blood' ? '#1a0806' : F.time==='dusk' ? '#1c2414' : '#33401f'; ctx.fillRect(0,gy,LW,LH-gy);
   if(ok(tile)){ var th=LH-gy+20, tw=th*ar(tile);
@@ -930,6 +1017,93 @@ function drawWater(){
   ctx.strokeStyle='rgba(255,170,110,0.45)'; ctx.lineWidth=2; ctx.beginPath(); for(var x=0;x<=LW;x+=20){ var y=wy+Math.sin(x*0.02+rt*2)*3; if(x) ctx.lineTo(x,y); else ctx.moveTo(x,y);} ctx.stroke();
   ctx.fillStyle='rgba(255,190,140,0.35)'; for(var i=0;i<24;i++){ var gx=((i*137+rt*30)%LW), gyy=wy+10+((i*53)%60); ctx.fillRect(gx,gyy,18,1.5); }
 }
+/* ---------- LONDON CALLING: Londinium, the Thames, the bridge, THE PRESS (all render-only; hashes, no rng) ----------
+   Joe's painted London environment set (1027; tools/cut_london.py): the lit waterfront on its quay (two hazed depths),
+   the timber bridge (spliced to the deck length; the walkers stand on its painted plank deck), the north-bank quay
+   with its steps, gatehouse and eagle, and the river tile behind and under it all. The signal fires are a light glow on
+   the far quay (canon: beacon to beacon, the warning outruns the army). */
+var LON_BANK=-118;            // the far bank's waterline, from GY
+var LON_FB_BASE=0.86, LON_FB_QUAY=0.72;   // lon_far_bank: its waterline / quay-top rows as fractions of its height
+var LON_NEAR_H=150, LON_FAR_H=96;         // the waterfront's two depths (drawn heights)
+var LON_QUAY=LON_BANK-(LON_FB_BASE-LON_FB_QUAY)*LON_NEAR_H;   // the far quay's walk, from GY (the battle line + the beacons stand on it)
+var LON_DECK=0.4106, LON_POSTS=[0.0347,0.9653];   // lon_bridge: the painted plank deck row, the end posts' centres (cut_london.py prints them)
+var LON_BRAZ=[0.249,0.547,0.900];                 // the bridge's three painted braziers (x fractions) — the lamp glows sit on them
+var LON_EMB_S=0.52, LON_EMB_QUAY=[172,75,375];   // lon_embankment: drawn scale; its quay walk row + x span in the cut (px)
+var LON_PAD={lon_far_bank:16};   // cut_london.py's clear border: skipped when tiling, or every join shows a 32 px gap
+function lonTile(n, y, h, sp, haze, col){   // tile a wide strip across the stage, every other copy mirrored (seamless)
+  var img = haze ? tinted(n, col||SKIES[F.time].haze, haze, false) : (ok(n)?IMG[n]:null); if(!img) return;
+  var iw=img.width||img.naturalWidth, ih=img.height||img.naturalHeight; if(!iw) return; var pd=LON_PAD[n]||0, sw=iw-2*pd, w=h*sw/ih, off=-((drift*sp)%(w*2));
+  for(var x=off,k=0; x<LW; x+=w,k++){ if(x+w<0) continue; ctx.save(); if(k%2){ ctx.translate(x+w,y); ctx.scale(-1,1); ctx.drawImage(img,pd,0,sw,ih,0,0,w,h); } else ctx.drawImage(img,pd,0,sw,ih,x,y,w,h); ctx.restore(); }
+}
+var STRIPFN={
+  londinium:function(gy){
+    var wl=gy+LON_BANK;
+    // the far quarter: smaller, deeper in the haze, slower, set higher on the bank (it shows over the waterfront's roofs)
+    lonTile('lon_far_bank', wl-40-LON_FAR_H*LON_FB_BASE, LON_FAR_H, 1.4, 0.58, '#1c1a34');
+    // the waterfront: nearer, a touch of the night haze only
+    lonTile('lon_far_bank', wl-LON_NEAR_H*LON_FB_BASE, LON_NEAR_H, 3, 0.12);
+    // THE SIGNAL FIRES — a beacon glow on the quay, every few hundred feet
+    var qy=gy+LON_QUAY;
+    for(var n=-1;n<6;n++){ var x=n*340-((drift*3)%340)+120, ph=Math.sin(rt*7+n*1.7)*0.5+0.5;
+      var gg=ctx.createRadialGradient(x,qy-12,2,x,qy-12,56); gg.addColorStop(0,'rgba(255,150,60,'+(0.28+0.16*ph)+')'); gg.addColorStop(1,'rgba(255,120,40,0)');
+      ctx.fillStyle=gg; ctx.fillRect(x-56,qy-68,112,112); spr('brazier',x,qy+2,20,{a:0.9});
+      var sp=((rt*0.35+n*0.29)%1); sprC('smoke_puff', x+sp*16, qy-24-sp*66, 24+sp*36, {a:0.3*(1-sp)}); }
+  },
+  thamesBack:function(gy){   // the river behind the bridge: the painted water, darker with the distance
+    var y0=gy+LON_BANK-4; ctx.fillStyle='#0c0f20'; ctx.fillRect(0,y0,LW,gy-y0);
+    lonTile('lon_water', y0, gy-y0+30, 2, 0.48, '#0e1226');
+  }
+};
+function lonBridgeBox(){ var B=F.bridge, span=LON_POSTS[1]-LON_POSTS[0], w=(B.x1-B.x0)/span, h=w*(ok('lon_bridge')?IMG.lon_bridge.naturalHeight/IMG.lon_bridge.naturalWidth:0.174);
+  return { x:B.x0-LON_POSTS[0]*w, y:GY()-LON_DECK*h, w:w, h:h }; }
+function lonEmbBox(){ var im=IMG.lon_embankment, s=LON_EMB_S, w=(ok('lon_embankment')?im.naturalWidth:1001)*s, h=(ok('lon_embankment')?im.naturalHeight:274)*s;
+  return { x:F.bridge.x1-4-LON_EMB_QUAY[1]*s, y:GY()-LON_EMB_QUAY[0]*s, w:w, h:h, q0:F.bridge.x1-4, q1:F.bridge.x1-4+(LON_EMB_QUAY[2]-LON_EMB_QUAY[1])*s }; }
+function drawBridge(){
+  var gy=GY(), B=F.bridge, x0=B.x0;
+  // the river in front of / under the deck (it shows through the arches)
+  ctx.fillStyle='#070915'; ctx.fillRect(0,gy,LW,LH-gy);
+  lonTile('lon_water', gy-6, 112, 3.2, 0.10, '#0a0c1c'); lonTile('lon_water', gy+100, 112, 4.1, 0.22, '#0a0c1c');   // the patch is 105 px tall: two rows
+  var sh=ctx.createLinearGradient(0,gy,0,LH); sh.addColorStop(0,'rgba(4,5,14,0)'); sh.addColorStop(1,'rgba(4,5,14,0.55)'); ctx.fillStyle=sh; ctx.fillRect(0,gy,LW,LH-gy);
+  // the south bank (left, the gnomes' side): earth + reeds
+  var paintedBank=qp('southbank')!=='0' && ok('lon_south_bank');
+  if(!paintedBank){ ctx.fillStyle='#17130f'; ctx.beginPath(); ctx.moveTo(0,gy-2); ctx.lineTo(x0+10,gy-2); ctx.lineTo(x0-40,LH); ctx.lineTo(0,LH); ctx.closePath(); ctx.fill(); }
+  if(paintedBank){
+    // Preserve the painting's proportions. Only the right-hand approach is
+    // visible in this camera; the full wide bank remains available to the set.
+    var sb=IMG.lon_south_bank, sw=Math.min(720,sb.naturalWidth), dw=x0+65, sk=dw/sw;
+    var surface=199/414; // source walking row, from london_bank/parts.json
+    ctx.drawImage(sb,sb.naturalWidth-sw,0,sw,sb.naturalHeight,-15,gy-surface*sb.naturalHeight*sk,dw,sb.naturalHeight*sk);
+    spr('lon_bush_a',12,gy+4,32,{a:0.95}); spr('lon_reeds_b',73,gy+7,24,{a:0.9});
+    spr('lon_reeds_d',123,gy+9,20,{a:0.85});
+  } else if(ok('bush_clump')){ var bi=tinted('bush_clump','#0d1410',0.55,false); if(bi){ ctx.drawImage(bi,-20,gy-34,150,40); } }
+  // the north bank: Joe's painted quay — steps, the gatehouse, the eagle; THE NORTH BANK drop is its quay walk
+  var E=lonEmbBox(); if(ok('lon_embankment')) ctx.drawImage(IMG.lon_embankment, E.x, E.y, E.w, E.h);
+  // the bridge, painted: walkers stand on its plank deck (LON_DECK row == GY)
+  var R=lonBridgeBox(); if(ok('lon_bridge')) ctx.drawImage(IMG.lon_bridge, R.x, R.y, R.w, R.h);
+  for(var k=0;k<LON_BRAZ.length;k++){ var x=R.x+LON_BRAZ[k]*R.w, fl=0.7+0.3*Math.sin(rt*8+k*2.1);   // the painted braziers throw light on the deck
+    var lg=ctx.createRadialGradient(x,gy-64,3,x,gy-30,130); lg.addColorStop(0,'rgba(255,180,100,'+(0.22*fl)+')'); lg.addColorStop(1,'rgba(255,160,80,0)');
+    ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=lg; ctx.fillRect(x-130,gy-190,260,220); ctx.restore(); }
+  // what the crush dropped on the deck
+  spr('timber_pile',x0+520,gy+6,22,{a:0.9}); spr('timber_pile',x0+880,gy+6,18,{flip:true,a:0.85});
+}
+// THE PRESS: the crowd coming up the deck from the south end. Render-only figures (hashes); the sim only reads pressX.
+var PRESS_ART=['civ_bundle','civ_brown','civ_basket','civ_tool','civ_old','civ_youth','civ_woman','villager_man','villager_mother','villager_runner','villager_hood'];
+function drawPress(){
+  if(!F.press) return; var gy=GY(), px=pressX, hz=SKIES[F.time].haze;
+  if(px<-40) return;
+  for(var row=0;row<2;row++){ var sl=row?22:30, yb=gy+(row?-6:4), hh=row?50:60;
+    for(var n=0;;n++){ var hs=n*131+row*7717, x=px-10-n*sl-(row?12:0)-bh(hs)*8; if(x<-40) break;
+      var art=PRESS_ART[(bh(hs+1)*PRESS_ART.length)|0], rig=actorRig(art);
+      if(rig && rigCycle(rig,'walk',x,yb,hh*(0.86+0.2*bh(hs+2)),{a:row?0.48:0.78,phase:bh(hs+3)})) continue;
+      var img=tinted(art, row?'#141226':hz, row?0.78:0.5, false); if(!img) continue;
+      var h=hh*(0.86+0.2*bh(hs+2)), w=h*(img.width/img.height), bob=Math.abs(Math.sin(rt*(5+bh(hs+3)*3)+hs))*3;
+      ctx.save(); ctx.translate(x, yb-h/2-bob); ctx.drawImage(img,-w/2,-h/2,w,h); ctx.restore(); } }
+  // at the front edge someone goes over the rail, on a slow clock
+  var per=2.6, ph=(rt%per)/per; if(px>F.bridge.x0+20 && ph<0.6){ var u=ph/0.6, fx_=px-18+u*10, fy=gy-40+u*u*170;
+    var img=tinted(PRESS_ART[Math.floor(rt/per)%PRESS_ART.length], hz, 0.45, false); if(img){ var h=54, w=h*(img.width/img.height); ctx.save(); ctx.globalAlpha=1-u*0.7; ctx.translate(fx_,fy); ctx.rotate(1.6*u); ctx.drawImage(img,-w/2,-h/2,w,h); ctx.restore(); } }
+  if(px>F.bridge.x0 && px<pressStop()-1){ var bl=Math.floor(rt*5)%2?1:0.5; panel(px+2,gy-142,118,28,0.55); txt('THE PRESS ▶',px+10,gy-128,15,'#ffb38a','left','bold',bl);
+    ctx.save(); ctx.globalAlpha=0.35*bl; ctx.strokeStyle='#ff7a4a'; ctx.setLineDash([5,7]); ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(px+2,gy+4); ctx.lineTo(px+2,gy-116); ctx.stroke(); ctx.restore(); }
+}
 function drawDrop(){
   var d=F.drop, gy=GY(), s=dropSurf(), t=rt;
   if(F.key==='wash'){ ctx.fillStyle='#0e0303'; ctx.beginPath(); ctx.moveTo(d.x-d.w*0.9,LH); ctx.quadraticCurveTo(d.x-d.w*0.7,s-6,d.x-d.w*0.4,s); ctx.lineTo(LW+10,s-4); ctx.lineTo(LW+10,LH); ctx.closePath(); ctx.fill(); }
@@ -946,7 +1120,7 @@ function drawDrop(){
     var fl=0.6+0.4*Math.sin(t*9); ctx.fillStyle='rgba(255,170,80,'+(0.25*fl)+')'; ctx.beginPath(); ctx.arc(d.x,s-70,60,0,6.283); ctx.fill();
     spr('brazier', d.x-70, s-150, 44, {}); spr('brazier', d.x+70, s-150, 44, {}); spr('eagle_standard', d.x, s-176, 96, {}); }
   // the SAFE pennant + a faint delivery box
-  var px=d.x+d.w*0.38, top=s-120, wv=Math.sin(t*4)*3;
+  var px=F.bridge?lonEmbBox().q1-10:d.x+d.w*0.38, top=s-120, wv=Math.sin(t*4)*3;   // LONDON: the pennant stands at the quay's end, above the steps
   ctx.strokeStyle='#d9cfb4'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(px,s+4); ctx.lineTo(px,top); ctx.stroke();
   ctx.fillStyle='#3fae5a'; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+70,top+14+wv); ctx.lineTo(px,top+30); ctx.closePath(); ctx.fill();
   ctx.fillStyle='#04200d'; ctx.font='bold 13px Georgia,serif'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('SAFE',px+6,top+15+wv/2);
@@ -958,28 +1132,29 @@ function txt(s,x,y,size,col,align,weight,alpha,font){ ctx.save(); ctx.globalAlph
 
 function figGlow(x,yb,h,a){ if(!D7_FRIENDLY_LOOK.glow) return; ctx.save(); ctx.globalAlpha=0.22*(a==null?1:a); var g=ctx.createRadialGradient(x,yb-h/2,4,x,yb-h/2,h*0.75);
   g.addColorStop(0,'rgba(127,231,255,0.9)'); g.addColorStop(1,'rgba(127,231,255,0)'); ctx.fillStyle=g; ctx.fillRect(x-h,yb-h*1.3,h*2,h*1.6); ctx.restore(); }
-function helpFlag(x,yb,h){ if(!D7_FRIENDLY_LOOK.helpFlag) return; var px=x+h*0.42+10, top=yb-h-34, wv=Math.sin(rt*5+x)*2;
+function helpFlag(x,yb,h,urgent){ if(!D7_FRIENDLY_LOOK.helpFlag) return; var px=x+h*0.42+10, top=yb-h-34, wv=Math.sin(rt*5+x)*2;
   ctx.strokeStyle='#d9d2c0'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(px,yb); ctx.lineTo(px,top); ctx.stroke();
-  ctx.fillStyle='#fff3a0'; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+40,top+wv); ctx.lineTo(px+40,top+17+wv); ctx.lineTo(px,top+17); ctx.closePath(); ctx.fill();
+  ctx.fillStyle=urgent&&Math.floor(rt*6)%2?'#ff8a5a':'#fff3a0'; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+40,top+wv); ctx.lineTo(px+40,top+17+wv); ctx.lineTo(px,top+17); ctx.closePath(); ctx.fill();
   ctx.fillStyle='#1a2a3a'; ctx.font='bold 11px Georgia,serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('HELP',px+20,top+8.5+wv/2); }
 function drawFriends(){
   for(var i=0;i<friends.length;i++){ var f=friends[i], w=f.w;
     if(f.st==='ground'){ var yb=GY()-f.rock, flip=f.x>F.drop.x;
       if(f.rock>0){ ctx.fillStyle=F.time==='blood'?'#1d0605':'#4a4a3a'; ctx.beginPath(); ctx.ellipse(f.x,yb+f.rock*0.5+4,40,f.rock*0.5+6,0,0,6.283); ctx.fill(); spr('boulders',f.x,yb+6,f.rock+14,{a:0.85}); }
-      figGlow(f.x,yb,w.h,1); helpFlag(f.x,yb,w.h);
+      figGlow(f.x,yb,w.h,1); helpFlag(f.x,yb,w.h, F.press && f.x-pressX<150);
       var bob = w.animal?0:Math.max(0,Math.sin(rt*6+f.ph))*3;
-      if(F.water && f.sink>0){ ctx.save(); ctx.beginPath(); ctx.rect(f.x-80,0,160,waterY+2); ctx.clip(); spr(w.art,f.x,yb-bob,w.h,{flip:flip,a:f.cd>0?0.6:1}); ctx.restore(); }
-      else spr(w.art,f.x,yb-bob,w.h,{flip:flip,a:f.cd>0?0.6:1}); }
-    else if(f.st==='fall'){ spr(w.art,f.x,f.y,w.h,{rot:Math.sin(rt*14)*0.5}); }
-    else if(f.st==='safe' && f.how==='drop'){ spr(w.art,f.x,f.y,w.h,{flip:f.x>F.drop.x,a:0.95}); }
-    else if(f.st==='lost' && f.fade>0){ spr(w.art,f.x,(f.how==='drowned'?waterY+w.h*0.6:GY()),w.h,{a:clamp(f.fade,0,1)*0.5,rot:f.how==='captured'?0:1.2}); }
+      if(F.water && f.sink>0){ ctx.save(); ctx.beginPath(); ctx.rect(f.x-80,0,160,waterY+2); ctx.clip(); actorSpr(w.art,f.x,yb-bob,w.h,{flip:flip,a:f.cd>0?0.6:1}); ctx.restore(); }
+      else actorSpr(w.art,f.x,yb-bob,w.h,{flip:flip,a:f.cd>0?0.6:1}); }
+    else if(f.st==='fall'){ actorSpr(w.art,f.x,f.y,w.h,{rot:Math.sin(rt*14)*0.5}); }
+    else if(f.st==='safe' && f.how==='drop'){ var sx=f.x; if(F.bridge){ var E=lonEmbBox(); sx=lerp(E.q0+14,E.q1-14,clamp((f.x-(F.drop.x-F.drop.w*0.4))/(F.drop.w*0.8),0,1)); }   // LONDON: render them on the painted quay walk
+      actorSpr(w.art,sx,f.y,w.h,{flip:sx>F.drop.x,a:0.95}); }
+    else if(f.st==='lost' && f.fade>0){ actorSpr(w.art,f.x,(f.how==='drowned'?waterY+w.h*0.6:f.how==='swept'?GY()+40+(1-clamp(f.fade,0,1))*120:GY()),w.h,{a:clamp(f.fade,0,1)*0.5,rot:f.how==='captured'?0:1.2}); }
   }
 }
 function drawLegion(){
   for(var i=0;i<legion.length;i++){ var g=legion[i]; if(g.gone) continue; var art=g.k.art, h=g.k.h;
     if(g.climb){ art = (Math.floor(g.y/14)%2)?'gnome_climber_a':'gnome_climber_b'; h=86; }
     var y=g.y; if(g.lifting){ y = g.y - (g.y-(P.y+ANCHOR+30))*g.lock*0.85; }
-    spr(art,g.x,y,h,{flip:g.dir<0,rot:g.lifting?Math.sin(rt*9)*0.25*g.lock:0});
+    actorSpr(art,g.x,y,h,{flip:g.dir<0,rot:g.lifting?Math.sin(rt*9)*0.25*g.lock:0},g.grabbing||g.lifting?'brace':'walk');
     if(g.grabbing && g.grab>0){ var u=g.grab/CAPTURE_TIME; ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(g.x-30,y-h-24,60,8); ctx.fillStyle=u>0.6?'#ff3b2a':'#ffb347'; ctx.fillRect(g.x-30,y-h-24,60*u,8);
       txt('!',g.x,y-h-38,22,'#ff5a3a','center','bold',Math.floor(rt*8)%2?1:0.4); }
     if(g.lifting && g.lock>0){ ctx.strokeStyle='#ffe9a8'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(g.x,y-h/2,h*0.6,-Math.PI/2,-Math.PI/2+6.283*g.lock); ctx.stroke(); } }
@@ -1003,7 +1178,21 @@ function drawHazards(){
     if(h.k==='shooter'){ var S=h.S, rise=h.st==='setup'?clamp(h.t/S.setup,0,1):h.st==='fired'?clamp(1-(h.t-0.4)/0.4,0,1):1;
       ctx.save(); ctx.beginPath(); ctx.rect(h.x-120,0,240,h.gy+4); ctx.clip();
       if(h.type==='arrow' && ok('bush_clump')) spr('bush_clump',h.x,h.gy+8,60,{});
-      spr(S.crew,h.x,h.gy+(1-rise)*S.crewH,S.crewH,{flip:h.ax<h.x}); ctx.restore();
+      var drewScorpion=false;
+      if(F.bridge && h.type==='bolt'){
+        var frame=h.st==='setup'?'wind_'+(1+Math.min(7,Math.floor(rise*8))):h.st==='fired'?
+          ['fire_1_smear','fire_2','fire_3','fire_4','fire_5'][Math.min(4,Math.floor(h.t*12))]:
+          (h.ay<h.y-100?'aim_up':h.ay>h.y+60?'aim_down':'idle_1');
+        var rf=rigFrame('scorpion',frame);
+        if(rf){
+          var scale=(h.gy-h.y)/(rf.f.origin[1]-rf.f.launch[1]);
+          // Place the physical muzzle on the existing telegraph/projectile origin.
+          // The machine and crew rise from the bank together during setup.
+          actorSpr('gnome_shield',h.x-45,h.gy+(1-rise)*S.crewH,58,{flip:h.ax<h.x},'brace');
+          drewScorpion=rigDraw('scorpion',frame,h.x,h.y+(1-rise)*S.crewH,scale,{flip:h.ax<h.x},'launch');
+        }
+      }
+      if(!drewScorpion) spr(S.crew,h.x,h.gy+(1-rise)*S.crewH,S.crewH,{flip:h.ax<h.x}); ctx.restore();
       if(h.st==='aim'){ var locked=h.t>=S.track, lp=locked?clamp((h.t-S.track)/S.lock,0,1):0, dx=h.ax-h.x, dy=h.ay-h.y, L=Math.hypot(dx,dy)||1;
         ctx.save(); if(!locked){ ctx.globalAlpha=0.55; ctx.strokeStyle='#ffd27a'; ctx.lineWidth=2; ctx.setLineDash([8,9]); }
         else { var bl=lp>0.6?(Math.floor(rt*24)%2?1:0.5):1; ctx.globalAlpha=(0.5+0.5*lp)*bl; ctx.strokeStyle='#ff3b2a'; ctx.lineWidth=2+3.5*lp; }
@@ -1053,7 +1242,13 @@ function drawRope(){
     else { ctx.strokeStyle='#c8a46a'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,ROPE_LEN); ctx.stroke(); }
     ctx.fillStyle='#8a5a2b'; ctx.strokeStyle='#3a2410'; ctx.lineWidth=1; ctx.fillRect(-11,ROPE_LEN-3,22,6); ctx.strokeRect(-11,ROPE_LEN-3,22,6);   // the wooden TOGGLE — never a loop
     var r=onRope();
-    if(r){ if(r.w.gnome && ok('friend_hang')) spr('friend_hang',0,ROPE_LEN+r.w.h*1.25,r.w.h*1.5,{});
+    var engineerGrip=false;
+    if(r && actorRig(r.w.art)==='engineer'){
+      var er=CUTOUT_RIGS.engineer;
+      if(er){ var key='rope_d'+('0'+(Math.floor(rt*er.fps)%er.cycles.rope)).slice(-2);
+        engineerGrip=rigDraw('engineer',key,0,ROPE_LEN,r.w.h/er.height,{},'grip'); }
+    }
+    if(r && !engineerGrip){ if(r.w.gnome && ok('friend_hang')) spr('friend_hang',0,ROPE_LEN+r.w.h*1.25,r.w.h*1.5,{});
       else { // a sling: two lines from the toggle to the waist, the figure hangs in it
         ctx.strokeStyle='#c8a46a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-8,ROPE_LEN); ctx.lineTo(-r.w.h*0.25,ROPE_LEN+r.w.h*0.45); ctx.moveTo(8,ROPE_LEN); ctx.lineTo(r.w.h*0.25,ROPE_LEN+r.w.h*0.45); ctx.stroke();
         spr(r.w.art,0,ROPE_LEN+r.w.h,r.w.h,{rot:Math.sin(rt*3)*0.08}); } } }
@@ -1113,7 +1308,11 @@ var BATTLE={
   nottingham: { rows:[ {dy:-140, h:18, haze:0.40, keep:0.55}, {dy:-104, h:25, haze:0.25, keep:0.6} ] },
   wash:       { rows:[ {dy:-120, h:20, haze:0.35, keep:0.55}, {dy:-86, h:27, haze:0.20, keep:0.6} ] },
   wall:       { foot:true, rows:[ {dy:-58, h:52, haze:0.45}, {dy:-8, h:72, haze:0.30} ] },  // at the foot of the Wall (LH-based)
-  vale:       { rome0:0.27, rows:[ {dy:-126, h:19, haze:0.30, keep:0.55}, {dy:-94, h:26, haze:0.16, keep:0.6} ] }   // in the camp; the line starts PRESSED toward the legion (caught by surprise)
+  vale:       { rome0:0.27, rows:[ {dy:-126, h:19, haze:0.30, keep:0.55}, {dy:-94, h:26, haze:0.16, keep:0.6} ] },  // in the camp; the line starts PRESSED toward the legion (caught by surprise)
+  // LONDON CALLING (canon §IV): "less clash, more CRUSH" — on the far bank Rome's side is a refugee tide, civilians with a
+  // few standards among them; gnome skirmishers pick the edges. Thin, open rows on the embankment.
+  london:     { rome0:0.50, rome:['civ_bundle','civ_brown','civ_basket','civ_old','civ_youth','civ_woman','villager_man','villager_mother'], romeStd:['signifer','villager_hood'],
+                rows:[ {dy:LON_QUAY-6, h:15, haze:0.45, keep:0.45}, {dy:LON_QUAY+2, h:20, haze:0.30, keep:0.5} ] }   // on the far quay's walk
 };
 var BT_ROME=['legionary_a','legionary_b','legionary_c','legionary_a','legionary_b'], BT_ROME_STD=['signifer','cornicen'];
 var BT_GNOME=['gnome_axe','gnome_spear','gnome_shield','gnome_charge','gnome_heavy','gnome_axe','gnome_spear'], BT_GNOME_STD=['gnome_bannerman'];
@@ -1142,7 +1341,8 @@ function drawBattle(){
       if(ad>clash*3.2 && bh(hs+3)<0.45) continue;                       // the back lines thin out
       var std = bh(hs+5)<0.09, back = ad>clash*2.2;
       var wiz = !romeSide && !std && back && bh(hs+8)>=0.35 && bh(hs+8)<0.52;     // a wizard stands in the gnome reserves
-      var art = romeSide ? (std ? BT_ROME_STD[(bh(hs+6)*2)|0] : BT_ROME[(bh(hs+7)*BT_ROME.length)|0])
+      var RA=B.rome||BT_ROME, RS=B.romeStd||BT_ROME_STD;
+      var art = romeSide ? (std ? RS[(bh(hs+6)*RS.length)|0] : RA[(bh(hs+7)*RA.length)|0])
                          : (std ? BT_GNOME_STD[0] : wiz ? BT_GNOME_WIZ[(bh(hs+14)*BT_GNOME_WIZ.length)|0]
                                 : (back && bh(hs+8)<0.35 ? BT_GNOME_BACK[0] : BT_GNOME[(bh(hs+7)*BT_GNOME.length)|0]));
       var hh = h*(romeSide?1.0:0.86)*(0.92+0.16*bh(hs+9)), xx=x, rot=0, a=1;
@@ -1185,7 +1385,7 @@ function drawScene(dt){
   drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i], GY());
   if(F.key==='dover'){ spr('chalk_boulder',420,GY()+14,34,{}); spr('chalk_boulder',1150,GY()+12,30,{flip:true}); }
   if(!F.wall) drawBattle(); drawGround(); drawAmbient();
-  drawDrop(); drawSiege(); drawGear(); drawFriends(); drawLegion(); drawWater();
+  drawDrop(); drawSiege(); drawGear(); drawPress(); drawFriends(); drawLegion(); drawWater();
   drawRay(); drawHazards(); drawShots(); drawPickups(); drawRope(); drawPlayer(); drawFx();
 }
 
@@ -1214,6 +1414,8 @@ function drawHUD(){
     ctx.fillStyle='#2a0806'; ctx.fillRect(LW-170,106,140,14); ctx.fillStyle='#c0301a'; ctx.fillRect(LW-170,106,140*depth,14); }
   if(F.wall){ var up=0; for(var i=0;i<legion.length;i++) if(!legion[i].gone && !legion[i].climb) up++; panel(LW-316,96,300,34,0.45);
     txt('RED HATS ON THE WALK: '+up,LW-300,113,13,up?'#ff9a7a':'#bfe7a8','left','bold'); }
+  if(F.press){ var pu=clamp((pressX-F.press.from)/(pressStop()-F.press.from),0,1); panel(LW-316,96,300,34,0.45); txt('THE PRESS',LW-300,113,13,'#ffb38a','left','bold');
+    ctx.fillStyle='#2a1208'; ctx.fillRect(LW-200,106,170,14); ctx.fillStyle='#d0602a'; ctx.fillRect(LW-200,106,170*pu,14); }
   if(gear.length){ var gu=gearUp(); panel(LW-316,96,300,34,0.45); txt('THE CAMP\'S GEAR STANDING: '+gu+' / '+gear.length,LW-300,113,13,gu?'#e8c66a':'#ff9a7a','left','bold'); }
   if(F.subs && !tipNow){ txt(F.subs[Math.floor(rt/7)%F.subs.length],LW/2,LH-22,15,'#e9dfc8','center','italic',0.72); }
   if(msgT>0) txt(msg,LW/2,170,26,msgCol,'center','bold',clamp(msgT,0,1));
@@ -1300,7 +1502,7 @@ function drawSelect(){
     if(sel) panel(LW/2-470,y-24,940,48,0.7);
     txt((isB?(++bi)+'.  ':'—  ')+m.name, LW/2-440, y, 22, isB?(sel?'#fff3c4':PARCH):'#6f6656','left','bold');
     txt(isB?(FRONTS[m.f].latin):('SEALED · '+m.note), LW/2+440, y, 14, isB?'#c9b27a':'#5f584a','right', isB?'bold':'italic'); }
-  txt('↑ ↓ or 1–5  ·  SPACE fly it  ·  ESC back',LW/2,LH-28,15,'#bba98a','center','bold');
+  txt('↑ ↓ or 1–'+MARCH.filter(function(m){return m.f!=null;}).length+'  ·  SPACE fly it  ·  ESC back',LW/2,LH-28,15,'#bba98a','center','bold');
 }
 function drawBrief(dt){
   drift+=dt*0.5; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); drawGround();
@@ -1392,8 +1594,9 @@ function selfTest(){
   var dt=1/60, IDLE=makePilot({idle:true});
   campaign=false; AU.off=true;
   // ---- structure ----
-  okk('five fronts are built, the rest of the march is sealed on the map', FRONTS.length===5 && MARCH.filter(function(m){return m.f!=null;}).length===5 && MARCH.length===13, MARCH.length+' stops on the march');
-  var arts=[]; FRONTS.forEach(function(Fr){ (LAYERS[Fr.key]||[]).forEach(function(L){ arts.push(L.n); }); Fr.friends.forEach(function(d){ arts.push(WHO[d.who].art); }); Fr.legion.kinds.forEach(function(k){ arts.push(LEGION[k].art); }); (Fr.gear||[]).forEach(function(g){ arts.push(GEAR[g.kind].art); }); });
+  okk('six fronts are built, the rest of the march is sealed on the map', FRONTS.length===6 && MARCH.filter(function(m){return m.f!=null;}).length===6 && MARCH.length===13, MARCH.length+' stops on the march');
+  var arts=[]; FRONTS.forEach(function(Fr){ (LAYERS[Fr.key]||[]).forEach(function(L){ if(L.n) arts.push(L.n); }); Fr.friends.forEach(function(d){ arts.push(WHO[d.who].art); }); Fr.legion.kinds.forEach(function(k){ arts.push(LEGION[k].art); }); (Fr.gear||[]).forEach(function(g){ arts.push(GEAR[g.kind].art); }); var Bt=BATTLE[Fr.key]||{}; (Bt.rome||[]).concat(Bt.romeStd||[]).forEach(function(a){ arts.push(a); }); });
+  if(FRONTS.some(function(Fr){ return Fr.press; })) PRESS_ART.concat(['lon_far_bank','lon_bridge','lon_embankment','lon_water']).forEach(function(a){ arts.push(a); });
   var missingKeys=arts.filter(function(a){ return !ART[a]; });
   okk('every front draws only manifest art (no stray names)', missingKeys.length===0, missingKeys.join(',')||arts.length+' references');
   okk('no SUCK UP / Gunpowder art in the manifest', !Object.keys(ART).some(function(k){ return /gp_|bradley|saucer|jet|barracks|radar|aa_gun|soldier/.test(ART[k]); }));
@@ -1415,8 +1618,8 @@ function selfTest(){
     startFront(i,{go:true,seed:202+i}); simRun(Fr.clock+5, IDLE);
     var lr=lastResult||{};
     okk('['+Fr.key+'] an untouched front FAILS (the player is necessary)', lr.passed===false, (lr.reason||'?')+' @ '+lr.t+'s · '+lr.rescued+' safe, '+lr.lost+' lost');
-    if(Fr.water||Fr.wall||Fr.gear){ startFront(i,{go:true,seed:404+i}); autopilot=IDLE; for(var n=0;n<60*(Fr.clock+5) && state==='play';n++){ hp=HULL; update(dt); } autopilot=null; var lp=lastResult||{};
-      okk('['+Fr.key+'] '+(Fr.water?'the water rises and takes the stranded':Fr.wall?'the red hats climb the Wall and take the garrison':'the host overruns the camp and takes the stranded')+' (hull pinned, hands off)', lp.passed===false && lp.lost>0, lp.lost+' lost · '+lp.reason+' @ '+lp.t+'s'); }
+    if(Fr.water||Fr.wall||Fr.gear||Fr.press){ startFront(i,{go:true,seed:404+i}); autopilot=IDLE; for(var n=0;n<60*(Fr.clock+5) && state==='play';n++){ hp=HULL; update(dt); } autopilot=null; var lp=lastResult||{};
+      okk('['+Fr.key+'] '+(Fr.water?'the water rises and takes the stranded':Fr.wall?'the red hats climb the Wall and take the garrison':Fr.press?'THE PRESS comes up the bridge and puts the stranded in the river':'the host overruns the camp and takes the stranded')+' (hull pinned, hands off)', lp.passed===false && lp.lost>0, lp.lost+' lost · '+lp.reason+' @ '+lp.t+'s'); }
   }
   // ---- telegraphs: every hazard warned before it could hurt (idle + autopilot, every front) ----
   var tooShort=[], counted=0;
@@ -1498,7 +1701,24 @@ function selfTest(){
   okk('[vale] a red hat must hack through a machine ('+GEAR_HP+' strikes) before it can reach the stranded behind it', standing && heldAt>=cart.x-8 && wrecked && hg.x<cart.x-20, 'held at '+Math.round(heldAt)+' (cart '+cart.x+') · wrecked '+wrecked+' · then x '+Math.round(hg.x));
   quiet(VI); cart=gear[2]; park(300,BAND_TOP); for(var k=0;k<4;k++){ spawnGnome('axe', cart.x+60+k*20, -1); legion[k].hunts=true; } run(2.6);
   okk('[vale] only '+GEAR_CREW+' swing at a machine at once (the rest bunch up behind — a target for THE RAY)', cart.att===GEAR_CREW && cart.q===2 && legion.filter(function(g){ return Math.abs(g.x-cart.x)<cart.G.reach+GEAR_QUEUE*2+4; }).length===4, cart.att+' swinging, the rest at '+legion.map(function(g){ return Math.round(g.x-cart.x); }).join('/'));
-  okk('[vale] on the march between London and the Welsh Wash (the road west)', nextBuilt(1)===VI && nextBuilt(VI)===2);
+  var LI=FRONTS.findIndex(function(Fr){ return Fr.key==='london'; });
+  okk('[vale] on the march between London and the Welsh Wash (the road west)', nextBuilt(LI)===VI && nextBuilt(VI)===2);
+  // ---- LONDON CALLING: the bridge, the bolts, THE PRESS ----
+  var LF=FRONTS[LI];
+  okk('[london] march stop 3: Nottingham -> LONDON CALLING -> the White Horse Vale', MARCH[2].f===LI && nextBuilt(1)===LI && nextBuilt(LI)===VI);
+  startFront(LI,{go:true,seed:71});
+  okk('[london] many stranded, all on the bridge deck between the banks; the drop is the north bank, past the deck', friends.length>=12 && friends.every(function(f){ return f.x>LF.bridge.x0+60 && f.x<LF.bridge.x1-60 && !f.w.animal; }) && LF.drop.x-LF.drop.w/2>LF.bridge.x1, friends.length+' civilians, need '+LF.need);
+  okk('[london] ONE new hazard: ballista bolts, and nothing else in the sky (the ramp rule)', Object.keys(LF.hazards).join()==='bolts');
+  var crewX=[]; autopilot=IDLE; for(var n=0;n<60*30 && state==='play';n++){ hp=HULL; update(dt); haz.forEach(function(h){ if(h.k==='shooter' && crewX.indexOf(h.x)<0) crewX.push(h.x); }); } autopilot=null;
+  okk('[london] every scorpion crew is on the SOUTH bank (the gnomes\' side)', crewX.length>=3 && crewX.every(function(x){ return x<=LF.bridge.x0+70; }), crewX.length+' crews, x '+crewX.map(function(x){return Math.round(x);}).join('/'));
+  quiet(LI); var p0=pressX, f0=friends[0]; run(LF.press.start+0.2); var moved=pressX>p0;
+  park(f0.x,BAND_TOP); run((f0.x-pressX)/LF.press.rate+0.5);
+  okk('[london] THE PRESS comes up the deck and puts whoever it reaches in the river', moved && f0.st==='lost' && f0.how==='swept', 'press at '+Math.round(pressX)+', first stranded '+f0.st+'/'+f0.how);
+  var f1=friends[1]; park(f1.x,low); run(0.2); var lifted=f1.st==='rope'; park(f1.x,BAND_TOP); run((f1.x+60-pressX)/LF.press.rate);
+  okk('[london] ...but not one already on the rope', lifted && f1.st==='rope' && pressX>f1.x, 'press at '+Math.round(pressX)+', rider '+f1.st);
+  quiet(LI); run(LF.press.start + (LW/LF.press.rate)); var stopAt=pressX;
+  okk('[london] THE PRESS stops at the north end of the bridge (it never reaches the bank)', stopAt<=LF.bridge.x1 && stopAt<LF.drop.x-LF.drop.w/2 && lostN()===friends.length, 'stopped at '+Math.round(stopAt)+' · deck ends '+LF.bridge.x1);
+  okk('[london] the battle line is a refugee tide (Rome\'s side drawn as civilians)', BATTLE.london && BATTLE.london.rome.every(function(a){ return /^civ_|^villager_/.test(a) && !!ART[a]; }));
   // ---- retry restarts ----
   startFront(1,{go:true,seed:9}); score=1234; scoreAtStart=1000; simRun(300, IDLE);
   var failedOk = state==='failed'; onPress('r');
