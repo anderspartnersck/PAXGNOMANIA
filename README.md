@@ -1,3 +1,5 @@
+> **Status: working build, not finished.** Live at **[anderspartnersck.github.io/PAXGNOMANIA][play]**. Six fronts are playable start to finish; the rest of the march is still to be built (see *Status* below). The finished Castle Killscreen titles are [SUCK UP](https://anderspartnersck.github.io/suck-up/3d.html?arcade) and [ONE-TIMER: THE HIGH TABLE](https://anderspartnersck.github.io/high-table/).
+
 <img src="art/plates/pax_presents.jpg" alt="PAX GNOMANIA — the history they didn't want you to know" width="560">
 
 ## ▶ [PLAY IT IN YOUR BROWSER][play]
@@ -52,12 +54,15 @@ Bring out enough before the horn and the front is held.
 | | Keyboard | Controller |
 |---|---|---|
 | Fly | arrows or **WASD** | stick / D-pad |
-| THE RAY (hold) | **SPACE** or **Z** | **A** |
-| THE SCREW | **F**, **X** or **SHIFT** | **B** |
+| THE RAY (hold) | **SPACE** or **Z** | **A** or **RT** |
+| THE SCREW | **F**, **X** or **SHIFT** | **B**, **X** or **LT** |
 | Start / confirm | **SPACE** or **ENTER** | **A** / **START** |
 | Retry the front | **R** | **A** on the retry screen |
-| Title | **ESC** | **SELECT** |
+| Back to the title | **ESC** | **SELECT** |
 | Sound on/off | **M** | |
+
+On the front map, **1** to **6** jump straight to a front, in march order.
+There is no pause yet: **ESC** during a front goes back to the title.
 
 The game is laid out for a computer screen, 16:9.
 
@@ -114,9 +119,11 @@ London Proper, Liverpool, York and Wall sections W2 to W5 show on the map as
 Playable start to finish across the six fronts, with results, retry and the
 campaign map. Still to come:
 
-- **Sound.** The main theme, *Britannia*, plays on the attract and title.
-  Weapon clanks, menu sounds and music for each front are on the way. Until
-  they arrive the game plays small placeholder blips.
+- **Sound.** The main theme, *Britannia*, plays on the attract and title, and
+  Dover, Nottingham, the Welsh Wash and Wallsend have their own music. The
+  White Horse Vale and London Calling borrow Dover's and Nottingham's for now.
+  Most sound effects are in; the ray, the screw, the grab, the horn and a few
+  warnings still play placeholder blips.
 - **The rest of the march.** London Proper, Liverpool, York, Wall sections W2 to W5,
   the climb and the summit duel are designed but not built.
 - **Art.** Commissioned art for the friendly gnome engineers, the wall faces and
@@ -130,8 +137,9 @@ A Castle Killscreen game by Anders & Partners LLC.
 
 Main theme: *Britannia — Theme from PAX GNOMANIA*.
 
-This bundle is built from the `HADRIAN'S ANCIENT AIR FORCE` repo
-(`tools/build_pages.py`). Edits go there, not here.
+This bundle is generated from the `HADRIAN'S ANCIENT AIR FORCE` repo
+(`web/pax.html`, built by `tools/build_pages.py`). Edits go there, not here.
+This README is the one file kept by hand.
 
 ---
 
