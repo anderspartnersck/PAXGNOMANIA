@@ -1,8 +1,8 @@
-> **Status: working build, not finished.** Live at **[anderspartnersck.github.io/PAXGNOMANIA][play]**. Six fronts are playable start to finish; the rest of the march is still to be built (see *Status* below). The finished Castle Killscreen titles are [SUCK UP](https://anderspartnersck.github.io/suck-up/3d.html?arcade) and [ONE-TIMER: THE HIGH TABLE](https://anderspartnersck.github.io/high-table/).
-
 <img src="art/plates/pax_presents.jpg" alt="PAX GNOMANIA — the history they didn't want you to know" width="560">
 
 ## ▶ [PLAY IT IN YOUR BROWSER][play]
+
+**Status:** playable, not finished. Six fronts play start to finish; the rest of the march is still to be built.
 
 *A TruthJunket TV special.*
 
@@ -110,14 +110,8 @@ London Proper, Liverpool, York and Wall sections W2 to W5 show on the map as
 - [CHOOSE A FRONT][select]: the map of the whole march.
 - [HOW TO FLY][howto]: the controls card.
 - [WATCH IT PLAY][demo]: the autopilot flies Dover.
-- [SELF TEST][selftest]: the game checks itself. Every front, every hazard
-  telegraph, the rope and ladder rules, and that a competent pilot can win
-  and an untouched front fails.
 
-## Status: working build
-
-Playable start to finish across the six fronts, with results, retry and the
-campaign map. Still to come:
+## Still to come
 
 - **Sound.** The main theme, *Britannia*, plays on the attract and title, and
   Dover, Nottingham, the Welsh Wash and Wallsend have their own music. The
@@ -137,9 +131,6 @@ A Castle Killscreen game by Anders & Partners LLC.
 
 Main theme: *Britannia — Theme from PAX GNOMANIA*.
 
-This bundle is generated from the `HADRIAN'S ANCIENT AIR FORCE` repo
-(`web/pax.html`, built by `tools/build_pages.py`). Edits go there, not here.
-This README is the one file kept by hand.
 
 ---
 
@@ -157,4 +148,3 @@ This README is the one file kept by hand.
 [select]: https://anderspartnersck.github.io/PAXGNOMANIA/?select
 [howto]: https://anderspartnersck.github.io/PAXGNOMANIA/?howto
 [demo]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=1&demo
-[selftest]: https://anderspartnersck.github.io/PAXGNOMANIA/?selftest
