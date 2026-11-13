@@ -134,6 +134,11 @@ A Castle Killscreen game by Anders & Partners LLC.
 
 Main theme: *Britannia — Theme from PAX GNOMANIA*.
 
+The 3D edition's Sherwood oaks and Segedunum fort are built from royalty-free
+BlenderKit models, restyled and rendered for this game: oaks by EB Adventure
+Photoscans and Sepehr Abbasi; walls, towers and bridge by James Middleton;
+ballista by Alan Josh Meneses; catapult by Aiden zhou; rocks by Patrik.
+
 
 ---
 
