@@ -110,9 +110,6 @@ London Proper, Liverpool, York and Wall sections W2 to W5 show on the map as
 - [CHOOSE A FRONT][select]: the map of the whole march.
 - [HOW TO FLY][howto]: the controls card.
 - [WATCH IT PLAY][demo]: the autopilot flies Dover.
-- [3D EDITION][3d]: the same game with 3D-rendered ground on the first four
-  fronts: the Wall in stone, the rising Wash, the Sherwood ridge, the Dover
-  turf. Press **3** to flip back to the painted art.
 
 ## Still to come
 
@@ -151,4 +148,3 @@ Main theme: *Britannia — Theme from PAX GNOMANIA*.
 [select]: https://anderspartnersck.github.io/PAXGNOMANIA/?select
 [howto]: https://anderspartnersck.github.io/PAXGNOMANIA/?howto
 [demo]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=1&demo
-[3d]: https://anderspartnersck.github.io/PAXGNOMANIA/3d.html
