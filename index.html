@@ -19,7 +19,7 @@
   URL switches (all documented in the README):
     (none)        the ATTRACT — the TruthJunket special, theme music, any key -> title
     ?title        the title menu            ?campaign   the march from Dover
-    ?front=N      straight to front N (1-6) ?march      the campaign map
+    ?front=N      straight to front N (1-16) ?march      the campaign map
     ?selftest     proof-of-life report      ?demo       autopilot (with ?front=N)
     &go           skip the briefing card    &seed=N     fix the gameplay RNG
     &ff=S         fast-forward S seconds of play under the autopilot (&idle = hands off)
@@ -149,7 +149,7 @@ function sprC(n,x,y,w,o){ o=o||{}; if(!ok(n)) return false; var h=w/ar(n);
 // exported foot/grip anchors; no canvas-edge bob when a pose changes bounds.
 var RIG_GRADE=null;   // the CK ident forces the night grade (F may not exist yet)
 function rigFrame(n,key){ if(qp('cutouts')==='0') return null; var r=CUTOUT_RIGS[n]; if(!r) return null;
-  var grade=RIG_GRADE||(/^(day|dawn|vale|sunrise)$/.test(F?F.time:'day')?'day':'night'); if(!r.grades[grade]) grade='night';
+  var grade=RIG_GRADE||(/^(day|dawn|vale|sunrise|ash|fog)$/.test(F?F.time:'day')?'day':'night'); if(!r.grades[grade]) grade='night';
   var a=r.grades[grade], im=IMG['rig_'+n+'_'+grade];
   return im&&im.ok&&a.frames[key]?{r:r,f:a.frames[key],im:im}:null; }
 function rigDraw(n,key,x,y,k,o,anchor){ o=o||{}; var a=rigFrame(n,key); if(!a) return false;
@@ -254,8 +254,9 @@ function synth(slot){
 var D1_WHO_FIRES      = 'legion';   // D1: Legion-crewed captured Roman machines + gnome-crewed Roman siege engines.
                                     //     'friendly' (Rome's own gunners as a W3 twist) is NOT built.
 var D2_WAR_ENDS_ON_WALL = true;     // D2: York is the gateway; the war ends on Hadrian's Wall (the march map shows it so).
-var D3_WALL_LEVELS    = ['W1 SEGEDUNUM — WALLSEND','W2 CILURNUM — THE TYNE BRIDGE','W3 VERCOVICIUM — THE CRAGS (CLIMB)',
-                         'W4 THE TURF WALL — IN FOG','W5 WINSHIELDS — THE SUMMIT (CLIMB + DUEL)'];   // D3: five, two vertical.
+var D3_WALL_LEVELS    = ['W1 SEGEDUNUM — WALLSEND','W2 CILURNUM — THE TYNE BRIDGE','W3 VERCOVICIUM — THE CRAGS',
+                         'W4 THE TURF WALL — IN FOG','W5 WINSHIELDS — THE SUMMIT'];   // D3: five — BUILT 1113 as horizontal LEVELS (Joe 13/11: "just make them levels"), after THE ROAD NORTH (Dere Street, Coria).
+var STILL_TO_COME     = ['THE DUEL ON THE SUMMIT — HADRIAN AND THE GNOMEAN KING' /* DRAFT */,'WHO FALLS FROM THE WALL' /* DRAFT */,'LOST TO HISTORY' /* DRAFT */];   // the summit set piece (D4/D5): NOT built, art owed
 var D4_WHO_FALLS      = 'A';        // D4: THE SCALES (save Romans -> Hadrian wins; gnomes -> the King). NOT BUILT (summit stubbed).
 var D5_GNOMEAN_KING   = 'the Gnomean General, crowned';   // D5: no new canon character; the General takes the crown. NOT BUILT.
 var D6_OWN_PAGE       = true;       // D6: this page, HADRIAN art only. (The Gunpowder-page probe was left alone.)
@@ -553,7 +554,128 @@ var FRONTS=[
     escort:{ main:true, need:3, emps:[780,1260,1720], party:[{x:420,who:'davius'},{x:500,who:'leg_a'},{x:560,who:'leg_b'},{x:620,who:'leg_c'},{x:680,who:'leg_a'}] },
     war:{r0:0.66, machines:[{at:28,kind:'tower'},{at:58,kind:'catapult'},{at:88,kind:'ram'}], volley:{start:14,every:8.5}},
     legion:{start:7, every:6.0, size:1, max:5, kinds:['axe','spear','charge'], from:'right', hunts:1},
-    hazards:{ bolts:{start:12, every:8.0}, thopters:{start:20, every:13} }, ladders:[{at:3,x:560},{at:34,x:1100},{at:66,x:900}] }
+    hazards:{ bolts:{start:12, every:8.0}, thopters:{start:20, every:13} }, ladders:[{at:3,x:560},{at:34,x:1100},{at:66,x:900}] },
+
+  /* ===================================================================
+     THE WALL ARC (Claude 1113). Joe 13/11: "the wall level should be long or multiple levels … just make them levels
+     or the approach to the wall. total war to get there". The 10/14 Wall arc (docs/PAX_LEVELS_1014.md §3: five Wall
+     sections, each a different look) is built as LEVELS — horizontal, no vertical scroller — after a two-front TOTAL WAR
+     march north from York (THE ROAD NORTH). Every one is a 4-phase mission; each front adds to the enemy mix. Built
+     only from systems already in the game (roofs that burn, gear cover, hunters, the press, the siege ladders, the
+     breach, the cradle, troop drops, pushes) and HADRIAN art. x is WORLD x (world:true). Every line marked DRAFT is new.
+     =================================================================== */
+  // THE ROAD NORTH 1 — DERE STREET. The legion marches north out of York up the Roman road; the Red Hat Legion burns
+  // every farm in front of it. A farmstead that ends up behind the red hats' line is torched (the LONDON PROPER roofs).
+  { key:'dere', title:'DERE STREET' /* DRAFT */, latin:'VIA AD VALLUM · THE ROAD NORTH · THE FARMS ARE BURNING' /* DRAFT */, place:'THE ROAD NORTH' /* DRAFT */, time:'ash', gy:770, clock:110,
+    music:'front_dover' /* DRAFT */, ww:3000, world:true, high:'roofs', approach:true,
+    brief:'The legion is marching north out of Eboracum to relieve the Wall. The Red Hat Legion is burning every farm on the road in front of it. The farm folk are on their roofs. Every roof the red hats get behind gets a fire pot.' /* DRAFT */,
+    wolfe:'"Dere Street. A road so straight you could see the war coming for three days. They saw it. They came ANYWAY."' /* DRAFT */,
+    newThing:'TOTAL WAR — the farms burn behind the red hats\' line: get the roofs nearest the seam first. CATAPULT STONES and GLIDERS over the road. Fresh cohorts muster at the baggage train: drop them on the line.' /* DRAFT */,
+    barks:['THE FARMS ARE GOING UP — GET THEM OFF THE ROOFS!' /* DRAFT */,'THE COLUMN NEEDS MEN ON THE LINE — FLY THE COHORTS UP!' /* DRAFT */,'STONES ON THE ROAD! OUT OF THE RING!' /* DRAFT */],
+    subs:['Dere Street: the road from Eboracum to the Wall. Every farm on it is burning.' /* DRAFT */,'DR. WOLFE: \'They called it total war. The farmers called it Thursday.\'' /* DRAFT */],
+    endAll:'THE ROAD IS OPEN.' /* DRAFT */, endHorn:'The column marches on. Behind it, the smoke.' /* DRAFT */,
+    roofs:[{x:820,w:210,h:120},{x:1260,w:200,h:150},{x:1700,w:220,h:110},{x:2150,w:200,h:140},{x:2620,w:200,h:120}],
+    friends:[{x:780,who:'mother',rock:120},{x:860,who:'c_child',rock:120},{x:1220,who:'man',rock:150},{x:1300,who:'elder',rock:150},
+             {x:1660,who:'c_woman',rock:110},{x:1740,who:'c_old',rock:110},{x:2110,who:'c_youth',rock:140},{x:2190,who:'c_basket',rock:140},
+             {x:560,who:'goat'},{x:1020,who:'runner'},{x:1480,who:'sheep'}],
+    need:8, drop:{x:220,w:230,label:'THE BAGGAGE TRAIN' /* DRAFT */},
+    depot:{kind:'pen', cap:4, spots:[220,400], name:'THE BAGGAGE PEN' /* DRAFT */},
+    muster:{x:110, every:8, max:3, start:6, who:['leg_a','leg_b','leg_c']},
+    war:{r0:0.78, machines:[{at:8,kind:'tower'},{at:32,kind:'ram'},{at:58,kind:'catapult'}], volley:{start:10,every:7.5}},
+    legion:{start:5, every:5.6, size:2, max:6, kinds:['axe','spear','charge','shield'], from:'right', hunts:0},
+    hazards:{ stones:{start:12, every:8.5}, gliders:{start:22, every:15} }, ladders:[{at:5,x:1100},{at:42,x:1800}] },
+  // THE ROAD NORTH 2 — CORIA. The supply town two miles short of the Wall, at night, the stores on fire. No walls: the
+  // supply carts and the engines parked for the Wall are the only cover (THE WHITE HORSE VALE's gear), the host HUNTS,
+  // the wizards are in the back ranks and the taken thopters are out. The fleet lifts the last stores.
+  { key:'coria', title:'CORIA — THE LAST TOWN' /* DRAFT */, latin:'CORIA · THE SUPPLY TOWN · BY FIRELIGHT' /* DRAFT */, place:'THE STORES OF CORIA' /* DRAFT */, time:'pyre', gy:770, clock:110,
+    music:'front_wash' /* DRAFT */, ww:3000, world:true, approach:true,
+    brief:'Coria: the last town before the Wall, and every stores-cart for the frontier is parked in its streets. The host came round in the dark. The stores are burning. The carts and the engines are all the cover there is.' /* DRAFT */,
+    wolfe:'"Coria fed the Wall. Bread, boots, bolts. An army marches on its stomach. This army\'s stomach was ON FIRE."' /* DRAFT */,
+    newThing:'THE NIGHT ATTACK — the red hats HUNT on open ground; the carts and the engines hold them while they hack through. WIZARDS raise their staffs in the back ranks: RAY them first. TAKEN THOPTERS and BOLTS in the dark.' /* DRAFT */,
+    barks:['THEY\'RE IN AMONG THE CARTS — GRAPPLE THEM OUT!' /* DRAFT */,'A WIZARD IN THE BACK RANKS — LIFT HIM!' /* DRAFT */,'OUR OWN BIRDS, OUT OF THE DARK! WATCH THE RED LANE!' /* DRAFT */],
+    subs:['Coria: the stores town on the road, two miles short of the Wall.' /* DRAFT */,'DAVIUS: \'I sold them the carts. Good carts. They don\'t burn. Well. They burn SLOWER.\'' /* DRAFT */],
+    endAll:'THE STORES ARE AWAY.' /* DRAFT */, endHorn:'Coria burns. The Wall will eat this winter, just.' /* DRAFT */,
+    friends:[{x:1300,who:'sack'},{x:1420,who:'logs'},{x:1640,who:'c_bundle'},{x:1760,who:'hammer'},{x:2020,who:'mother'},{x:2120,who:'c_child'},
+             {x:2380,who:'leg_camp'},{x:2480,who:'engineer'},{x:2580,who:'man'}],
+    need:6, drop:{x:2800,w:230,label:'THE TOWN GATE' /* DRAFT */},
+    depot:{kind:'pen', cap:3, spots:[2800,2640], name:'THE TOWN PEN' /* DRAFT */},
+    gear:[{x:1150,kind:'ballista'},{x:1540,kind:'cart'},{x:1900,kind:'onager'},{x:2260,kind:'cart'}],
+    swarm:{n:4, x0:260, x1:520},
+    war:{r0:0.56, wizard:{start:14,every:22}, machines:[{at:20,kind:'tower'},{at:46,kind:'ram'}], volley:{start:12,every:8}},
+    legion:{start:4, every:5.2, size:2, max:8, kinds:['axe','spear','charge','shield','heavy'], from:'left', hunts:1},
+    hazards:{ thopters:{start:10, every:11}, bolts:{start:16, every:9.5} }, ladders:[{at:6,x:1700},{at:46,x:2100}] },
+  // W2 — CILURNUM, THE TYNE BRIDGE. Where the Wall crosses the North Tyne on a bridge (Chesters). Rain. Carts and families
+  // stuck on the deck; the red hats have FIRE POTS on the south end and the fire comes up the deck (THE PRESS, burning).
+  { key:'tyne', title:'CILURNUM — THE TYNE BRIDGE' /* DRAFT */, latin:'W2 · THE WALL CROSSES THE RIVER · IN THE RAIN' /* DRAFT */, place:'THE TYNE BRIDGE' /* DRAFT */, time:'rain', gy:700, clock:95, mirror:false, wall2:true,
+    music:'front_wall' /* DRAFT */,
+    brief:'At Cilurnum the Wall crosses the North Tyne on a bridge. Carts and families are stuck on it in the rain. The red hats have fire pots at the south end, and the fire is coming up the deck. Bring them over to the fort.' /* DRAFT */,
+    wolfe:'"A wall. With a bridge in it. A wall you can WALK THROUGH. I have never been more certain that something was going on."' /* DRAFT */,
+    newThing:'THE FIRE POTS — the deck burns from the south end: whoever the fire reaches goes in the river. Bolts from the south bank; TAKEN THOPTERS through the rain.' /* DRAFT */,
+    barks:['THE DECK\'S ALIGHT — LIFT THEM AHEAD OF THE FIRE!' /* DRAFT */,'BOLTS FROM THE SOUTH BANK — OFF THE RED LINE!' /* DRAFT */,'OVER TO THE FORT! SET THEM DOWN ON THE NORTH BANK!' /* DRAFT */],
+    subs:['Cilurnum: the Wall, a river, and a bridge that is a bit of both.' /* DRAFT */,'DAVIUS: \'Fire on a bridge in the rain. Takes TALENT, that.\'' /* DRAFT */],
+    endAll:'THE BRIDGE IS CLEAR.' /* DRAFT */, endHorn:'The deck is gone. The river has the rest.' /* DRAFT */,
+    friends:[{x:285,who:'mother'},{x:368,who:'c_child'},{x:452,who:'man'},{x:535,who:'goat'},{x:618,who:'elder'},{x:700,who:'c_old'},
+             {x:783,who:'leg_a'},{x:866,who:'c_woman'},{x:950,who:'runner'},{x:1033,who:'c_bundle'},{x:1116,who:'sheep'},{x:1200,who:'c_youth'}],
+    need:7, drop:{x:1450,w:230,label:'THE FORT AT CILURNUM' /* DRAFT */},
+    bridge:{x0:170, x1:1322},
+    press:{start:5, from:110, rate:12.0, fire:true},
+    boltFrom:'south',
+    war:{r0:0.58, machines:[{at:30,kind:'ram'}], volley:{start:12,every:8}},
+    gnome:{ war:{r0:0.64, machines:[{at:40,kind:'ram'}], volley:{start:14,every:9}} },   // sweep 1113: the gnome mirror broke the line in the holds at .58
+    legion:{start:4, every:6.5, size:1, max:4, kinds:['axe','spear','charge'], from:'left', hunts:0, xmax:760},
+    hazards:{ bolts:{start:4, every:4.8}, thopters:{start:16, every:12} }, ladders:[{at:13,x:760},{at:41,x:980}] },
+  // W3 — VERCOVICIUM, THE CRAGS. Housesteads, where the Wall rides the Whin Sill cliffs: the turret crews are on the crag
+  // ledges above the walk (the 10/14 "first vertical CLIMB" — built as a level, the ledges up the face).
+  { key:'crags', title:'VERCOVICIUM — THE CRAGS' /* DRAFT */, latin:'W3 · THE WALL RIDES THE CLIFFS · AT DUSK' /* DRAFT */, place:'THE WHIN SILL CRAGS' /* DRAFT */, time:'crag', gy:610, clock:110,
+    music:'front_wall', wall:true, wallLook:'crag', ww:2800, world:true, high:'crags',
+    brief:'At Vercovicium the Wall rides the top of the cliffs. The turret crews are cut off on the crag ledges above the walk, and the red hats are coming up the face with ladders. Get them down to the milecastle.' /* DRAFT */,
+    wolfe:'"They built a wall on top of a cliff. The cliff was ALREADY a wall. They built a wall on a wall. Ask yourself who that was for."' /* DRAFT */,
+    newThing:'THE CRAGS — the crews are on the ledges, HIGH: hover higher to reach them, and mind THE BLUE. Ladders up the face all along the line; BOLTS from the foot; GLIDERS off the cliffs.' /* DRAFT */,
+    barks:['THEY\'RE ON THE LEDGES — GET HIGH, NOT TOO HIGH!' /* DRAFT */,'LADDERS ON THE CRAGS — LIFT THE CLIMBERS!' /* DRAFT */,'BOLTS FROM THE FOOT OF THE CLIFF!' /* DRAFT */],
+    subs:['Vercovicium: the fort on the cliffs.' /* DRAFT */,'DR. WOLFE: \'The highest fort on the Wall. Coincidence? Everything up here is a coincidence. That is what makes it SUSPICIOUS.\'' /* DRAFT */],
+    endAll:'THE CRAGS ARE CLEAR.' /* DRAFT */, endHorn:'The crews are down. The cliffs are the red hats\' problem now.' /* DRAFT */,
+    friends:[{x:420,who:'leg_a',rock:60},{x:640,who:'cornicen',rock:120},{x:900,who:'leg_c',rock:160},{x:1150,who:'leg_b',rock:40},{x:1400,who:'signifer',rock:140},
+             {x:1650,who:'leg_a',rock:90},{x:1900,who:'engineer'},{x:2150,who:'leg_b',rock:170},{x:2400,who:'leg_c',rock:70}],
+    need:5, drop:{x:160,w:230,label:'THE MILECASTLE'},
+    legion:{start:999, every:99, size:0, max:0, kinds:['axe'], from:'both', hunts:1},
+    siege:[{at:7,x:2300},{at:18,x:1500},{at:30,x:2000},{at:42,x:1050},{at:55,x:2550},{at:68,x:1750}],
+    war:{breachPer:0.005},
+    hazards:{ upbolts:{start:7, every:7.0}, thopters:{start:14, every:10}, gliders:{start:22, every:18} }, ladders:[{at:5,x:1200},{at:44,x:1900}] },
+  // W4 — THE TURF WALL, IN FOG. West of the Irthing the Wall was first built of turf, not stone: a burning earthwork in
+  // the fog. The lost cohort is out on it somewhere; the taken thopters and gliders come OUT of the fog at you.
+  { key:'turf', title:'THE TURF WALL' /* DRAFT */, latin:'W4 · WEST OF THE IRTHING · IN THE FOG' /* DRAFT */, place:'THE TURF WALL' /* DRAFT */, time:'fog', gy:640, clock:110,
+    music:'front_wall', wall:true, wallLook:'turf', ww:3000, world:true,
+    brief:'West of the Irthing the Wall is turf, not stone, and the turf is burning. A whole cohort is lost on it in the fog. The red hats know exactly where they are. Find them and bring them in.' /* DRAFT */,
+    wolfe:'"A wall made of GRASS. Rome ran out of stone, they say. Rome had an EMPIRE of stone. They chose grass. Why? I\'ll tell you why. I won\'t, actually. But I could."' /* DRAFT */,
+    newThing:'THE FOG — the TAKEN THOPTERS and the GLIDERS come out of it with less sky to see them in: watch their red lanes. The turf walk burns. Ladders all along it.' /* DRAFT */,
+    barks:['OUT OF THE FOG — WATCH THE RED LANE!' /* DRAFT */,'THE COHORT\'S OUT THERE — FIND THEM!' /* DRAFT */,'THE TURF\'S ALIGHT! KEEP THEM OFF THE WALK!' /* DRAFT */],
+    subs:['The Turf Wall: a rampart of cut sods, older than the stone, burning in the fog.' /* DRAFT */,'DAVIUS: \'You can\'t SEE in fog. That\'s the main thing about fog.\'' /* DRAFT */],
+    endAll:'THE COHORT IS FOUND.' /* DRAFT */, endHorn:'The fog keeps the rest. It always does.' /* DRAFT */,
+    friends:[{x:480,who:'leg_a'},{x:720,who:'leg_b'},{x:980,who:'cornicen'},{x:1240,who:'leg_c'},{x:1500,who:'leg_a'},
+             {x:1760,who:'signifer'},{x:2020,who:'leg_b'},{x:2280,who:'leg_c'},{x:2540,who:'leg_a'},{x:2780,who:'elder'}],
+    need:5, drop:{x:170,w:230,label:'THE MILECASTLE'},
+    legion:{start:999, every:99, size:0, max:0, kinds:['axe'], from:'both', hunts:1},
+    siege:[{at:12,x:2600},{at:26,x:1900},{at:40,x:2300},{at:54,x:1400},{at:68,x:2800},{at:82,x:1700}],
+    war:{breachPer:0.005},
+    hazards:{ thopters:{start:8, every:8.5}, gliders:{start:14, every:16}, upbolts:{start:18, every:9} }, ladders:[{at:5,x:1300},{at:46,x:2100}] },
+  // W5 — WINSHIELDS, THE SUMMIT. The Wall's highest point and the end of the war (D2): everything at once, on the crags,
+  // under a blood sky. The 10/14 duel (Hadrian vs the Gnomean King, THE SCALES) is NOT built — its art is owed; this is
+  // the battle around where it will stand. The march ends here.
+  { key:'summit', title:'WINSHIELDS — THE SUMMIT' /* DRAFT */, latin:'W5 · THE HIGHEST POINT OF THE WALL · THE LAST DAY' /* DRAFT */, place:'WINSHIELDS CRAGS' /* DRAFT */, time:'blood', gy:610, clock:115,
+    music:'front_wall', wall:true, wallLook:'crag', ww:3200, world:true, high:'crags', finale:true,
+    brief:'Winshields: the highest point of the Wall, and the whole war has come up the hill to it. Both armies are on the crags. Every engine the red hats have is at the foot. Get our people off the summit — all of them.' /* DRAFT */,
+    wolfe:'"The highest point on the Wall. Where it ended. Or began. History is vague. History was, at the time, ON FIRE."' /* DRAFT */,
+    newThing:'EVERYTHING — ladders, bolts from the foot, taken thopters, gliders, catapult stones, the wizards. The crews are on the crags. Bring them down to the milecastle.' /* DRAFT */,
+    barks:['THE WHOLE LEGION\'S ON THE HILL — KEEP FLYING!' /* DRAFT */,'CREWS ON THE HIGH CRAGS — GET UNDER THEM!' /* DRAFT */,'STONES AND BOLTS — DON\'T STOP MOVING!' /* DRAFT */],
+    subs:['Winshields Crags: the top of the Wall, the end of the march.' /* DRAFT */,'DAVIUS: \'Highest point on the Wall. Best view in Britannia. Today I would rather NOT see it.\'' /* DRAFT */],
+    endAll:'THE SUMMIT IS CLEAR.' /* DRAFT */, endHorn:'The Wall holds. Nobody up here will say for how long.' /* DRAFT */,
+    friends:[{x:440,who:'leg_a',rock:50},{x:700,who:'signifer',rock:130},{x:960,who:'leg_c',rock:90},{x:1220,who:'cornicen',rock:160},{x:1480,who:'leg_b'},
+             {x:1740,who:'leg_a',rock:110},{x:2000,who:'engineer',rock:40},{x:2260,who:'leg_c',rock:150},{x:2520,who:'leg_b',rock:80},{x:2780,who:'elder'}],
+    need:5, drop:{x:160,w:230,label:'THE MILECASTLE'},
+    legion:{start:999, every:99, size:0, max:0, kinds:['axe'], from:'both', hunts:1},
+    siege:[{at:12,x:2600},{at:28,x:1800},{at:44,x:2300},{at:62,x:1300},{at:80,x:2900}],
+    war:{breachPer:0.005, wizard:{start:20,every:26}},
+    hazards:{ upbolts:{start:7, every:7.5}, thopters:{start:12, every:10}, gliders:{start:18, every:18}, stones:{start:26, every:11} }, ladders:[{at:5,x:1300},{at:40,x:2200},{at:76,x:1700}] }
 ];
 
 // the whole march, in order — built fronts carry their FRONTS index; the rest are sealed (stubbed)
@@ -561,9 +683,10 @@ var MARCH=[
   {name:'THE FALL OF DOVER', f:0}, {name:'NOTTINGHAM HOODS', f:1}, {name:'LONDON CALLING', f:5},
   {name:'LONDON PROPER', f:6}, {name:'THE WHITE HORSE VALE', f:4}, {name:'THE WELSH WASH', f:2},
   {name:'LIVERPOOL', f:7}, {name:'THE SCORPIO LINE' /* DRAFT */, f:9}, {name:'YORK — EBORACUM', f:8},
-  {name:'W1 SEGEDUNUM — WALLSEND', f:3, wall:true}, {name:'W2 CILURNUM — THE TYNE BRIDGE', note:'fire pots close the bridge ends', wall:true},
-  {name:'W3 VERCOVICIUM — THE CRAGS', note:'the first vertical CLIMB', wall:true}, {name:'W4 THE TURF WALL — IN FOG', note:'missile ships out of the fog', wall:true},
-  {name:'W5 WINSHIELDS — THE SUMMIT', note:'the climb, then HADRIAN vs THE GNOMEAN KING', wall:true}
+  {name:'DERE STREET — THE ROAD NORTH' /* DRAFT */, f:10, approach:true}, {name:'CORIA — THE LAST TOWN' /* DRAFT */, f:11, approach:true},
+  {name:'W1 SEGEDUNUM — WALLSEND', f:3, wall:true}, {name:'W2 CILURNUM — THE TYNE BRIDGE', f:12, wall:true},
+  {name:'W3 VERCOVICIUM — THE CRAGS', f:13, wall:true}, {name:'W4 THE TURF WALL — IN FOG', f:14, wall:true},
+  {name:'W5 WINSHIELDS — THE SUMMIT', f:15, wall:true}
 ];
 
 /* ---------- THE FRONT BUILDER: the authored front -> the front you fly (wide map stretch, then the gnome-side mirror) ----------
@@ -661,12 +784,18 @@ var PHASES={
      ladders:[{at:6,x:700}]} ],
   wall:[
     {name:'HOLD THE WALK', sub:'GET THE GARRISON DOWN TO THE MILECASTLE'},
-    {name:'THE BREACH', sub:'THEY ARE ON THE WALK — GET THE REST OFF BEFORE IT FALLS', need:5, clock:95,
+    {name:'THE BREACH', sub:'THEY ARE ON THE WALK — GET THE REST OFF BEFORE IT FALLS', need:4, clock:95,
      line:['onHadrian','"Hadrian built the Wall with a walk on top so the garrison could see them COMING. He did not say what to do NEXT."'],
      breach:0.1, siege:[{at:8,x:1600},{at:30,x:2200},{at:52,x:1100}],
      friends:[{x:1150,who:'leg_b'},{x:2350,who:'leg_a'},{x:1000,who:'leg_a'},{x:1300,who:'engineer'},{x:1600,who:'leg_c'},{x:1900,who:'cornicen'},{x:2200,who:'leg_b'},{x:2500,who:'signifer'}],
      hazards:{upbolts:{start:6,every:6.5}, thopters:{start:10,every:8}}, ladders:[{at:8,x:1500}]},
-    {name:'THE COUNTERATTACK', kind:'push', gain:0.12, clock:100, breach:0.1, sub:'DROP FRESH TROOPS AT THE FOOT OF THE WALL — PUSH THEM BACK',
+    // Q741 (Claude 1113): the Wall was the short, swingy one (1:40). A 4th phase: hold the walk you just cleared, THEN push.
+    {name:'THE WALK RETAKEN' /* DRAFT */, kind:'hold', clock:80, breach:0.05, sub:'THE WALK IS OURS AGAIN — HOLD IT WHILE THE COHORTS FORM UP' /* DRAFT */,
+     line:['wolfe','"They took the walk back. Rome calls this a VICTORY. The walk calls it Tuesday. Walks do not have opinions. Probably."' /* DRAFT */],
+     siege:[{at:8,x:2100},{at:32,x:1300},{at:58,x:2500}], hazards:{upbolts:{start:9,every:11}, thopters:{start:14,every:14}},
+     war:{breachLine:0.012, machines:[{at:10,kind:'ram'},{at:40,kind:'tower'}], volley:{start:6,every:7}}, gwar:{shift:0.08, machines:[{at:20,kind:'ram'}], volley:{start:8,every:8}},
+     friends:[{x:1700,who:'leg_c'},{x:2300,who:'cornicen'}]},
+    {name:'THE COUNTERATTACK', kind:'push', gain:0.07, clock:110, breach:0.1, hazards:{upbolts:{start:10,every:12}, gliders:{start:999,every:999}, thopters:{start:14,every:14}}, sub:'DROP FRESH TROOPS AT THE FOOT OF THE WALL — PUSH THEM BACK',
      line:['davius','"Right. Enough holding. Put some lads at the foot of that Wall and PUSH."'],
      muster:{x:300, every:6, max:3, start:2, who:['leg_a','leg_b','leg_c']}, war:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}, gwar:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}} ],
   vale:[
@@ -728,7 +857,96 @@ var PHASES={
      war:{machines:[{at:6,kind:'tower'},{at:22,kind:'ram'},{at:40,kind:'catapult'}], volley:{start:6,every:7}}, legion:{every:4.6, size:1, max:6}},
     {name:'DAVIUS GOES HOME', gname:'THE ARCH-WIZARD GOES HOME', sub:'BRING HIM BACK TO THE CAMP — AND THE SPARE CREWS', need:4, clock:105, adopt:'vip',
      line:['wolfe','"And then Davius walked home to York. Walked. A man who designed a flying machine. WALKED."'],
-     friends:[{x:810,who:'leg_a'},{x:1290,who:'leg_b'},{x:1750,who:'leg_c'},{x:1500,who:'c_woman'},{x:1900,who:'man'},{x:2050,who:'c_child'}], depot:{cap:3}, ladders:[{at:6,x:1200},{at:44,x:900}]} ]
+     friends:[{x:810,who:'leg_a'},{x:1290,who:'leg_b'},{x:1750,who:'leg_c'},{x:1500,who:'c_woman'},{x:1900,who:'man'},{x:2050,who:'c_child'}], depot:{cap:3}, ladders:[{at:6,x:1200},{at:44,x:900}]} ],
+  // ---- THE WALL ARC (Claude 1113; every name / sub / line DRAFT) ----
+  dere:[
+    {name:'THE BURNING FARMS', sub:'GET THE FARM FOLK OFF THEIR ROOFS BEFORE THE LINE PASSES THEM'},
+    {name:'THE COLUMN STALLS', kind:'hold', clock:85, sub:'THE COLUMN HAS STOPPED ON THE ROAD — HOLD THE LINE AROUND IT',
+     line:['wolfe','"The column stalled. Historians blame the mud. The mud has never been asked. I asked. It said nothing. SUSPICIOUS."'],
+     war:{shift:-0.06, machines:[{at:6,kind:'tower'},{at:26,kind:'ram'},{at:48,kind:'catapult'}], volley:{start:5,every:6.5}}, gwar:{shift:0.04},
+     hazards:{stones:{start:8,every:10}, gliders:{start:999,every:999}}, legion:{every:4.8, size:2, max:8}, friends:[{x:1500,who:'man'},{x:1900,who:'goat2'}]},
+    {name:'THE VILLAGE AT THE FORD', sub:'THE COLUMN MOVES ON — BRING THE NEXT VILLAGE IN TO THE FORWARD PEN', need:7, clock:105,
+     line:['davius','"Another village. Same red hats. Same fire pots. Same goats, I think. I\'m sure I\'ve rescued that goat."'],
+     friends:[{x:1100,who:'c_bundle'},{x:1240,who:'mother'},{x:1380,who:'goat'},{x:1520,who:'c_tool'},{x:1660,who:'elder'},{x:1800,who:'c_child'},{x:1940,who:'runner'},{x:2080,who:'c_woman'},{x:2220,who:'sheep'},{x:2360,who:'c_youth'}],
+     depot:{kind:'pen', cap:4, spots:[760,600], name:'THE FORWARD PEN'}, legion:{every:5.2, size:2, max:7, hunts:1},
+     hazards:{gliders:{start:12,every:15}, bolts:{start:16,every:10}}, ladders:[{at:6,x:1500},{at:48,x:1900}]},
+    {name:'FORWARD THE EAGLES', kind:'push', gain:0.10, clock:95, legion:{every:6.5, size:1, max:4, hunts:0}, hazards:{gliders:{start:999,every:999}, bolts:{start:12,every:12}}, sub:'FLY THE COHORTS UP TO THE LINE — DRIVE THEM OFF THE ROAD',
+     line:['onHadrian','"Hadrian said a road is only Roman as far as the last legionary standing on it. He was standing well BACK at the time."'],
+     muster:{x:1000, every:6, max:3, start:2, who:['leg_a','leg_b','leg_c']}, war:{shift:-0.12, morale:0.2, lean:0.7, machines:[{at:34,kind:'ram'}], volley:{start:6,every:7}}, gwar:{morale:0.3, lean:0.7}} ],
+  coria:[
+    {name:'THE STORES BURN', sub:'GRAPPLE THE STORES CREWS OUT FROM AMONG THE CARTS'},
+    {name:'THE NIGHT ATTACK', kind:'hold', clock:85, sub:'THE HOST IS ALL ROUND THE TOWN — HOLD THE LINE IN THE DARK',
+     line:['wolfe','"A night attack. Gnomes, it is said, see in the dark. It is also said they do NOT. Which tells you everything about who is doing the saying."'],
+     war:{machines:[{at:8,kind:'tower'},{at:30,kind:'ram'},{at:52,kind:'catapult'}], wizard:{start:10,every:17}, volley:{start:6,every:7}},
+     hazards:{thopters:{start:6,every:9}}, legion:{every:5.0, size:2, max:7}, friends:[{x:2500,who:'c_old'},{x:2600,who:'goat'}]},
+    {name:'THE SUPPLY SHIPS', sub:'THE FLEET HAS COME FOR THE STORES — FILL THE CRADLES', need:6, clock:110,
+     line:['davius','"Airships. For STORES. They\'re flying bread to the Wall. If that\'s not civilisation, I don\'t know what is."'],
+     friends:[{x:1200,who:'sack'},{x:1350,who:'logs'},{x:1500,who:'c_basket'},{x:1700,who:'hammer'},{x:1850,who:'c_woman'},{x:2000,who:'leg_camp'},{x:2150,who:'c_bundle'},{x:2300,who:'man'},{x:2450,who:'c_child'}],
+     depot:{kind:'cradle', cap:3, crew:'airship', liftDelay:3.0, liftT:3.6, dropT:3.0, spots:[2780,2600], name:'THE STORES CRADLE'},
+     hazards:{bolts:{start:8,every:9}, stones:{start:14,every:10}}, legion:{every:5.0, size:2, max:8}, ladders:[{at:6,x:1600},{at:50,x:2000}]},
+    {name:'THE ROAD TO THE WALL', kind:'push', gain:0.10, clock:95, legion:{every:6.5, size:1, max:4, hunts:0}, hazards:{thopters:{start:14,every:14}, stones:{start:999,every:999}}, sub:'THE WALL IS TWO MILES NORTH — FLY THE COHORTS IN AND CLEAR THE ROAD',
+     line:['onHadrian','"Hadrian could see the Wall from Coria. He said it looked smaller than he remembered. People say that about a lot of his things."'],
+     muster:{x:2200, every:5, max:3, start:2, who:['leg_a','leg_b','leg_c']}, war:{morale:0.3, lean:0.7, machines:[{at:30,kind:'ram'}], wizard:{start:20,every:24}, volley:{start:6,every:7}}, gwar:{morale:0.3, lean:0.7}} ],
+  tyne:[
+    {name:'THE BRIDGE IN THE RAIN', sub:'BRING THEM OVER THE BRIDGE AHEAD OF THE FIRE'},
+    {name:'HOLD THE BRIDGEHEAD', kind:'hold', clock:80, sub:'THE FIRE HAS TAKEN THE SOUTH END — HOLD THE NORTH BANK',
+     line:['wolfe','"The bridge is burning in the rain. That should not be POSSIBLE. And yet. And YET."'],
+     press:{rate:0}, war:{machines:[{at:6,kind:'ram'},{at:28,kind:'catapult'},{at:50,kind:'ram'}], volley:{start:5,every:6.5}}, gwar:{shift:0.08, machines:[{at:10,kind:'ram'},{at:44,kind:'catapult'}], volley:{start:7,every:8}}, hazards:{thopters:{start:8,every:10}}},
+    {name:'THE LAST CARTS', sub:'MORE CARTS ON THE DECK — AND THE FIRE IS MOVING AGAIN', need:6, clock:95,
+     line:['davius','"Carts! On a burning bridge! Who LOADS a cart on a burning bridge?"'],
+     press:{reset:true, start:6, from:110, rate:10.5}, war:{shift:0.06}, gwar:{shift:0.06},
+     friends:[{x:300,who:'c_old'},{x:400,who:'goat2'},{x:500,who:'c_child'},{x:600,who:'man'},{x:700,who:'c_basket'},{x:800,who:'leg_b'},{x:900,who:'mother'},{x:1000,who:'c_tool'},{x:1100,who:'elder'},{x:1200,who:'c_bundle'},{x:1250,who:'c_woman'}],
+     hazards:{bolts:{start:5,every:6}, gliders:{start:14,every:14}, thopters:{start:16,every:16}}, ladders:[{at:6,x:700},{at:40,x:1000}]},
+    {name:'THE FORT HOLDS', kind:'hold', clock:75, sub:'THE BRIDGE IS GONE — HOLD THE FORT UNTIL THE RAIN PUTS IT OUT',
+     line:['onHadrian','"Hadrian built a bridge into his Wall so the Wall could cross a river. The river did not ASK for this."'],
+     press:{rate:0}, war:{shift:0.10, machines:[{at:20,kind:'ram'}], volley:{start:8,every:9}}, gwar:{shift:0.10, machines:[{at:20,kind:'ram'}], volley:{start:8,every:9}}, hazards:{thopters:{start:10,every:15}, bolts:{start:8,every:9}, gliders:{start:999,every:999}}} ],
+  crags:[
+    {name:'THE TURRET CREWS', sub:'GET THE CREWS OFF THE CRAG LEDGES AND DOWN TO THE MILECASTLE'},
+    {name:'THE CRAGS HOLD', kind:'hold', clock:80, breach:0.05, sub:'LADDERS ALL ALONG THE CLIFF — KEEP THEM OFF THE WALK',
+     line:['wolfe','"They climbed a cliff to climb a wall. Two climbs. For one wall. Nobody EVER asks about the effort."'],
+     siege:[{at:5,x:2400},{at:18,x:1300},{at:31,x:2000},{at:46,x:900},{at:60,x:2600}], hazards:{upbolts:{start:6,every:9.5}, gliders:{start:999,every:999}, thopters:{start:10,every:13}},
+     war:{breachLine:0.012, machines:[{at:10,kind:'ram'},{at:40,kind:'tower'}], volley:{start:6,every:7}}, gwar:{shift:0.06, machines:[{at:20,kind:'ram'}]},
+     friends:[{x:1800,who:'leg_b',rock:100},{x:2500,who:'signifer',rock:60}]},
+    {name:'THE HIGH TURRET', sub:'THE LAST CREWS ARE ON THE HIGHEST LEDGES', need:4, clock:100, breach:0.05,
+     line:['davius','"Highest turret on the Wall. I designed the stairs. Three hundred of them. I regret the stairs."'],
+     friends:[{x:600,who:'leg_c',rock:150},{x:860,who:'leg_a',rock:170},{x:1120,who:'cornicen',rock:110},{x:1380,who:'leg_b',rock:160},{x:1640,who:'engineer',rock:60},{x:1900,who:'leg_a',rock:130},{x:2160,who:'leg_c',rock:90},{x:2420,who:'signifer',rock:150}],
+     depot:{kind:'pen', cap:3, spots:[1000,820], name:'THE TURRET PEN' /* DRAFT */},
+     siege:[{at:10,x:2200},{at:30,x:1500},{at:52,x:2500},{at:74,x:1800}], hazards:{upbolts:{start:5,every:6.5}, thopters:{start:9,every:10}, gliders:{start:16,every:18}}, ladders:[{at:6,x:1400},{at:50,x:2000}]},
+    {name:'OVER THE CRAGS', kind:'push', gain:0.10, clock:95, breach:0.05, hazards:{upbolts:{start:10,every:12}, thopters:{start:999,every:999}, gliders:{start:999,every:999}, stones:{start:999,every:999}},  sub:'DROP FRESH TROOPS AT THE FOOT OF THE CLIFF — PUSH THEM OFF THE SILL',
+     line:['onHadrian','"Hadrian said attack downhill wherever possible. Here, everything is downhill. He was VERY pleased."'],
+     muster:{x:300, every:6, max:3, start:2, who:['leg_a','leg_b','leg_c']}, war:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}, gwar:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}} ],
+  turf:[
+    {name:'THE LOST COHORT', sub:'FIND THE COHORT IN THE FOG — BRING THEM TO THE MILECASTLE'},
+    {name:'THE TURF IS BURNING', kind:'hold', clock:85, breach:0.05, sub:'THE SODS ARE ALIGHT — KEEP THE RED HATS OFF THE WALK',
+     line:['wolfe','"Turf does not burn, say the experts. The experts were not THERE. The turf was. It burned."'],
+     siege:[{at:5,x:2600},{at:17,x:1500},{at:29,x:2200},{at:42,x:1000},{at:56,x:2800},{at:70,x:1800}], hazards:{thopters:{start:6,every:10}, gliders:{start:999,every:999}},
+     war:{breachLine:0.012, machines:[{at:10,kind:'tower'},{at:40,kind:'ram'}], volley:{start:6,every:7}}, gwar:{shift:0.06, machines:[{at:20,kind:'ram'}]},
+     friends:[{x:2000,who:'leg_c'},{x:2650,who:'leg_b'}]},
+    {name:'THE MILECASTLE IN THE FOG', sub:'THE SECOND CENTURY IS FURTHER OUT — BRING THEM IN', need:4, clock:105, breach:0.05,
+     line:['davius','"The fog\'s so thick you can\'t see the Wall. You can\'t see the GNOMES. You CAN hear them. They sing. Badly."'],
+     friends:[{x:800,who:'leg_a'},{x:1000,who:'leg_b'},{x:1200,who:'signifer'},{x:1750,who:'leg_c'},{x:1950,who:'cornicen'},{x:2150,who:'leg_a'},{x:2350,who:'leg_b'},{x:2550,who:'engineer'}],
+     depot:{kind:'pen', cap:3, spots:[1500,1300], name:'THE FOG PEN' /* DRAFT */},
+     siege:[{at:20,x:2600},{at:60,x:2200}], hazards:{thopters:{start:8,every:11}, gliders:{start:999,every:999}, upbolts:{start:16,every:12}}, ladders:[{at:6,x:1500},{at:52,x:2300}]},
+    {name:'THE FOG LIFTS', kind:'push', gain:0.10, clock:95, breach:0.05, hazards:{upbolts:{start:10,every:12}, thopters:{start:999,every:999}, gliders:{start:999,every:999}, stones:{start:999,every:999}},  sub:'THE FOG IS GOING — PUT THE COHORTS DOWN AND PUSH',
+     line:['onHadrian','"Hadrian ordered the fog to lift. It lifted. He took credit. The fog did NOT."'],
+     muster:{x:300, every:6, max:3, start:2, who:['leg_a','leg_b','leg_c']}, war:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}, gwar:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}} ],
+  summit:[
+    {name:'THE CLIMB TO WINSHIELDS', sub:'GET THE CREWS OFF THE CRAGS — EVERY ENGINE THEY HAVE IS AT THE FOOT'},
+    {name:'THE HIGHEST POINT', kind:'hold', clock:85, breach:0.05, sub:'THE WHOLE LEGION IS ON THE HILL — HOLD THE SUMMIT',
+     line:['wolfe','"The highest point. Both armies wanted it. Neither could say WHY. It was just. Very. High."'],
+     siege:[{at:6,x:2800},{at:22,x:1700},{at:38,x:2300},{at:54,x:1200},{at:70,x:2000}],
+     hazards:{upbolts:{start:6,every:11}, thopters:{start:9,every:12}, stones:{start:18,every:18}, gliders:{start:999,every:999}},
+     war:{breachLine:0.012, machines:[{at:8,kind:'tower'},{at:30,kind:'ram'},{at:52,kind:'catapult'}], wizard:{start:12,every:20}, volley:{start:5,every:6.5}}, gwar:{shift:0.2, machines:[{at:20,kind:'ram'}], wizard:{start:30,every:40}, volley:{start:8,every:9}},
+     friends:[{x:2200,who:'leg_b',rock:120},{x:2900,who:'leg_a'}]},
+    {name:'CLEAR THE WALKWAY', sub:'EVERYONE STILL ON THE WALK COMES DOWN — ROMANS AND ENGINEERS BOTH', need:4, clock:110, breach:0.05,
+     line:['davius','"Everyone off the walk. Romans, gnomes, the lot. I built that walk for BOTH of them, you know."'],
+     friends:[{x:620,who:'leg_a'},{x:860,who:'engineer'},{x:1100,who:'leg_c',rock:90},{x:1340,who:'refugee'},{x:1580,who:'signifer'},{x:1820,who:'engineer',rock:60},{x:2060,who:'leg_b'},{x:2300,who:'refugee'},{x:2540,who:'cornicen',rock:140},{x:2780,who:'leg_a'}],
+     depot:{kind:'pen', cap:4, spots:[1300,1100], name:'THE WALK PEN' /* DRAFT */},
+     siege:[{at:12,x:2600},{at:40,x:2200},{at:70,x:2900}],
+     hazards:{upbolts:{start:6,every:10}, thopters:{start:9,every:12}, gliders:{start:16,every:18}, stones:{start:24,every:18}}, ladders:[{at:6,x:1500},{at:50,x:2300}]},
+    {name:'THE LAST CHARGE', kind:'push', gain:0.12, clock:100, breach:0.05, hazards:{upbolts:{start:10,every:10}, thopters:{start:999,every:999}, gliders:{start:999,every:999}, stones:{start:999,every:999}},  sub:'EVERY COHORT LEFT — DOWN THE HILL AND INTO THEM',
+     line:['onHadrian','"Hadrian\'s last order on the Wall was one word. Historians disagree which word. Most agree it was not \'retreat\'."'],
+     muster:{x:300, every:5.5, max:3, start:2, who:['leg_a','leg_b','leg_c']}, war:{morale:0.3, lean:0.7, machines:[{at:30,kind:'ram'},{at:60,kind:'tower'}], wizard:{start:20,every:26}, volley:{start:6,every:7}}, gwar:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}} ]
 };
 var GN_PHASE=[['wolfe','"The red hats regrouped. Historians call it a regroup. The red hats called it SECONDS."'],
   ['wolfe','"From the red hat side, the battle simply went on. The red hats did not call it a NEW phase. They called it Tuesday."'],
@@ -797,6 +1015,7 @@ function enterPhase(k,o){
     W.surge=cp(W.surge||WAR_BASE.surge, Sw.surge); W.surge.every=W.surge.every*(1-0.12*Math.min(3,k)); war.surgeT=Math.min(W.surge.start,12);
     if(Sw.wizard) W.wizard=Sw.wizard; war.wT=W.wizard?Math.min(W.wizard.start,12):1e9;
     if(Sw.lean!=null) W.lean=Sw.lean;
+    if(Sw.breachPer!=null) W.breachPer=Sw.breachPer; if(Sw.breachLine!=null) W.breachLine=Sw.breachLine;   // THE WALL ARC (1113): a hold on the walk sets how fast the breach fills
     if(Sw.morale!=null) war.morale=Sw.morale;   // a PUSH starts cold: the momentum of the rescues does not carry into an attack
     war.waveT=W.wave.every;
     if(!o.silent){ var ours=W.R, theirs=W.G+3*Math.min(3,k); if(GN()){ war.G=ours; war.R=theirs; } else { war.R=ours; war.G=theirs; } }   // both sides REGROUP in the beat: the files reset (the enemy a little heavier every phase)
@@ -1168,7 +1387,8 @@ function warToGnome(){ return warRomeRight() ? -1 : 1; }          // the screen 
 function warShare(){ var u=clamp((F.clock-stageClock)/F.clock,0,1), our=Math.max(0.35,1+war.morale),
   en=1+war.W.lean*u+(war.wiz&&war.wiz.st==='cast'?0.35:0), mR=GN()?en:our, mG=GN()?our:en, a=war.R*mR, b=war.G*mG; return a/(a+b); }   // ROME's share of the strength
 function usShare(){ return GN()?1-warShare():warShare(); }
-function warHeat(){ return war ? clamp((0.5-usShare())*2.4,-1,1) : 0; }   // >0: THE OTHER SIDE has the upper hand
+function warHeat(){ if(war && F && F.wall && !GN()) return clamp((war.breach-0.3)*1.6,-0.4,1);   // THE WALL (1113): Rome's danger on the Wall is the BREACH, not the line at the foot (it sat pinned at the bottom, maxing the heat)
+  return war ? clamp((0.5-usShare())*2.4,-1,1) : 0; }   // >0: THE OTHER SIDE has the upper hand
 function warRowY(){ var B=BATTLE[F.key]||{rows:[{dy:-110}]}, R=B.rows[B.rows.length-1]; return (B.foot?LH:GY())+R.dy; }
 function warMorale(d){ if(war) war.morale=clamp(war.morale+d,-0.5,0.6); }
 function warFiles(n){ warUs(n); }
@@ -1464,7 +1684,7 @@ function loseFriend(f,how){ if(f.st==='safe'||f.st==='lost') return;
   f.st='lost'; f.how=how; f.fade=1; sfx('lost');
   if(how==='blue'){ stats.blue++; blueRun++; warMorale(-2*WAR_LOST_MORALE); flash('LOST TO THE BLUE  −'+BLUE_PEN,'#9fd0ff',1.6); bark(f.w.vip?'blueVip':'blue'); return; }
   stats.lost++; warMorale(-WAR_LOST_MORALE);
-  flash(how==='raided'?'THE RED HATS RAIDED '+depotNow()+' — ONE TAKEN': how==='burned'?'THE ROOF WENT UP — ONE LOST': how==='captured'?'THE LEGION TOOK ONE OF OURS': how==='drowned'?'THE WASH TOOK ONE': how==='swept'?'THE PRESS PUT ONE IN THE RIVER':'LOST IN THE FALL','#ff8a5a',1.2); }
+  flash(how==='raided'?'THE RED HATS RAIDED '+depotNow()+' — ONE TAKEN': how==='burned'?'THE ROOF WENT UP — ONE LOST': how==='captured'?'THE LEGION TOOK ONE OF OURS': how==='drowned'?'THE WASH TOOK ONE': how==='swept'?(F.press&&F.press.fire?'THE FIRE PUT ONE IN THE RIVER':'THE PRESS PUT ONE IN THE RIVER'):'LOST IN THE FALL','#ff8a5a',1.2); }
 /* ---------- THE LORE — Hadrian / Davius / Dr. H. Wolfe (Joe 1112: ALL NEW COPY HERE IS DRAFT — Cunk-on-History deadpan) ---------- */
 var SPK={ davius:{name:'DAVIUS DAVUS OF EBORACUM', p:'davius_4', fx:0.585, fy:0.33, z:0.30},
           wolfe:{name:'DR. H. WOLFE', p:'wolfe_1', fx:0.47, fy:0.33, z:0.32},
@@ -1491,7 +1711,13 @@ var FRONT_LORE={ dover:['wolfe','"Dover. Where Britain begins — and where, som
   forum:['onHadrian','"Hadrian loved a forum. Somewhere to argue. Today: somewhere to wait. On the ROOF."'],
   docks:['davius','"Troops off the boats and into the line. Don\'t drop \'em in the water — they\'re in ARMOUR."'],
   york:['davius','"Eboracum. My town. I\'d like it still standing when I\'m done talking about it."'],
-  scorpio:['davius','"Twenty years I BUILT bolt-throwers. Today I just want to sit behind one."'] };
+  scorpio:['davius','"Twenty years I BUILT bolt-throwers. Today I just want to sit behind one."'],
+  dere:['wolfe','"The Romans built roads so the army could march fast. The gnomes learned to BURN fast. Arms race."' /* DRAFT */],
+  coria:['davius','"Coria. Best bakery north of York. I mention it because it is currently ON FIRE."' /* DRAFT */],
+  tyne:['onHadrian','"Hadrian put a bridge in his Wall. A wall with a DOOR in it. He never explained the door."' /* DRAFT */],
+  crags:['davius','"Up on the Sill. Wind like a knife. The goats love it. Nobody else does."' /* DRAFT */],
+  turf:['wolfe','"A wall of grass, in fog, on fire. If I had made this up, you would say I had made it up."' /* DRAFT */],
+  summit:['onHadrian','"Hadrian came to the top of his Wall once. He said: it goes on a bit. It DOES go on a bit."' /* DRAFT */] };
 var GN_LORE=[['wolfe','"And now: the OTHER side. The side history forgot to interview."'],['wolfe','"The red hats had a word for Rome. Scholars agree it is unprintable. I have printed it. Twice."'],['davius','"Fair\'s fair. They had wings too. Mine were better. I\'m just saying."']];
 var barkN=0, barkQ=null, barkT=0, barkCd={}, endQuote=null;
 function pickLine(kind){ var L=LORE[kind]; if(!L) return null; barkN++; return L[(barkN+fi*3)%L.length]; }
@@ -1738,7 +1964,8 @@ function makePilot(opts){
     // --- 2. the job ---
     if(!threat && war && !opts.noRay && !opts.noWar && !(P.gear==='ladder'&&onLadder()>0&&onLadder()<LADDER_CAP)){   // --- 1b. the war: stop what is breaking the line
       var push=PK()==='push', wt=null, danger=push || usR() < Math.max(war.W.breakAt+0.10, Math.min(war.r0-0.08, war.W.breakAt+0.20)) || (F.wall && !GN() && war.breach>0.55);
-      for(var mi=0;mi<war.mach.length;mi++){ var m=war.mach[mi]; if(m.st!=='lifted' && (m.st==='work' || danger)) wt=m; }
+      if(F.wall && !GN() && (PK()==='hold' || war.breach>0.45)){ var wbd=1e9; for(var wi=0;wi<legion.length;wi++){ var wg=legion[wi]; if(wg.gone||wg.climb) continue; var wdd=Math.abs(wg.x-P.x); if(wdd<wbd){ wbd=wdd; wt=wg; } } }   // THE WALL (1113): the walk before the machines at the foot
+      if(!wt) for(var mi=0;mi<war.mach.length;mi++){ var m=war.mach[mi]; if(m.st!=='lifted' && (m.st==='work' || danger)) wt=m; }
       if(!wt && !r && war.wiz && war.wiz.st==='raise' && Math.abs(war.wiz.x-P.x)<500) wt=war.wiz;
       if(!wt && !r && danger && (!F.wall||GN()||push) && !(push && F.muster && musterWaiting()) && !(push && F.wall && legion.some(function(g){ return !g.gone && !g.climb; }))) wt={x:warX()};   // a red hat on the walk comes first
       if(wt){ tx=wt.x; ty=(BAND_TOP+bb)/2; if(Math.abs(P.x-wt.x)<(wt.M||wt.st?RAY_REACH:40) && (Math.abs(P.vx)<120||P.raying)){ o.ray=1; return o; } }
@@ -1796,6 +2023,9 @@ function pilotJob(opts,bb,r){
     var gd=null, gdd=1e9; for(var i=0;i<friends.length;i++){ var f=friends[i]; if(!(f.w.vip&&F.escort.main || f.escort) || f.st!=='ground') continue;
       for(var q=0;q<legion.length;q++){ var g=legion[q]; if(g.gone||g.climb) continue; var d=Math.abs(g.x-f.x); if(d<280 && d<gdd){ gdd=d; gd=g; } } }
     if(gd){ if(Math.abs(gd.x-P.x)<24) return {ray:true}; return {tx:gd.x, ty:(BAND_TOP+bb)/2+60}; } }
+  if(F.wall && !GN() && war && !opts.noRay && PK()==='hold'){ // THE WALL (1113): holding the walk = lifting the red hats off it (the nearest walker, else a climber)
+    var wk=null, wd=1e9; for(var q=0;q<legion.length;q++){ var g=legion[q]; if(g.gone||g.lifting) continue; var d=Math.abs(g.x-P.x)+(g.climb?400:0); if(d<wd){ wd=d; wk=g; } }
+    if(wk){ if(Math.abs(wk.x-P.x)<24) return {ray:true}; return {tx:wk.x, ty:(BAND_TOP+bb)/2+60}; } }
   var pk=pickups[0]; if(pk && !opts.noLadder && P.gear==='rope' && Math.abs(pk.x-P.x)<700 && (F.escort||F.muster)) return {tx:pk.x, ty:pk.y};
   if(F.escort && F.escort.main && !opts.noEscort && !escDone()){ var p=escortPick(); if(p) return {tx:p.x, ty:Math.abs(P.x-p.x)>160?Math.min(bb-60,grabY(p)-40):grabY(p)}; }
   if(F.muster && war && !opts.noTroops && (PK()==='push' || stageClock>20 && usR()<Math.max(war.W.breakAt+0.12, Math.min(war.r0-0.05, war.W.breakAt+0.26)))){ var t=null, td=1e9; for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.muster && f.st==='ground' && f.cd<=0){ var d=Math.abs(f.x-P.x); if(d<td){ td=d; t=f; } } }
@@ -1838,7 +2068,18 @@ var SKIES={
   // LIVERPOOL: canon LIVERPOOL = the SUNRISE (the beltway successor) — a clear cold dawn over the Mersey
   sunrise:{stops:['#2b3550','#6a6f8a','#e0a27a','#f7c98a'], sun:{x:1470,y:610,r:66,col:'255,222,165',glow:0.7,disc:0.85}, haze:'#c9a890', amb:'gulls'},
   // YORK: nightfall, the town already burning at the horizon
-  ember: {stops:['#0c0812','#2a1430','#6a2a2a','#c0582a'], moon:{x:300,y:150,r:38}, haze:'#3a2230', amb:'embers'}
+  ember: {stops:['#0c0812','#2a1430','#6a2a2a','#c0582a'], moon:{x:300,y:150,r:38}, haze:'#3a2230', amb:'embers'},
+  // THE WALL ARC (Claude 1113)
+  // DERE STREET: an afternoon under the smoke of the burning farms
+  ash:   {stops:['#38322f','#5f5048','#9c6c52','#d39a6a'], sun:{x:1360,y:480,r:50,col:'255,190,140',glow:0.45,disc:0.5}, haze:'#76665c', amb:'embers', smoke:true},
+  // CORIA: night, the stores burning — the whole horizon red
+  pyre:  {stops:['#07060c','#1e0f1a','#5a1c14','#c4521e'], moon:{x:260,y:150,r:30}, haze:'#3a1e1e', amb:'embers', smoke:true},
+  // CILURNUM: rain at night on the North Tyne
+  rain:  {stops:['#05080e','#101a2a','#24344a','#3e5066'], haze:'#2a3646', amb:'rain'},
+  // VERCOVICIUM: a cold violet dusk on the crags
+  crag:  {stops:['#0a0e1c','#1e2a48','#56607e','#a4a0ac'], moon:{x:1320,y:160,r:40}, haze:'#3e4860', amb:'snow'},
+  // THE TURF WALL: fog (the fog banks are drawn behind the play: telegraphs stay readable)
+  fog:   {stops:['#4a5258','#6e787c','#949c9c','#b4b8b2'], haze:'#9aa2a2', amb:'drizzle', fog:true}
 };
 var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parallax speed, mode
   dover:[ {n:'hz_dover', dy:-70, h:330, sp:3, haze:0.10}, {n:'dover_downs', dy:22, h:300, sp:7} ],   // the cliffs + pharos ridge, then Joe's chalk downs (1014) in front
@@ -1855,7 +2096,14 @@ var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parall
   forum:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#2a2020'}, {n:'colonnade', dy:-70, h:170, sp:2.5, haze:0.55}, {n:'villa', dy:-26, h:150, sp:4, haze:0.42} ],
   docks:[ {n:'hills_b', dy:-120, h:110, sp:1.2, sil:'#4a3a50'}, {n:'palisade_fort', dy:-58, h:118, sp:2.5, haze:0.55}, {n:'camp_tents', dy:-14, h:110, sp:5, haze:0.35} ],
   scorpio:[ {n:'vale_far_hills', dy:-130, h:220, sp:1.5, sil:'#26301f'}, {n:'hills_white_horse', dy:-70, h:160, sp:3, haze:0.5}, {n:'camp_tents', dy:-6, h:120, sp:5, haze:0.4}, {n:'wh_near', dy:24, h:150, sp:7, haze:0.45} ],
-  york:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#1a1020'}, {n:'fort_strip', dy:-62, h:140, sp:2.5, haze:0.5}, {n:'palisade_fort', dy:-8, h:120, sp:5, haze:0.32} ]
+  york:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#1a1020'}, {n:'fort_strip', dy:-62, h:140, sp:2.5, haze:0.5}, {n:'palisade_fort', dy:-8, h:120, sp:5, haze:0.32} ],
+  // THE WALL ARC (Claude 1113) — HADRIAN library strips only; dedicated plates are OWED (docs/PAX-LEVELS-1113.md)
+  dere:[ {n:'vale_far_hills', dy:-130, h:220, sp:1.5, sil:'#3a302c'}, {n:'village_strip', dy:-64, h:150, sp:3, haze:0.5}, {n:'vale_near_ruins', dy:14, h:160, sp:6, haze:0.42} ],
+  coria:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#180c12'}, {n:'fort_strip', dy:-64, h:140, sp:2.5, haze:0.55}, {n:'vale_supply', dy:-10, h:150, sp:5, haze:0.45} ],
+  tyne:[ {n:'snow_hills', dy:-178, h:120, sp:1.2, sil:'#141c2a'}, {n:'wall_thin', dy:-124, h:56, sp:1.8, haze:0.6}, {n:'fort_strip', dy:-118, h:110, sp:2.4, haze:0.55}, {fn:'thamesBack'} ],
+  crags:[ {n:'snow_hills', dy:-110, h:170, sp:1.5, haze:0.55}, {n:'snow_siege', dy:-60, h:120, sp:3, haze:0.5}, {n:'wall_thin', dy:-14, h:64, sp:5, haze:0.45} ],
+  turf:[ {n:'snow_hills', dy:-120, h:160, sp:1.5, haze:0.8}, {n:'wall_thin', dy:-70, h:70, sp:3, haze:0.72}, {n:'wall_siege', dy:-8, h:130, sp:6, haze:0.62} ],
+  summit:[ {n:'wash_far_hills', dy:-110, h:220, sp:1.5, sil:'#3a0a07'}, {n:'wall_thin', dy:-70, h:70, sp:3, haze:0.55}, {n:'wall_siege', dy:-8, h:130, sp:6, haze:0.45} ]
 };
 var drift=0;
 function drawStrip(L, gy){
@@ -1891,14 +2139,24 @@ function drawGround(){
   var lip=ctx.createLinearGradient(0,gy-8,0,gy+26); lip.addColorStop(0,'rgba(0,0,0,0)'); lip.addColorStop(1,'rgba(0,0,0,0.35)'); ctx.fillStyle=lip; ctx.fillRect(camX,gy-8,LW,34);
 }
 function drawWallFace(){
-  var gy=GY(), src = ok('ground_flag') ? tinted('ground_flag','#1b2438',0.45,false) : null;
+  var gy=GY(), WL_=F.wallLook, turf=WL_==='turf', crag=WL_==='crag';   // THE WALL ARC: stone (W1) · crag (W3/W5: the Whin Sill under the stone) · turf (W4: cut sods)
+  var src = turf ? (ok('ground_grass') ? tinted('ground_grass','#26241a',0.62,false) : null) : (ok('ground_flag') ? tinted('ground_flag',crag?'#151a26':'#1b2438',crag?0.58:0.45,false) : null);
   var X0=camX-(camX%240), X1=camX+LW;
-  ctx.fillStyle='#2b3140'; ctx.fillRect(camX,gy,LW,LH-gy);
+  ctx.fillStyle=turf?'#2c2a1c':crag?'#1f2330':'#2b3140'; ctx.fillRect(camX,gy,LW,LH-gy);
   if(src){ var th=96, tw=th*ar('ground_flag'); X0=camX-(camX%(tw-1)); for(var y=gy+14; y<LH; y+=th-2) for(var x=X0+((y/th)%2)*tw*0.5-tw; x<X1; x+=tw-1) ctx.drawImage(src,x,y,tw,th); }
   var sh=ctx.createLinearGradient(0,gy,0,LH); sh.addColorStop(0,'rgba(8,10,20,0.05)'); sh.addColorStop(1,'rgba(4,6,12,0.75)'); ctx.fillStyle=sh; ctx.fillRect(camX,gy,LW,LH-gy);
   // the walkway: paving + crenellated parapet on the outer (far) edge
-  ctx.fillStyle='#545a68'; ctx.fillRect(camX,gy-4,LW,18); ctx.fillStyle='#727a8a'; ctx.fillRect(camX,gy-4,LW,4);
+  if(turf){ // the turf rampart: a sod walk, a timber breastwork on top, and the sods burning in places (hashed, render-only)
+    ctx.fillStyle='#4a4430'; ctx.fillRect(camX,gy-4,LW,18); ctx.fillStyle='#6a6040'; ctx.fillRect(camX,gy-4,LW,4);
+    for(var x=camX-((camX+drift*14)%44); x<X1; x+=44){ ctx.fillStyle='#3a2a18'; ctx.fillRect(x,gy-30,8,28); } ctx.fillStyle='#4a3420'; ctx.fillRect(camX,gy-28,LW,5);
+    for(var n=Math.floor(camX/520)-1; n<=Math.floor(X1/520)+1; n++){ if(bh(n*97+13)<0.45) continue; var fx_=n*520+bh(n*31+7)*380, fl=0.7+0.3*Math.sin(rt*10+n);
+      sprC('fireball', fx_, gy-22, 56*fl, {a:0.8, rot:-1.57}); var ph=((rt*0.4+bh(n*5))%1); sprC('smoke_puff', fx_+ph*20, gy-60-ph*120, 50+ph*60, {a:0.3*(1-ph)}); } }
+  else {
+  ctx.fillStyle=crag?'#4a4f5c':'#545a68'; ctx.fillRect(camX,gy-4,LW,18); ctx.fillStyle=crag?'#666e7e':'#727a8a'; ctx.fillRect(camX,gy-4,LW,4);
   for(var x=camX-((camX+drift*14)%60); x<X1; x+=60){ ctx.fillStyle='#3d4352'; ctx.fillRect(x,gy-34,36,30); ctx.fillStyle='#5c6475'; ctx.fillRect(x,gy-34,36,5); }
+  if(crag) for(var n=Math.floor(camX/300)-1; n<=Math.floor(X1/300)+1; n++){ var cx_=n*300+bh(n*53+3)*160; ctx.fillStyle='rgba(8,10,16,0.32)';   // the Whin Sill showing through the face: dark columnar rock
+    ctx.beginPath(); ctx.moveTo(cx_-60,LH); ctx.lineTo(cx_-30,gy+40+bh(n*11)*60); ctx.lineTo(cx_+10,gy+30+bh(n*17)*40); ctx.lineTo(cx_+50,gy+70); ctx.lineTo(cx_+80,LH); ctx.closePath(); ctx.fill(); }
+  }
   // the army at the foot of the Wall (render-only)
   if(ok('battle_frieze')){ var img=tinted('battle_frieze','#0b1222',0.45,false); var h=120, w=h*ar('battle_frieze'); for(var x=camX-((camX+drift*20)%w); x<X1; x+=w) ctx.drawImage(img,x,LH-h+16,w,h); }
   drawBattle(); drawWar();   // the live battle line at the foot of the Wall, in front of the frieze
@@ -1984,6 +2242,7 @@ var PRESS_ART=['civ_bundle','civ_brown','civ_basket','civ_tool','civ_old','civ_y
 function drawPress(){
   if(!F.press) return; var gy=GY(), px=pressX, hz=SKIES[F.time].haze;
   if(px<-40) return;
+  if(F.press.fire) return drawFirePress(gy,px);
   for(var row=0;row<2;row++){ var sl=row?22:30, yb=gy+(row?-6:4), hh=row?50:60;
     for(var n=0;;n++){ var hs=n*131+row*7717, x=px-10-n*sl-(row?12:0)-bh(hs)*8; if(x<-40) break;
       var art=PRESS_ART[(bh(hs+1)*PRESS_ART.length)|0], rig=actorRig(art);
@@ -1996,6 +2255,28 @@ function drawPress(){
     var img=tinted(PRESS_ART[Math.floor(rt/per)%PRESS_ART.length], hz, 0.45, false); if(img){ var h=54, w=h*(img.width/img.height); ctx.save(); ctx.globalAlpha=1-u*0.7; ctx.translate(fx_,fy); ctx.rotate(1.6*u); ctx.drawImage(img,-w/2,-h/2,w,h); ctx.restore(); } }
   if(px>F.bridge.x0 && px<pressStop()-1){ var bl=Math.floor(rt*5)%2?1:0.5; panel(px+2,gy-142,118,28,0.55); txt('THE PRESS ▶',px+10,gy-128,15,'#ffb38a','left','bold',bl);
     ctx.save(); ctx.globalAlpha=0.35*bl; ctx.strokeStyle='#ff7a4a'; ctx.setLineDash([5,7]); ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(px+2,gy+4); ctx.lineTo(px+2,gy-116); ctx.stroke(); ctx.restore(); }
+}
+// CILURNUM: THE FIRE POTS — the press is a burning deck, not a crowd (render-only; the sim reads pressX only)
+function drawFirePress(gy,px){
+  var x0=F.bridge.x0-30; if(px<=x0) return;
+  ctx.fillStyle='rgba(20,8,4,0.55)'; ctx.fillRect(x0,gy-6,px-x0,10);   // the charred deck behind the fire
+  for(var n=0;;n++){ var x=px-8-n*34-bh(n*31+5)*10; if(x<x0) break; var fl=0.7+0.3*Math.sin(rt*(9+bh(n*7)*5)+n), back=n>3;
+    sprC('fireball', x, gy-18-fl*10, (back?44:70)*fl, {a:back?0.55:0.9, rot:-1.57});
+    if(n%2===0){ var ph=((rt*0.45+n*0.37)%1); sprC('smoke_puff', x+ph*14, gy-50-ph*130, 40+ph*70, {a:0.35*(1-ph)}); } }
+  ctx.save(); ctx.globalCompositeOperation='lighter'; var lg=ctx.createRadialGradient(px,gy-30,4,px,gy-30,180); lg.addColorStop(0,'rgba(255,140,60,0.32)'); lg.addColorStop(1,'rgba(255,100,40,0)');
+  ctx.fillStyle=lg; ctx.fillRect(px-180,gy-210,360,240); ctx.restore();
+  if(px<pressStop()-1){ var bl=Math.floor(rt*5)%2?1:0.5; panel(px+2,gy-142,104,28,0.55); txt('THE FIRE ▶',px+10,gy-128,15,'#ffb38a','left','bold',bl); }
+}
+// THE WALL ARC atmosphere (Claude 1113; render-only, screen space, drawn BEHIND the people and every telegraph):
+// smoke columns off the burning farms / stores on the horizon (S.smoke), drifting fog banks (S.fog)
+function drawAtmos(){
+  var S=SKIES[F.time]; if(!S) return; var gy=GY();
+  if(S.smoke){ for(var c=0;c<5;c++){ var cx=((c*389+90)-(drift*2.4+camX*0.12))%(LW+400); if(cx<-200) cx+=LW+400;
+      for(var k=0;k<6;k++){ var ph=((rt*0.06+k/6+c*0.13)%1); sprC('smoke_puff', cx-200+ph*60+Math.sin(rt*0.3+k)*8, gy-150-ph*380, 40+ph*110, {a:0.14*(1-ph)}); }
+      ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle='rgba(255,120,50,'+(0.06+0.03*Math.sin(rt*3+c))+')'; ctx.beginPath(); ctx.ellipse(cx-200,gy-150,90,26,0,0,6.283); ctx.fill(); ctx.restore(); } }
+  if(S.fog){ for(var b=0;b<4;b++){ var y=gy-260+b*90, sp=6+b*4, w=900, x0=-((drift*sp+camX*(0.2+b*0.1))%w);
+      for(var x=x0-w; x<LW+w; x+=w){ var g=ctx.createRadialGradient(x+w/2,y,10,x+w/2,y,w*0.55); g.addColorStop(0,'rgba(190,198,198,'+(0.20+0.05*b)+')'); g.addColorStop(1,'rgba(190,198,198,0)');
+        ctx.fillStyle=g; ctx.fillRect(x,y-160,w,320); } } }
 }
 function drawDrop(){
   var d=F.drop0||F.drop, gy=GY(), s=dropSurf(), t=rt;
@@ -2019,6 +2300,7 @@ function drawDrop(){
     var p0=d.x-260, p1=d.x+360; ctx.fillStyle='#3a2a1c'; ctx.fillRect(p0,s-2,p1-p0,14); ctx.fillStyle='#6b4a2a'; for(var px=p0; px<p1; px+=34) ctx.fillRect(px,s-2,30,8);
     for(var px=p0+20; px<p1; px+=120){ ctx.fillStyle='#2e1d0e'; ctx.fillRect(px,s-26,12,30); } }
   else if(F.key==='york') spr('palisade_fort', F.drop0.x+40, s+8, 110, {});
+  else if(F.key==='dere'||F.key==='coria'){ spr(STD(), d.x+(d.x<WW()/2?100:-100), s+4, 116, {}); spr('brazier', d.x+(d.x<WW()/2?-100:100), s+2, 46, {}); if(F.key==='dere') spr('camp_tents', d.x, s+8, 84, {a:0.9}); }
   drawDepot();
   txt(F.drop.label, F.drop.x, s+30, 15, '#cfe9f2', 'center', 'bold', 0.9);
 }
@@ -2036,13 +2318,19 @@ function helpFlag(x,yb,h,urgent){ if(!D7_FRIENDLY_LOOK.helpFlag) return; var px=
   ctx.strokeStyle='#d9d2c0'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(px,yb); ctx.lineTo(px,top); ctx.stroke();
   ctx.fillStyle=urgent&&Math.floor(rt*6)%2?'#ff8a5a':'#fff3a0'; ctx.beginPath(); ctx.moveTo(px,top); ctx.lineTo(px+40,top+wv); ctx.lineTo(px+40,top+17+wv); ctx.lineTo(px,top+17); ctx.closePath(); ctx.fill();
   ctx.fillStyle='#1a2a3a'; ctx.font='bold 11px Georgia,serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('HELP',px+20,top+8.5+wv/2); }
+function wallLedges(){ if(!F.wall||roofs.length) return; var seen={};   // THE WALL ARC: every crag/turret ledge stays standing after its crew is off it
+  for(var i=0;i<friends.length;i++){ var f=friends[i]; if(!(f.rock>0) || f.st==='gone' || seen[f.x|0]) continue; seen[f.x|0]=1; var yb=GY()-f.rock; var tw_=74, tx_=f.x-tw_/2, ty_=yb+6;   // THE WALL ARC: the crews stand on a TURRET / crag ledge built up off the walk (stone, capped)
+        ctx.fillStyle=F.wallLook==='turf'?'#3a3424':'#363b48'; ctx.fillRect(tx_,ty_,tw_,GY()-ty_); ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fillRect(tx_,ty_,10,GY()-ty_);
+        ctx.fillStyle='#5c6475'; ctx.fillRect(tx_-6,ty_-4,tw_+12,8); for(var k_=0;k_<3;k_++){ ctx.fillStyle='#4a5162'; ctx.fillRect(tx_-6+k_*30,ty_-16,18,12); } } }
 function drawFriends(){
+  wallLedges();
   for(var i=0;i<friends.length;i++){ var f=friends[i], w=f.w;
     if(f.st==='ground'){ var yb=GY()-f.rock, flip=f.x>F.drop.x;
       if(w.vip){ wtxt(w.name,f.x,yb-w.h-52,15,'#ffe27a'); }
       else if(f.escort) wtxt('ESCORT',f.x,yb-w.h-14,12,'#ffe27a',0.9);
       else if(f.muster) wtxt('▲ FOR THE LINE',f.x,yb-w.h-14,12,'#e8c66a',0.8);
-      if(f.rock>0 && !roofs.length){ ctx.fillStyle=F.time==='blood'?'#1d0605':'#4a4a3a'; ctx.beginPath(); ctx.ellipse(f.x,yb+f.rock*0.5+4,40,f.rock*0.5+6,0,0,6.283); ctx.fill(); spr('boulders',f.x,yb+6,f.rock+14,{a:0.85}); }
+      if(f.rock>0 && !roofs.length && F.wall){}   // (the turret is drawn by wallLedges, rescued or not)
+      else if(f.rock>0 && !roofs.length){ ctx.fillStyle=F.time==='blood'?'#1d0605':'#4a4a3a'; ctx.beginPath(); ctx.ellipse(f.x,yb+f.rock*0.5+4,40,f.rock*0.5+6,0,0,6.283); ctx.fill(); spr('boulders',f.x,yb+6,f.rock+14,{a:0.85}); }
       figGlow(f.x,yb,w.h,1); if(objF(f) && !(f.w.vip && atPost(f.x))) helpFlag(f.x,yb,w.h, F.press && f.x-pressX<150);
       var bob = w.animal?0:Math.max(0,Math.sin(rt*6+f.ph))*3;
       if(F.water && f.sink>0){ ctx.save(); ctx.beginPath(); ctx.rect(f.x-80,0,160,waterY+2); ctx.clip(); actorSpr(w.art,f.x,yb-bob,w.h,{flip:flip,a:f.cd>0?0.6:1}); ctx.restore(); }
@@ -2200,6 +2488,8 @@ function drawAmbient(){
     else if(kind==='motes'){ if(i>30) break; var x=(m.x+Math.sin(rt*0.5+m.p)*40)%LW, y=GY()-80-((m.y*0.5+rt*6)%300); ctx.fillStyle='rgba(255,230,150,'+(0.25+0.4*Math.abs(Math.sin(rt*2+m.p)))+')'; ctx.fillRect(x,y,2.5,2.5); }
     else if(kind==='drizzle'){ var sp=520+bh(i*7+1)*240, x=(bh(i*13+2)*(LW+300)+rt*sp*0.28)%(LW+300)-150, y=(bh(i*17+3)*LH+rt*sp)%LH;
       ctx.strokeStyle='rgba(205,214,228,'+(0.10+0.14*bh(i*5+4))+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-5,y-18); ctx.stroke(); }
+    else if(kind==='rain'){ var sp=900+bh(i*7+1)*300, x=(bh(i*13+2)*(LW+300)+rt*sp*0.22)%(LW+300)-150, y=(bh(i*17+3)*LH+rt*sp)%LH;   // CILURNUM: heavier, faster than the Vale's drizzle
+      ctx.strokeStyle='rgba(185,200,225,'+(0.16+0.18*bh(i*5+4))+')'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-7,y-28); ctx.stroke(); }
     else if(kind==='gulls'){ if(i>6) break; var x=(m.x+rt*(24+m.s*20))%(LW+200)-100, y=160+m.y*0.25+Math.sin(rt*2+m.p)*6, wv=Math.sin(rt*8+m.p)*5;
       ctx.strokeStyle='rgba(40,50,70,0.6)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x-9,y-wv); ctx.lineTo(x,y); ctx.lineTo(x+9,y-wv); ctx.stroke(); }
   }
@@ -2225,7 +2515,14 @@ var BATTLE={
   forum:      { rows:[ {dy:-196, h:17, haze:0.42, keep:0.55}, {dy:-184, h:24, haze:0.26, keep:0.6} ] },   // the street battle, between and behind the roofs
   docks:      { rows:[ {dy:-140, h:18, haze:0.35, keep:0.55}, {dy:-102, h:25, haze:0.20, keep:0.6} ] },
   scorpio:    { rows:[ {dy:-140, h:18, haze:0.40, keep:0.55}, {dy:-104, h:25, haze:0.24, keep:0.6} ] },
-  york:       { rows:[ {dy:-140, h:18, haze:0.42, keep:0.55}, {dy:-104, h:25, haze:0.26, keep:0.6} ] }
+  york:       { rows:[ {dy:-140, h:18, haze:0.42, keep:0.55}, {dy:-104, h:25, haze:0.26, keep:0.6} ] },
+  // THE WALL ARC (Claude 1113)
+  dere:       { rows:[ {dy:-150, h:17, haze:0.40, keep:0.55}, {dy:-112, h:24, haze:0.24, keep:0.6} ] },
+  coria:      { rows:[ {dy:-140, h:18, haze:0.42, keep:0.55}, {dy:-104, h:25, haze:0.26, keep:0.6} ] },
+  tyne:       { rome0:0.56, rows:[ {dy:LON_QUAY-6, h:15, haze:0.45, keep:0.5}, {dy:LON_QUAY+2, h:20, haze:0.30, keep:0.55} ] },
+  crags:      { foot:true, rows:[ {dy:-58, h:52, haze:0.45}, {dy:-8, h:72, haze:0.30} ] },
+  turf:       { foot:true, rows:[ {dy:-58, h:52, haze:0.55}, {dy:-8, h:72, haze:0.40} ] },
+  summit:     { foot:true, rows:[ {dy:-58, h:52, haze:0.40}, {dy:-8, h:72, haze:0.26} ] }
 };
 var BT_ROME=['legionary_a','legionary_b','legionary_c','legionary_a','legionary_b'], BT_ROME_STD=['signifer','cornicen'];
 var BT_GNOME=['gnome_axe','gnome_spear','gnome_shield','gnome_charge','gnome_heavy','gnome_axe','gnome_spear'], BT_GNOME_STD=['gnome_bannerman'];
@@ -2420,7 +2717,7 @@ function drawScene(dt){
   drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i], GY());
   WL.length=0; ctx.save(); ctx.translate(-Math.round(camX),0);   // THE WORLD (wide fronts scroll; the sky and far strips parallax above)
   if(F.key==='dover'){ spr('chalk_boulder',420,GY()+14,34,{}); spr('chalk_boulder',1150,GY()+12,30,{flip:true}); }
-  if(!F.wall){ drawBattle(); drawWar(); } drawGround(); ctx.save(); ctx.translate(Math.round(camX),0); drawAmbient(); ctx.restore();
+  if(!F.wall){ drawBattle(); drawWar(); } drawGround(); ctx.save(); ctx.translate(Math.round(camX),0); drawAmbient(); drawAtmos(); ctx.restore();
   drawRoofs(); drawDrop(); drawEmps(); drawSiege(); drawGear(); drawPress(); drawFriends(); drawLegion(); drawWater();
   drawRay(); drawHazards(); drawShots(); drawPickups(); drawRope(); drawPlayer(); drawFx();
   ctx.restore();
@@ -2524,7 +2821,7 @@ function drawHUD(){
     ctx.fillStyle='#2a0806'; ctx.fillRect(LW-170,106,140,14); ctx.fillStyle='#c0301a'; ctx.fillRect(LW-170,106,140*depth,14); }
   if(F.wall){ var up=0; for(var i=0;i<legion.length;i++) if(!legion[i].gone && !legion[i].climb) up++; panel(LW-316,96,300,34,0.45);
     txt('RED HATS ON THE WALK: '+up,LW-300,113,13,up?'#ff9a7a':'#bfe7a8','left','bold'); }
-  if(F.press){ var pu=clamp((pressX-F.press.from)/(pressStop()-F.press.from),0,1); panel(LW-316,96,300,34,0.45); txt('THE PRESS',LW-300,113,13,'#ffb38a','left','bold');
+  if(F.press){ var pu=clamp((pressX-F.press.from)/(pressStop()-F.press.from),0,1); panel(LW-316,96,300,34,0.45); txt(F.press.fire?'THE FIRE':'THE PRESS',LW-300,113,13,'#ffb38a','left','bold');
     ctx.fillStyle='#2a1208'; ctx.fillRect(LW-200,106,170,14); ctx.fillStyle='#d0602a'; ctx.fillRect(LW-200,106,170*pu,14); }
   if(gear.length && gear[0].kind==='gate'){ var gt=gear[0]; panel(LW-316,96,300,34,0.45); txt(gt.wreck?'THE TOWN GATE IS DOWN — THEY HUNT':'THE TOWN GATE: '+gt.hp+' / '+gt.max,LW-300,113,13,gt.wreck?'#ff9a7a':'#e8c66a','left','bold'); }
   else if(gear.length){ var gu=gearUp(); panel(LW-316,96,300,34,0.45); txt('COVER STANDING (CATAPULT · BALLISTA · CART): '+gu+' / '+gear.length,LW-300,113,13,gu?'#e8c66a':'#ff9a7a','left','bold'); }
@@ -2696,9 +2993,9 @@ function drawSelect(){
   txt('FLY FOR  '+sideName(), LW/2, 115, 22, GN()?'#ff9a7a':'#fff3c4','center','bold');
   var built=MARCH.filter(function(m){return m.f!=null;});
   var bi=0;
-  for(var i=0;i<MARCH.length;i++){ var m=MARCH[i], y=166+i*48, isB=m.f!=null, sel=isB && built[selI]===m;
-    if(sel) panel(LW/2-470,y-21,940,42,0.7);
-    txt((isB?(++bi)+'.  ':'—  ')+m.name, LW/2-440, y, 22, isB?(sel?'#fff3c4':PARCH):'#6f6656','left','bold');
+  for(var i=0;i<MARCH.length;i++){ var m=MARCH[i], st_=Math.min(48,680/MARCH.length), y=166+i*st_, isB=m.f!=null, sel=isB && built[selI]===m;
+    if(sel) panel(LW/2-470,y-st_/2+3,940,st_-6,0.7);
+    txt((isB?(++bi)+'.  ':'—  ')+m.name, LW/2-440, y, st_<44?19:22, isB?(sel?'#fff3c4':PARCH):'#6f6656','left','bold');
     var Fm=isB&&FRONTS[m.f], bst=isB&&BEST[Fm.key+':'+SIDE];
     txt(isB?(Fm.place+' · '+(Fm.escort&&Fm.escort.main?'ESCORT':Fm.high?'HIGH GROUND':(Fm.depot&&Fm.depot.kind==='cradle'?'CRADLE':'PEN'))+(Fm.muster?' · TROOPS':'')+((Fm.ww||LW)>LW?' · WIDE':'')+(bst?'  ·  BEST '+bst.grade:'')):('SEALED · '+m.note), LW/2+440, y, 14, isB?(bst?'#9fe08a':'#c9b27a'):'#5f584a','right', isB?'bold':'italic'); }
   txt('↑ ↓ or 1–9  ·  ← → SIDE  ·  SPACE fly it  ·  ESC back',LW/2,LH-24,15,'#bba98a','center','bold');
@@ -2707,7 +3004,7 @@ function drawBrief(dt){
   drift+=dt*0.5; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); ctx.save(); ctx.translate(-camX,0); drawGround(); ctx.restore();
   ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,LW,LH);
   var a=clamp(rt/0.5,0,1), n=MARCH.findIndex(function(m){return m.f===fi;})+1;
-  txt('THE MARCH · '+(F.wall?'THE WALL':'STAGE '+n),LW/2,150,18,'#c9b27a','center','bold',a);
+  txt('THE MARCH · '+(F.wall||F.wall2?'THE WALL':F.approach?'THE ROAD NORTH':'STAGE '+n),LW/2,150,18,'#c9b27a','center','bold',a);
   txt(F.title,LW/2,220,70,GOLD,'center','bold',a); txt(F.latin,LW/2,280,22,PARCH,'center','bold',a);
   panel(LW/2-560,320,1120,300,0.7*a);
   wrap(F.brief,LW/2,360,1040,24,'#f3ead2',a);
@@ -2785,10 +3082,11 @@ function drawMarch(){
 }
 function drawEnd(){
   coverDraw('wall_for_them',1.05+0.03*Math.sin(rt*0.1),0.5,0.5,0.6); ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,LW,LH);
-  txt('THE WALL HOLDS — FOR NOW',LW/2,170,56,GOLD,'center','bold'); txt('SCORE  '+score,LW/2,240,30,PARCH,'center','bold');
+  txt('THE WALL HOLDS — FOR NOW',LW/2,170,56,GOLD,'center','bold'); txt('SCORE  '+score+'      LOST TO THE BLUE  '+blueRun,LW/2,240,30,PARCH,'center','bold');
   panel(LW/2-560,290,1120,330,0.7);
-  txt('STILL TO COME ON THE WALL',LW/2,330,22,'#c9b27a','center','bold');
-  for(var i=1;i<D3_WALL_LEVELS.length;i++) txt(D3_WALL_LEVELS[i],LW/2,330+i*46,22,PARCH,'center','bold');
+  txt('DOVER TO WINSHIELDS · '+MARCH.length+' FRONTS · THE MARCH IS OVER' /* DRAFT */,LW/2,330,22,'#c9b27a','center','bold');
+  txt('STILL TO COME ON THE SUMMIT' /* DRAFT */,LW/2,380,18,'#c9b27a','center','bold');
+  for(var i=0;i<STILL_TO_COME.length;i++) txt(STILL_TO_COME[i],LW/2,422+i*40,22,PARCH,'center','bold');
   wrap('"History says the frontier was secured. History also says Hadrian died in bed. I have QUESTIONS."  — DR. H. WOLFE',LW/2,580,1060,19,'#d8ccb0',1,'italic');
   txt('SPACE — TITLE',LW/2,LH-50,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
 }
@@ -2828,7 +3126,20 @@ function selfTest(){
   var dt=1/60, IDLE=makePilot({idle:true});
   campaign=false; AU.off=true; SIDE='rome';
   // ---- structure ----
-  okk('ten fronts are built (Dover to the Wall, with the Scorpio Line), W2–W5 are sealed on the map', FRONTS.length===10 && MARCH.filter(function(m){return m.f!=null;}).length===10 && MARCH.length===14, MARCH.length+' stops on the march');
+  okk('sixteen fronts are built and nothing on the march is sealed (Dover → York → THE ROAD NORTH → W1–W5)', FRONTS.length===16 && MARCH.length===16 && MARCH.every(function(m){return m.f!=null && !!FRONTS[m.f];}) && new Set(MARCH.map(function(m){return m.f;})).size===16, MARCH.length+' stops on the march');
+  // ---- THE WALL ARC (Claude 1113: Joe 13/11 "the wall level should be long or multiple levels … the approach to the wall. total war to get there") ----
+  var ARC=['york','dere','coria','wall','tyne','crags','turf','summit'], arcF=ARC.map(function(k){ return FRONTS.findIndex(function(Fr){ return Fr.key===k; }); }), arcM=arcF.map(function(f){ return MARCH.findIndex(function(m){ return m.f===f; }); });
+  okk('[wall arc] the march reads as one push: York → DERE STREET → CORIA → W1 SEGEDUNUM → W2 CILURNUM → W3 VERCOVICIUM → W4 THE TURF WALL → W5 WINSHIELDS (the last stop)', arcF.every(function(f){ return f>=0; }) && arcM.every(function(m,i){ return i===0 || m===arcM[i-1]+1; }) && arcM[arcM.length-1]===MARCH.length-1, arcM.join(' → '));
+  var arcNew=ARC.slice(1).map(function(k){ return FRONTS.find(function(Fr){ return Fr.key===k; }); });
+  okk('[wall arc] every Wall-arc front is a 4-phase mission (rescue → hold → rescue → push/hold) with a title, a Latin line, a sky, a music bed and its own backdrop', arcNew.every(function(Fr){ var L=PHASES[Fr.key]; return L && L.length===4 && (L[1].kind==='hold' || Fr.key==='wall') && L.some(function(p){ return p.kind==='hold'; }) && !!Fr.title && !!Fr.latin && !!SKIES[Fr.time] && MUSIC_SLOTS.indexOf(Fr.music)>=0 && (LAYERS[Fr.key]||[]).length>=3 && !!BATTLE[Fr.key] && !!FRONT_LORE[Fr.key]; }), arcNew.map(function(Fr){ return Fr.key+':'+(PHASES[Fr.key]||[]).length; }).join(' '));
+  function threats(Fr){ var t={}; Object.keys(Fr.hazards||{}).forEach(function(k){ t[k]=1; }); (PHASES[Fr.key]||[]).forEach(function(p){ Object.keys(p.hazards||{}).forEach(function(k){ t[k]=1; }); ((p.war||{}).machines||[]).forEach(function(m){ t['m_'+m.kind]=1; }); if((p.war||{}).wizard) t.wizard=1; if(p.siege) t.siege=1; });
+    ((Fr.war||{}).machines||[]).forEach(function(m){ t['m_'+m.kind]=1; }); if((Fr.war||{}).wizard) t.wizard=1; if(Fr.siege) t.siege=1; if(Fr.legion.hunts) t.hunts=1; if(Fr.roofs) t.fire=1; if(Fr.press) t.press=1; return Object.keys(t).length; }
+  var tc=arcNew.map(threats);
+  okk('[wall arc] TOTAL WAR: the road north brings stones, gliders, machines, wizards and taken thopters; the summit has the most threats of the march', threats(arcNew[0])>=6 && threats(arcNew[1])>=7 && tc[tc.length-1]===Math.max.apply(null,FRONTS.map(threats)), arcNew.map(function(Fr,i){ return Fr.key+' '+tc[i]; }).join(' · '));
+  okk('[wall arc] burning, smoke and dark: the arc flies under smoke (ash, pyre), rain, a crag dusk, fog and the blood sky — no daylight', arcNew.map(function(Fr){ return Fr.time; }).join(',')==='ash,pyre,night,rain,crag,fog,blood' && SKIES.fog.fog && SKIES.ash.smoke && SKIES.pyre.smoke);
+  okk('[wall arc] the troops muster: every road-north and Wall push is fed by troop drops', arcNew.every(function(Fr){ var L=PHASES[Fr.key]; return L.every(function(p){ return p.kind!=='push' || !!p.muster; }); }) && !!FRONTS.find(function(Fr){ return Fr.key==='dere'; }).muster);
+  okk('[wall arc] Q741: W1 SEGEDUNUM is four phases now (THE WALK RETAKEN, a hold, before THE COUNTERATTACK)', PHASES.wall.length===4 && PHASES.wall[2].kind==='hold' && PHASES.wall[3].kind==='push');
+  okk('[wall arc] the HADRIAN art only: every new backdrop strip is a manifest key', arcNew.every(function(Fr){ return (LAYERS[Fr.key]||[]).every(function(L){ return L.fn ? !!STRIPFN[L.fn] : !!ART[L.n]; }); }));
   var arts=[]; FRONTS.forEach(function(Fr){ (LAYERS[Fr.key]||[]).forEach(function(L){ if(L.n) arts.push(L.n); }); Fr.friends.forEach(function(d){ arts.push(WHO[d.who].art); }); Fr.legion.kinds.forEach(function(k){ arts.push(LEGION[k].art); }); (Fr.gear||[]).forEach(function(g){ arts.push(GEAR[g.kind].art); }); var Bt=BATTLE[Fr.key]||{}; (Bt.rome||[]).concat(Bt.romeStd||[]).forEach(function(a){ arts.push(a); }); });
   if(FRONTS.some(function(Fr){ return Fr.press; })) PRESS_ART.concat(['lon_far_bank','lon_bridge','lon_embankment','lon_water']).forEach(function(a){ arts.push(a); });
   var missingKeys=arts.filter(function(a){ return a && !ART[a]; });
@@ -2963,6 +3274,10 @@ function selfTest(){
   okk('[war] left alone, Rome loses ground (the clock leans to the gnomes)', war.rome < war.r0-0.05, war.r0.toFixed(2)+' -> '+war.rome.toFixed(3));
   var FI2=FRONTS.findIndex(function(Fr){ return Fr.key==='forum'; }); idleRun(FI2, 812, FRONTS[FI2].clock+5);
   okk('[war] ...and on LONDON PROPER, hands off, the line takes the roofs (fronts shift for real)', lastResult && !lastResult.passed && roofs.some(function(r){ return r.st==='burn'; }), (lastResult&&lastResult.reason)+' · '+roofs.filter(function(r){ return r.st==='burn'; }).length+' roofs burned');
+  var DE=FRONTS.findIndex(function(Fr){ return Fr.key==='dere'; }); idleRun(DE, 814, 30); var b30=roofs.filter(function(r){ return r.st!=='ok'; }).length;
+  okk('[dere] DERE STREET: the farm behind the red hats\' line is already burning, and hands off the line takes more farms', b30>=1 && roofs[roofs.length-1].st!=='ok', b30+' farms alight at 30 s');
+  var TYI=FRONTS.findIndex(function(Fr){ return Fr.key==='tyne'; }); quiet(TYI); var tf=friends[0]; run(F.press.start+(tf.x-F.press.from)/F.press.rate+1);
+  okk('[tyne] CILURNUM: THE FIRE POTS burn up the deck and put whoever they reach in the river', F.press.fire && tf.st==='lost' && tf.how==='swept', 'fire at '+Math.round(pressX)+' · first stranded '+tf.st);
   var brokeAny=false; for(var i=0;i<FRONTS.length && !brokeAny;i++){ if(FRONTS[i].wall) continue; startFront(i,{go:true,seed:813}); autopilot=IDLE;
     for(var n=0;n<60*(FRONTS[i].clock+5) && state==='play';n++){ hp=HULL; friends.forEach(function(f){ if(f.st==='lost'){ f.st='ground'; } }); update(dt); } autopilot=null; if(lastResult && lastResult.reason==='broken') brokeAny=FRONTS[i].key; }
   okk('[war] THE LINE CAN BREAK — it ends the front (hull + losses pinned, hands off)', !!brokeAny, 'broke on '+brokeAny);
@@ -3063,13 +3378,13 @@ function selfTest(){
   okk('[mission] ...and T restarts the whole front', state==='play' && mph===0 && score===scoreAtStart && phaseLog.length===0 && ckUses===0);
   startFront(0,{go:true,seed:32}); clearNow(); run(BEAT+1); war.rome=war.W.breakAt-0.01; endCheck();
   okk('[mission] a HOLD phase is lost if the line breaks (and offers the checkpoint)', state==='failed' && lastResult.reason==='broken' && lastResult.ck===1);
-  var WI2=FRONTS.findIndex(function(Fr){ return Fr.wall; }); startFront(WI2,{go:true,seed:33}); clearNow(); clearNow(); run(BEAT+1);
+  var WI2=FRONTS.findIndex(function(Fr){ return Fr.wall; }); startFront(WI2,{go:true,seed:33}); clearNow(); clearNow(); clearNow(); run(BEAT+1);
   var pOk=PK()==='push' && pushTo>usR() && !!F.muster; war.rome=pushTo+0.01; update(dt);
   var lw=lastResult||{};
-  okk('[mission] a PUSH phase (THE WALL: THE COUNTERATTACK) clears when the line moves; the front is WON after the last phase', pOk && state==='results' && lw.passed && lw.phases.length===3, (lw.phases||[]).map(function(p){ return p.name+' '+p.grade; }).join(' · '));
+  okk('[mission] a PUSH phase (THE WALL: THE COUNTERATTACK) clears when the line moves; the front is WON after the last phase', pOk && state==='results' && lw.passed && lw.phases.length===4, (lw.phases||[]).map(function(p){ return p.name+' '+p.grade; }).join(' · '));
   okk('[mission] the RESULTS card has per-phase grades + the line held/bent/broken, and the totals (LOST TO THE BLUE, the line, PHASE GRADES; every other row worth points)', lw.phases.every(function(p){ return GRADES.indexOf(p.grade)>=0 && !!LINE_COL[p.line] && p.t>=0 && !!p.name; }) && ['LOST TO THE BLUE','PHASE GRADES','BROUGHT OUT'].every(function(k){ return lw.tally.some(function(t){ return t[0]===k; }); }) && lw.tally.some(function(t){ return /^HELD \d · BENT \d · BROKEN \d$/.test(t[1]); }) && lw.tally.every(function(t){ return t[2]!==0 || t[0]==='LOST TO THE BLUE' || t[4]==='line'; }) && GRADES.indexOf(lw.grade)>=0);
-  startFront(WI2,{go:true,seed:34}); clearNow(); clearNow(); run(BEAT+1); autopilot=IDLE; stageClock=0.5; run(1); autopilot=null;
-  okk('[mission] ...and a PUSH that runs out of clock fails (THE PUSH STALLED)', state==='failed' && lastResult.reason==='push' && lastResult.ck===2, lastResult&&lastResult.reason);
+  startFront(WI2,{go:true,seed:34}); clearNow(); clearNow(); clearNow(); run(BEAT+1); autopilot=IDLE; stageClock=0.5; run(1); autopilot=null;
+  okk('[mission] ...and a PUSH that runs out of clock fails (THE PUSH STALLED)', state==='failed' && lastResult.reason==='push' && lastResult.ck===3, lastResult&&lastResult.reason);
   startFront(0,{go:true,seed:35,side:'gnome'}); clearNow(); clearNow();
   okk('[mission] THE GNOMES fly the same phases, mirrored (the Dover cradle on the gnome side)', GN() && mph===2 && Math.abs(F.drop.x-(WW()-PHASES.dover[2].depot.spots[0]))<1 && friends.filter(function(f){ return f.ph===2; }).every(function(f){ return /^g_/.test(f.who) || f.w.animal; }), 'drop '+Math.round(F.drop.x));
   SIDE='rome'; SHORT=true; startFront(0,{go:true,seed:5000}); var shortN=MPH.length; simRun(FRONTS[0].clock+4, makePilot()); var ls=lastResult||{}; SHORT=false;
@@ -3100,8 +3415,13 @@ function selfTest(){
   okk('a win shows a RESULTS tally (rescued, hull, time, grade)', state==='results' && lrw.tally && lrw.tally.length>=5 && lrw.tally.some(function(t){ return t[0]==='LOST TO THE BLUE'; }) && !!lrw.grade, (lrw.grade||'?')+' · front '+lrw.frontScore);
   rt=2; onPress(' '); var m1=state==='march'; onPress(' ');
   okk('the campaign marches on: Dover -> Nottingham', m1 && state==='brief' && fi===1);
+  var TY=FRONTS.findIndex(function(Fr){ return Fr.key==='tyne'; }), CR=FRONTS.findIndex(function(Fr){ return Fr.key==='crags'; });
   fi=3; F=FRONTS[3]; state='march'; onPress(' ');
-  okk('after the last built front the march ends on THE WALL HOLDS (the rest sealed)', state==='end');
+  okk('the march goes on from W1 SEGEDUNUM to W2 CILURNUM (the Wall arc is unsealed)', state==='brief' && fi===TY);
+  fi=TY; state='march'; onPress(' ');
+  okk('...and on from W2 to W3 VERCOVICIUM', state==='brief' && fi===CR);
+  var SU=FRONTS.findIndex(function(Fr){ return Fr.key==='summit'; }); fi=SU; F=FRONTS[SU]; state='march'; onPress(' ');
+  okk('after W5 WINSHIELDS the march ends on THE WALL HOLDS', state==='end');
   campaign=false;
 
   var pass=R.every(function(r){return r.ok;});

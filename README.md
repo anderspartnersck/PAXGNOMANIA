@@ -2,7 +2,7 @@
 
 ## ▶ [PLAY IT IN YOUR BROWSER][play]
 
-**Status:** playable, not finished. Six fronts play start to finish; the rest of the march is still to be built.
+**Status:** playable, not finished. All sixteen fronts of the march play start to finish, from Dover to the top of the Wall. The duel on the summit is still to be built.
 
 *A TruthJunket TV special.*
 
@@ -61,40 +61,53 @@ Bring out enough before the horn and the front is held.
 | Back to the title | **ESC** | **SELECT** |
 | Sound on/off | **M** | |
 
-On the front map, **1** to **6** jump straight to a front, in march order.
+On the front map, **1** to **9** jump straight to the first nine fronts, in march order.
 There is no pause yet: **ESC** during a front goes back to the title.
 
 The game is laid out for a computer screen, 16:9.
 
 ## The fronts
 
-The campaign follows the Legion's march from Dover to Hadrian's Wall. Six
-fronts are playable now:
+The campaign follows the Legion's march from Dover to Hadrian's Wall, sixteen
+fronts in all. Every front is a mission of three or four phases, and you can
+fly it for Rome or, from the far side, for the gnomes.
 
-1. **THE FALL OF DOVER**: dawn on the white cliffs, the tutorial. The sky is
-   still calm.
+**The fall of Britannia**
+
+1. **THE FALL OF DOVER**: dawn on the white cliffs, the tutorial.
 2. **NOTTINGHAM HOODS**: travellers under the Sherwood canopy, and the Hoods,
    who shoot at anything in the sky.
-3. **THE WELSH WASH**: the dam is broken. Legionaries stand in rising water
-   under a blood-red sun, with ballista bolts, catapult stones and gliders
-   coming at you all at once.
-4. **SEGEDUNUM — WALLSEND**: the first section of the Wall. The Legion raises
-   scaling ladders along the walkway, and you have to get the garrison down
-   before the red hats reach them.
-5. **THE WHITE HORSE VALE**: dawn under the chalk horse on the downs. The host
-   comes out of the east and catches the Legion in the open, half-way through
-   pitching camp, before the fort is up. There are no walls. The catapult, the
-   ballista and the cart hold the red hats while they hack through. On the
-   march it comes between London and the Welsh Wash.
-6. **LONDON CALLING**: night on the Thames bridge, Londinium lamplit on the
-   far bank and the signal fires running north. The bridge is choked with
-   civilians crossing north. Scorpion crews on the south bank fire ballista
-   bolts, and the press of the crowd comes up the deck from the south,
-   pushing anyone it reaches into the river. On the march it is stop 3,
-   between Nottingham and the White Horse Vale.
+3. **LONDON CALLING**: night on the Thames bridge, choked with civilians, while
+   the press of the crowd pushes anyone it reaches into the river.
+4. **LONDON PROPER**: the forum burning, people waiting on the roofs.
+5. **THE WHITE HORSE VALE**: the host catches the Legion in the open under the
+   chalk horse, half-way through pitching camp.
+6. **THE WELSH WASH**: the dam is broken, the water is rising, and the sun is
+   blood-red.
+7. **LIVERPOOL**: troops off the boats and into the line.
+8. **THE SCORPIO LINE**: the bolt-throwers hold the road.
+9. **YORK — EBORACUM**: Davius's town.
 
-London Proper, Liverpool, York and Wall sections W2 to W5 show on the map as
-**SEALED**. W5 ends with Hadrian and the Gnomean King on top of the Wall.
+**Total war to the Wall**
+
+10. **DERE STREET — THE ROAD NORTH**: the road north under ash, and the farms on
+    either side burning. Lift the families off their roofs while the column
+    stalls, then carry the Eagles forward.
+11. **CORIA — THE LAST TOWN**: the stores burn, the night attack comes, and the
+    supply ships have to be unloaded before the road to the Wall opens.
+
+**The Wall**
+
+12. **W1 SEGEDUNUM — WALLSEND**: the Legion raises scaling ladders along the
+    walkway. Get the garrison down, retake the walk, then counterattack.
+13. **W2 CILURNUM — THE TYNE BRIDGE**: the bridge in the rain, the fire coming
+    up the deck behind the last carts, and the fort to hold.
+14. **W3 VERCOVICIUM — THE CRAGS**: turret crews stranded on the Whin Sill
+    crags, and the red hats climbing.
+15. **W4 THE TURF WALL — IN FOG**: a wall of turf, burning, in fog, with the
+    lost cohort somewhere in it.
+16. **W5 WINSHIELDS — THE SUMMIT**: the highest point of the Wall under a blood
+    sky, and the last charge.
 
 ## Ways to play
 
@@ -102,11 +115,11 @@ London Proper, Liverpool, York and Wall sections W2 to W5 show on the map as
   and any key goes to the title.
 - [TITLE][title]: straight to the menu.
 - [THE CAMPAIGN][campaign]: the march from Dover.
-- [FRONT 1 · DOVER][f1] · [FRONT 2 · NOTTINGHAM][f2] ·
-  [FRONT 3 · WELSH WASH][f3] · [FRONT 4 · WALLSEND][f4] ·
-  [FRONT 5 · THE WHITE HORSE VALE][f5] · [FRONT 6 · LONDON CALLING][f6]:
-  one front on its own,
-  starting from its briefing card.
+- [DOVER][f1] · [NOTTINGHAM][f2] · [WELSH WASH][f3] · [WALLSEND][f4] ·
+  [THE WHITE HORSE VALE][f5] · [LONDON CALLING][f6] · [DERE STREET][f11] ·
+  [CORIA][f12] · [THE TYNE BRIDGE][f13] · [THE CRAGS][f14] ·
+  [THE TURF WALL][f15] · [WINSHIELDS][f16]: one front on its own, starting
+  from its briefing card.
 - [CHOOSE A FRONT][select]: the map of the whole march.
 - [HOW TO FLY][howto]: the controls card.
 - [WATCH IT PLAY][demo]: the autopilot flies Dover.
@@ -118,11 +131,12 @@ London Proper, Liverpool, York and Wall sections W2 to W5 show on the map as
 
 - **Sound.** The main theme, *Britannia*, plays on the attract and title, and
   Dover, Nottingham, the Welsh Wash and Wallsend have their own music. The
-  White Horse Vale and London Calling borrow Dover's and Nottingham's for now.
+  later fronts, the road north and Wall sections W2 to W5 borrow those beds
+  for now.
   Most sound effects are in; the ray, the screw, the grab, the horn and a few
   warnings still play placeholder blips.
-- **The rest of the march.** London Proper, Liverpool, York, Wall sections W2 to W5,
-  the climb and the summit duel are designed but not built.
+- **The summit.** The climb up the Wall and the duel on top, Hadrian against
+  the Gnomean King, are designed but not built.
 - **Art.** Commissioned art for the friendly gnome engineers, the wall faces and
   the duel is still to come. The green-capped gnomes you rescue now are
   recoloured red-hat figures standing in for it.
@@ -153,6 +167,12 @@ ballista by Alan Josh Meneses; catapult by Aiden zhou; rocks by Patrik.
 [f4]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=4
 [f5]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=5
 [f6]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=6
+[f11]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=11
+[f12]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=12
+[f13]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=13
+[f14]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=14
+[f15]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=15
+[f16]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=16
 [select]: https://anderspartnersck.github.io/PAXGNOMANIA/?select
 [howto]: https://anderspartnersck.github.io/PAXGNOMANIA/?howto
 [demo]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=1&demo
