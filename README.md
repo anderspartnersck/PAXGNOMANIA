@@ -2,7 +2,7 @@
 
 ## ▶ [PLAY IT IN YOUR BROWSER][play]
 
-**Status:** playable, not finished. All sixteen fronts of the march play start to finish, from Dover to the top of the Wall. The duel on the summit is still to be built.
+**Status:** playable, not finished. All seventeen fronts of the march play start to finish, from Dover past Hadrian's Wall to the Antonine Wall, and the campaign has its ending.
 
 *A TruthJunket TV special.*
 
@@ -68,8 +68,8 @@ The game is laid out for a computer screen, 16:9.
 
 ## The fronts
 
-The campaign follows the Legion's march from Dover to Hadrian's Wall, sixteen
-fronts in all. Every front is a mission of three or four phases, and you can
+The campaign follows the Legion's march from Dover to Hadrian's Wall and
+beyond it, seventeen fronts in all. Every front is a mission of three or four phases, and you can
 fly it for Rome or, from the far side, for the gnomes.
 
 **The fall of Britannia**
@@ -109,6 +109,15 @@ fly it for Rome or, from the far side, for the gnomes.
 16. **W5 WINSHIELDS — THE SUMMIT**: the highest point of the Wall under a blood
     sky, and the last charge.
 
+**Beyond the Wall**
+
+17. **THE ANTONINE WALL — THE UNIVERSAL PROJECT**: the turf rampart under the
+    northern lights, and the forum on top of it. For Rome, fight the tide and
+    carry bolt-sacks from the armoury to the scorpios before they fall silent.
+    For the gnomes, break through and carry the horde, and Davius, up to the
+    forum, where Hadrian is waiting. Win it and the campaign ends: the fall,
+    the walk back to Hadrian's Wall, and a TruthJunket news special.
+
 ## Ways to play
 
 - [PLAY][play]: boots like a cabinet. The TruthJunket special runs to the theme
@@ -118,7 +127,7 @@ fly it for Rome or, from the far side, for the gnomes.
 - [DOVER][f1] · [NOTTINGHAM][f2] · [WELSH WASH][f3] · [WALLSEND][f4] ·
   [THE WHITE HORSE VALE][f5] · [LONDON CALLING][f6] · [DERE STREET][f11] ·
   [CORIA][f12] · [THE TYNE BRIDGE][f13] · [THE CRAGS][f14] ·
-  [THE TURF WALL][f15] · [WINSHIELDS][f16]: one front on its own, starting
+  [THE TURF WALL][f15] · [WINSHIELDS][f16] · [THE ANTONINE WALL][f17]: one front on its own, starting
   from its briefing card.
 - [CHOOSE A FRONT][select]: the map of the whole march.
 - [HOW TO FLY][howto]: the controls card.
@@ -135,8 +144,9 @@ fly it for Rome or, from the far side, for the gnomes.
   for now.
   Most sound effects are in; the ray, the screw, the grab, the horn and a few
   warnings still play placeholder blips.
-- **The summit.** The climb up the Wall and the duel on top, Hadrian against
-  the Gnomean King, are designed but not built.
+- **The duel.** Hadrian against the Gnomean King is designed but not built.
+- **The Antonine Wall.** It borrows the Wall's music and is drawn from
+  existing art for now; its own music and plate are still to come.
 - **Art.** Commissioned art for the friendly gnome engineers, the wall faces and
   the duel is still to come. The green-capped gnomes you rescue now are
   recoloured red-hat figures standing in for it.
@@ -173,6 +183,7 @@ ballista by Alan Josh Meneses; catapult by Aiden zhou; rocks by Patrik.
 [f14]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=14
 [f15]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=15
 [f16]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=16
+[f17]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=17
 [select]: https://anderspartnersck.github.io/PAXGNOMANIA/?select
 [howto]: https://anderspartnersck.github.io/PAXGNOMANIA/?howto
 [demo]: https://anderspartnersck.github.io/PAXGNOMANIA/?front=1&demo

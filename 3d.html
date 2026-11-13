@@ -20,11 +20,12 @@
   URL switches (all documented in the README):
     (none)        the ATTRACT — the TruthJunket special, theme music, any key -> title
     ?title        the title menu            ?campaign   the march from Dover
-    ?front=N      straight to front N (1-16) ?march      the campaign map
+    ?front=N      straight to front N (1-17) ?march      the campaign map
     ?selftest     proof-of-life report      ?demo       autopilot (with ?front=N)
     &go           skip the briefing card    &seed=N     fix the gameplay RNG
     &ff=S         fast-forward S seconds of play under the autopilot (&idle = hands off)
     &shot=win|fail  run the front to its results / failure screen (the screenshot rig)
+    ?outro=K&t=S  THE OUTRO (after front 17) from beat K, S seconds in    ?end  the end card
 -->
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
@@ -187,7 +188,10 @@ function tinted(n,col,amt,sil){
    tiny synthesized placeholder (sfx) or silence (music). Slots: SFX_SLOTS.
    ===================================================================== */
 var MUSIC_THEME='audio/music/britannia-theme.mp3';
-var MUSIC_SLOTS=['front_dover','front_nottingham','front_wash','front_wall','results','failed'];   // + the theme
+var MUSIC_SLOTS=['front_dover','front_nottingham','front_wash','front_wall','results','failed','front_antonine','outro_antonine'];   // + the theme
+// 1113b: the last front's OWN cues are slots Joe can fill (drop web/audio/music/front_antonine.mp3 / outro_antonine.mp3); until a file
+// exists the slot falls back to a bed that does (the Wall bed in play, the theme under the ending).
+var MUSIC_FALLBACK={ front_antonine:'front_wall', outro_antonine:'theme' };
 var SFX_SLOTS={  // slot: synth placeholder [wave, f0, f1, seconds, volume, noise?]
   menu_move:['square',660,660,0.05,0.10], menu_select:['square',520,1040,0.12,0.12], menu_back:['square',520,260,0.10,0.10],
   coin:['triangle',880,1760,0.18,0.14], brief:['triangle',330,330,0.25,0.08],
@@ -211,7 +215,7 @@ function playMusic(name, vol){
   if(old){ fadeEl(old,0,600,true); }
   if(!name) return;
   var el=new Audio(musicPath(name)); el.loop=true; el.volume=0; el._v=vol;
-  el.onerror=function(){ if(AU.cur===el) AU.cur=null; };
+  el.onerror=function(){ if(AU.cur===el){ AU.cur=null; if(MUSIC_FALLBACK[name]){ AU.curName=''; playMusic(MUSIC_FALLBACK[name], vol); } } };
   AU.cur=el;
   var p=el.play(); if(p&&p.then) p.then(function(){ AU.blocked=false; fadeEl(el, AU.muted?0:vol, 900); }).catch(function(){ AU.blocked=true; });
 }
@@ -255,10 +259,15 @@ function synth(slot){
 var D1_WHO_FIRES      = 'legion';   // D1: Legion-crewed captured Roman machines + gnome-crewed Roman siege engines.
                                     //     'friendly' (Rome's own gunners as a W3 twist) is NOT built.
 var D2_WAR_ENDS_ON_WALL = true;     // D2: York is the gateway; the war ends on Hadrian's Wall (the march map shows it so).
+var D10_LAST_FRONT   = 'antonine';  // 1113b: the campaign ends BEYOND the Wall (Joe 13/11) — W5 is no longer the finale
 var D3_WALL_LEVELS    = ['W1 SEGEDUNUM — WALLSEND','W2 CILURNUM — THE TYNE BRIDGE','W3 VERCOVICIUM — THE CRAGS',
                          'W4 THE TURF WALL — IN FOG','W5 WINSHIELDS — THE SUMMIT'];   // D3: five — BUILT 1113 as horizontal LEVELS (Joe 13/11: "just make them levels"), after THE ROAD NORTH (Dere Street, Coria).
-var STILL_TO_COME     = ['THE DUEL ON THE SUMMIT — HADRIAN AND THE GNOMEAN KING' /* DRAFT */,'WHO FALLS FROM THE WALL' /* DRAFT */,'LOST TO HISTORY' /* DRAFT */];   // the summit set piece (D4/D5): NOT built, art owed
-var D4_WHO_FALLS      = 'A';        // D4: THE SCALES (save Romans -> Hadrian wins; gnomes -> the King). NOT BUILT (summit stubbed).
+// 1113b — Joe 13/11 answered "who falls": HADRIAN, at the ANTONINE WALL (front 17, THE UNIVERSAL PROJECT), from the top of the wall
+// and his final forum, both sides alike; then the retreat to Hadrian's Wall, the TJTV crawl and Dr. Wolfe's analysis (THE OUTRO).
+// W5 Winshields keeps THE LAST CHARGE. The Hadrian-vs-Gnomean-King DUEL (D4 THE SCALES / D5) stays OWED — a W5 extra, not the ending.
+var END_LINES         = ['THE SURVIVORS WALKED BACK TO HADRIAN\'S WALL.' /* DRAFT */,'THE MACHINES WERE NEVER SEEN AGAIN.' /* DRAFT */,
+                         'NEITHER WERE THE GNOMES. EXCEPT, POSSIBLY, DAVIUS.' /* DRAFT */];
+var D4_WHO_FALLS      = 'A';        // D4: THE SCALES (save Romans -> Hadrian wins; gnomes -> the King). The duel is NOT BUILT (owed); who falls = Hadrian (front 17).
 var D5_GNOMEAN_KING   = 'the Gnomean General, crowned';   // D5: no new canon character; the General takes the crown. NOT BUILT.
 var D6_OWN_PAGE       = true;       // D6: this page, HADRIAN art only. (The Gunpowder-page probe was left alone.)
 var D7_FRIENDLY_LOOK  = { caps:'green', helpFlag:true, glow:true };   // D7: green caps + HELP flags + a soft cyan glow
@@ -328,7 +337,8 @@ var WHO={
   c_woman: {art:'civ_woman',      h:62, name:'CIVILIAN'},
   c_scribe:{art:'civ_scribe',     h:58, name:'THE CLERK'},
   c_eng:   {art:'engineer_plans', h:70, name:'ENGINEER'},
-  davius:  {art:'gnome_engineer', h:62, name:'DAVIUS', gnome:true, vip:true},  // YORK: placeholder art until Joe's Davius lands (PAX-OPEN-HANDOFF)
+  davius:  {art:'gnome_engineer', h:62, name:'DAVIUS', gnome:true, vip:true},
+  bolts:   {art:'follower_sack',  h:62, name:'BOLTS' /* DRAFT */, ammo:true},          // THE ANTONINE WALL: an armourer with a sack of scorpio bolts (THE SUPPLY)  // YORK: placeholder art until Joe's Davius lands (PAX-OPEN-HANDOFF)
   // THE GNOME SIDE's people (the gnome-war set already in the PAX art): the wounded and cut-off to bring out, red hats to drop on the line
   g_wound: {art:'gnome_engineer', h:58, name:'WOUNDED', gnome:true},
   g_xbow:  {art:'gnome_crossbow', h:62, name:'WOUNDED', gnome:true},
@@ -342,7 +352,7 @@ var WHO={
   g_arch:  {art:'gn_wizard_b',    h:72, name:'THE ARCH-WIZARD' /* DRAFT */, gnome:true, vip:true}
 };
 var GN_TROOP=['g_axe','g_spear','g_shield','g_heavy'], GN_PEOPLE=['g_wound','g_xbow','g_cut','g_wiz'];
-function gnWho(who,i){ var w=WHO[who]; if(!w || w.animal || /^g_/.test(who)) return who; if(w.vip) return 'g_arch';
+function gnWho(who,i){ var w=WHO[who]; if(!w || w.animal || w.ammo || /^g_/.test(who)) return who; if(w.vip) return 'g_arch';
   if(who==='signifer'||who==='cornicen') return 'g_banner'; return w.troop ? GN_TROOP[i%GN_TROOP.length] : GN_PEOPLE[i%GN_PEOPLE.length]; }
 var LEGION={   // the Red Hat Legion on foot: art, drawn height, ray value, ray lock seconds, walk speed px/s
   axe:   {art:'gnome_axe',      h:64, val:150, lock:0.85, spd:46},
@@ -661,9 +671,9 @@ var FRONTS=[
     hazards:{ thopters:{start:8, every:8.5}, gliders:{start:14, every:16}, upbolts:{start:18, every:9} }, ladders:[{at:5,x:1300},{at:46,x:2100}] },
   // W5 — WINSHIELDS, THE SUMMIT. The Wall's highest point and the end of the war (D2): everything at once, on the crags,
   // under a blood sky. The 10/14 duel (Hadrian vs the Gnomean King, THE SCALES) is NOT built — its art is owed; this is
-  // the battle around where it will stand. The march ends here.
+  // the battle around where it will stand. (1113b: no longer the end — the march goes on north to the Antonine Wall, front 17.)
   { key:'summit', title:'WINSHIELDS — THE SUMMIT' /* DRAFT */, latin:'W5 · THE HIGHEST POINT OF THE WALL · THE LAST DAY' /* DRAFT */, place:'WINSHIELDS CRAGS' /* DRAFT */, time:'blood', gy:610, clock:115,
-    music:'front_wall', wall:true, wallLook:'crag', ww:3200, world:true, high:'crags', finale:true,
+    music:'front_wall', wall:true, wallLook:'crag', ww:3200, world:true, high:'crags',
     brief:'Winshields: the highest point of the Wall, and the whole war has come up the hill to it. Both armies are on the crags. Every engine the red hats have is at the foot. Get our people off the summit — all of them.' /* DRAFT */,
     wolfe:'"The highest point on the Wall. Where it ended. Or began. History is vague. History was, at the time, ON FIRE."' /* DRAFT */,
     newThing:'EVERYTHING — ladders, bolts from the foot, taken thopters, gliders, catapult stones, the wizards. The crews are on the crags. Bring them down to the milecastle.' /* DRAFT */,
@@ -676,7 +686,34 @@ var FRONTS=[
     legion:{start:999, every:99, size:0, max:0, kinds:['axe'], from:'both', hunts:1},
     siege:[{at:12,x:2600},{at:28,x:1800},{at:44,x:2300},{at:62,x:1300},{at:80,x:2900}],
     war:{breachPer:0.005, wizard:{start:20,every:26}},
-    hazards:{ upbolts:{start:7, every:7.5}, thopters:{start:12, every:10}, gliders:{start:18, every:18}, stones:{start:26, every:11} }, ladders:[{at:5,x:1300},{at:40,x:2200},{at:76,x:1700}] }
+    hazards:{ upbolts:{start:7, every:7.5}, thopters:{start:12, every:10}, gliders:{start:18, every:18}, stones:{start:26, every:11} }, ladders:[{at:5,x:1300},{at:40,x:2200},{at:76,x:1700}] },
+  // FRONT 17 — THE ANTONINE WALL: THE UNIVERSAL PROJECT (Claude 1113b). Joe 13/11: "a final mission where Hadrian is confronted
+  // even further north at the Antonine Wall and call it the Universal Project … the gnomes break through and the horde and davius
+  // make it to him at the top of the wall and final forum, falling all the way down. from the roman side, you must fight the tide
+  // and provide ammo to the bolt throwers … the game will end relatively the same way". A turf rampart on a stone base, the forum
+  // (the command platform) on top of it. THE SUPPLY (Rome only): the scorpios on the walk are crewed but run on BOLTS — carry the
+  // armourers' bolt-sacks from THE ARMOURY to them; a scorpio with no bolts falls SILENT and the breach climbs faster.
+  // The gnome side is the main story (the mirror): the breakthrough, Davius and the horde up to the forum. Both end in THE OUTRO.
+  { key:'antonine', title:'THE ANTONINE WALL' /* DRAFT */, latin:'VALLVM ANTONINI · BEYOND THE WALL · THE UNIVERSAL PROJECT' /* DRAFT */, place:'THE ANTONINE WALL' /* DRAFT */, time:'aurora', gy:600, clock:125,
+    music:'front_antonine', wall:true, wallLook:'antonine', ww:3400, world:true, high:'rampart', beyond:true, ending:true, finale:true, forum:2500,
+    brief:'Beyond his own Wall, on a rampart of turf, Hadrian has built a forum. The whole host is coming over. Feed the scorpios; bring the garrison in.' /* DRAFT */,
+    wolfe:'"The Antonine Wall was built AFTER Hadrian died. Everybody knows that. Everybody was TOLD that."' /* DRAFT */,
+    newThing:'THE SUPPLY — carry the armourers\' bolt-sacks from THE ARMOURY and set them down LOW at a SCORPIO. A dry scorpio falls SILENT, and the breach climbs.' /* DRAFT */,
+    barks:['THE SCORPIOS ARE RUNNING DRY — BOLTS!' /* DRAFT */,'THE WHOLE HOST IS ON THE RAMPART!' /* DRAFT */,'FEED THE BOLT-THROWERS OR WE LOSE THE WALK!' /* DRAFT */],
+    subs:['The Antonine Wall: turf on a stone base, from the Forth to the Clyde.' /* DRAFT */,'DAVIUS: \'Further north than the Wall. Further north than SENSE.\'' /* DRAFT */],
+    endAll:'THE RAMPART HELD TO THE LAST BOLT.' /* DRAFT */, endHorn:'The horn. Then the forum. Then nothing anyone wrote down.' /* DRAFT */,
+    gnome:{ title:'THE ANTONINE WALL' /* DRAFT */, place:'THE TURF RAMPART' /* DRAFT */, latin:'VALLVM ANTONINI · THE HORDE COMES OVER · THE END OF THE UNIVERSAL PROJECT' /* DRAFT */,
+      brief:'The last wall, the Emperor\'s forum on top. Bring in the cut-off, break the line, then carry Davius and the horde up. Hadrian is waiting.' /* DRAFT */,
+      newThing:'THE BREAKTHROUGH — drop the horde on the line until the rampart gives, then carry DAVIUS and the horde to THE FORUM STAIR, and hold while they climb.' /* DRAFT */,
+      endAll:'THE HORDE IS ON THE FORUM.' /* DRAFT */, endHorn:'The horde is on the forum. The Emperor is at the edge.' /* DRAFT */, depotName:'THE FORUM STAIR' /* DRAFT */, need:4 },
+    friends:[{x:620,who:'leg_a'},{x:860,who:'cornicen'},{x:1120,who:'leg_c',rock:70},{x:1380,who:'leg_b'},{x:1640,who:'signifer'},
+             {x:1900,who:'leg_a',rock:110},{x:2160,who:'engineer'},{x:2420,who:'leg_c'},{x:2780,who:'leg_b',rock:90},{x:3060,who:'elder'}],
+    need:6, drop:{x:170,w:230,label:'THE FORT' /* DRAFT */},
+    supply:{ emps:[880,1480,2080,2700], ammo:5, cap:8, per:4, armoury:{x:430, every:4.5, max:3, start:1} },
+    legion:{start:999, every:99, size:0, max:0, kinds:['axe'], from:'both', hunts:1},
+    siege:[{at:8,x:2900},{at:20,x:1800},{at:33,x:2400},{at:47,x:1200},{at:62,x:3100},{at:78,x:2000}],
+    war:{breachPer:0.005, wizard:{start:22,every:28}, machines:[{at:40,kind:'tower'}]},
+    hazards:{ upbolts:{start:8, every:8}, thopters:{start:13, every:11}, gliders:{start:20, every:20}, stones:{start:28, every:13}, bolts:{start:34, every:14} }, ladders:[{at:5,x:1200},{at:44,x:2300},{at:80,x:1700}] }
 ];
 
 // the whole march, in order — built fronts carry their FRONTS index; the rest are sealed (stubbed)
@@ -687,7 +724,8 @@ var MARCH=[
   {name:'DERE STREET — THE ROAD NORTH' /* DRAFT */, f:10, approach:true}, {name:'CORIA — THE LAST TOWN' /* DRAFT */, f:11, approach:true},
   {name:'W1 SEGEDUNUM — WALLSEND', f:3, wall:true}, {name:'W2 CILURNUM — THE TYNE BRIDGE', f:12, wall:true},
   {name:'W3 VERCOVICIUM — THE CRAGS', f:13, wall:true}, {name:'W4 THE TURF WALL — IN FOG', f:14, wall:true},
-  {name:'W5 WINSHIELDS — THE SUMMIT', f:15, wall:true}
+  {name:'W5 WINSHIELDS — THE SUMMIT', f:15, wall:true},
+  {name:'THE ANTONINE WALL — THE UNIVERSAL PROJECT' /* DRAFT */, f:16, wall:true, beyond:true}   // Claude 1113b: the last front (FRONTS index 16 = ?front=17)
 ];
 
 /* ---------- THE FRONT BUILDER: the authored front -> the front you fly (wide map stretch, then the gnome-side mirror) ----------
@@ -718,7 +756,12 @@ function buildFront(idx, side){
   if(B.muster) O.muster={ x:M(B.muster.x), every:B.muster.every, max:B.muster.max, who:B.muster.who, start:B.muster.start };
   if(B.escort){ O.escort={}; for(k in B.escort) O.escort[k]=B.escort[k]; O.escort.emps=B.escort.emps.map(M);
     O.escort.party=B.escort.party.map(function(p,i){ return { x:M(p.x), who:gn?gnWho(p.who,i):p.who }; }); }
-  if(gn){ ['title','latin','brief','subs','place','endAll','endHorn','phases','barks','newThing'].forEach(function(t){ if(G[t]!=null) O[t]=G[t]; });
+  // THE SUPPLY (Claude 1113b, the Antonine Wall): Rome's crewed scorpios run on bolts carried from THE ARMOURY. Rome only — the
+  // gnome side of the last front is the breakthrough (its own phases), not a mirrored supply run.
+  O.supply=null; if(B.supply && !gn){ O.supply={ emps:B.supply.emps.map(X), ammo:B.supply.ammo, cap:B.supply.cap, per:B.supply.per,
+    armoury:{ x:X(B.supply.armoury.x), every:B.supply.armoury.every, max:B.supply.armoury.max, start:B.supply.armoury.start } }; }
+  if(B.forum!=null) O.forum=X(B.forum);
+  if(gn){ ['title','latin','brief','subs','place','endAll','endHorn','phases','barks','newThing','need'].forEach(function(t){ if(G[t]!=null) O[t]=G[t]; });
     if(G.war) O.war=Object.assign({}, B.war||{}, G.war);   // per-side war tuning (the mirror is not always symmetric)
     if(!G.brief) O.brief='THE SAME BATTLE, FROM THE RED HAT SIDE. Bring the wounded and the cut-off back to '+O.drop.label+'. Drop fresh red hats where the line bends. THE RAY lifts the Roman machines.' /* DRAFT */;
     if(!G.latin) O.latin=(B.latin||'')+' · FOR THE LEGION OF THE RED HAT' /* DRAFT */;
@@ -948,6 +991,46 @@ var PHASES={
     {name:'THE LAST CHARGE', kind:'push', gain:0.12, clock:100, breach:0.05, hazards:{upbolts:{start:10,every:10}, thopters:{start:999,every:999}, gliders:{start:999,every:999}, stones:{start:999,every:999}},  sub:'EVERY COHORT LEFT — DOWN THE HILL AND INTO THEM',
      line:['onHadrian','"Hadrian\'s last order on the Wall was one word. Historians disagree which word. Most agree it was not \'retreat\'."'],
      muster:{x:300, every:5.5, max:3, start:2, who:['leg_a','leg_b','leg_c']}, war:{morale:0.3, lean:0.7, machines:[{at:30,kind:'ram'},{at:60,kind:'tower'}], wizard:{start:20,every:26}, volley:{start:6,every:7}}, gwar:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}} ]
+  ,
+  // ---- FRONT 17: THE ANTONINE WALL — THE UNIVERSAL PROJECT (Claude 1113b; every name / sub / line DRAFT) ----
+  // Rome: fight the tide AND feed the scorpios (feed:N = bolt-sacks delivered before the hold's clock, or THE SCORPIOS FALL SILENT).
+  // The gnomes (g: = the gnome side's own phase, merged over it): the breakthrough, then Davius and the horde up to the forum.
+  // Hadrian speaks here, for the first and last time (Joe 1113: "have hadrian lament the loss of the philhellenic ideal") — the
+  // card still cuts to his BUST (SPK.hadrian), never a face.
+  antonine:[
+    {name:'THE TIDE COMES IN', gname:'THE FOOT OF THE RAMPART', sub:'BRING THE GARRISON IN OFF THE WALK — AND KEEP THE SCORPIOS FED' /* DRAFT */},
+    {name:'FEED THE SCORPIOS', kind:'hold', clock:85, breach:0.05, feed:4, sub:'HOLD THE WALK — CARRY THE BOLTS FROM THE ARMOURY TO EVERY SCORPIO' /* DRAFT */,
+     line:['hadrian','"One empire. One reason. Greek letters carved in a Caledonian bog. That was the project — the UNIVERSAL project. Listen to them singing over it."' /* DRAFT */],
+     siege:[{at:5,x:3000},{at:16,x:1900},{at:28,x:2500},{at:41,x:1300},{at:55,x:2800},{at:69,x:2100}],
+     hazards:{upbolts:{start:6,every:12}, thopters:{start:10,every:14}, gliders:{start:999,every:999}, stones:{start:20,every:18}, bolts:{start:999,every:999}},
+     war:{breachLine:0.012, machines:[{at:8,kind:'ram'},{at:36,kind:'tower'}], volley:{start:6,every:7}},
+     friends:[{x:2300,who:'leg_b'},{x:3000,who:'leg_a'}],
+     g:{name:'THE BREAKTHROUGH', kind:'push', gain:0.18, clock:100, sub:'DROP THE HORDE ON THE LINE — BREAK THE RAMPART' /* DRAFT */, friends:[],
+        muster:{x:300, every:5.5, max:3, start:2, who:['leg_a','leg_b','leg_c']}, siege:[],
+        hazards:{upbolts:{start:12,every:12}, thopters:{start:999,every:999}, gliders:{start:999,every:999}, stones:{start:999,every:999}, bolts:{start:14,every:14}},
+        war:{morale:0.3, lean:0.7, machines:[{at:30,kind:'ram'},{at:60,kind:'tower'}], volley:{start:6,every:7}}},
+     gline:['hadrian','"Graeculus, they called me. Little Greek. I gave them Athens. They gave me a ditch with a hedge on it. Here they come, over the hedge."' /* DRAFT */]},
+    {name:'THE FORUM ON THE WALL', sub:'THE FORUM STAFF ARE CUT OFF ON THE RAMPART — BRING THEM DOWN' /* DRAFT */, need:5, clock:110, breach:0.05,
+     line:['hadrian','"I built libraries in Athens. I built THIS in the rain. I was told they were the same idea. Were they?"' /* DRAFT */],
+     friends:[{x:2100,who:'c_scribe',rock:90},{x:2300,who:'leg_c',rock:130},{x:2420,who:'c_eng',rock:150},{x:2560,who:'signifer',rock:120},{x:2700,who:'c_scribe',rock:80},
+              {x:2860,who:'leg_a',rock:140},{x:3020,who:'cornicen',rock:100},{x:3180,who:'leg_b'}],
+     depot:{kind:'pen', cap:4, spots:[1500,1300], name:'THE RAMPART PEN' /* DRAFT */},
+     siege:[{at:12,x:2900},{at:42,x:2200},{at:72,x:3100}],
+     hazards:{upbolts:{start:6,every:10}, thopters:{start:9,every:12}, gliders:{start:16,every:18}, stones:{start:24,every:18}, bolts:{start:30,every:16}}, ladders:[{at:6,x:1900},{at:50,x:2600}],
+     g:{name:'THE HORDE CLIMBS', need:5, clock:120, sub:'CARRY DAVIUS AND THE HORDE TO THE FORUM STAIR' /* DRAFT */,
+        friends:[{x:420,who:'davius',keep:true},{x:560,who:'g_axe'},{x:700,who:'g_spear'},{x:840,who:'g_shield'},{x:980,who:'g_banner'},{x:1120,who:'g_axe'},{x:1260,who:'g_heavy'},{x:1400,who:'g_cut'}],
+        depot:{kind:'pen', cap:4, spots:[2500,2340], name:'THE FORUM STAIR' /* DRAFT */, own:true}, siege:[], ladders:[{at:6,x:800},{at:50,x:1100}],
+        hazards:{bolts:{start:10,every:13}, thopters:{start:14,every:16}, stones:{start:999,every:999}, upbolts:{start:999,every:999}, gliders:{start:999,every:999}}},
+     gline:['hadrian','"Pericles would have stood here. No. Pericles would have had the sense to stay in Athens."' /* DRAFT */]},
+    {name:'THE TIDE', kind:'hold', clock:90, breach:0.05, feed:4, sub:'THE LAST BOLTS — HOLD THE WALK UNTIL THE HORN' /* DRAFT */,
+     line:['hadrian','"The Greeks drew the machines. The gnomes built them. Rome only paid. Perhaps that is all Rome ever was: the one who PAYS."' /* DRAFT */],
+     siege:[{at:4,x:2900},{at:14,x:1600},{at:25,x:2300},{at:37,x:1100},{at:50,x:3100},{at:63,x:1900},{at:76,x:2600}],
+     hazards:{upbolts:{start:6,every:12}, thopters:{start:9,every:14}, stones:{start:16,every:18}, gliders:{start:999,every:999}, bolts:{start:999,every:999}},
+     war:{breachLine:0.012, machines:[{at:8,kind:'tower'},{at:30,kind:'ram'},{at:54,kind:'catapult'}], wizard:{start:12,every:22}, volley:{start:5,every:6.5}},
+     g:{name:'THE FINAL FORUM', kind:'hold', clock:80, sub:'HOLD THE RAMPART — THE HORDE IS ON THE FORUM STAIR' /* DRAFT */, siege:[],
+        hazards:{bolts:{start:8,every:12}, thopters:{start:10,every:14}, upbolts:{start:999,every:999}, stones:{start:999,every:999}, gliders:{start:999,every:999}},
+        war:{shift:0.15, machines:[{at:24,kind:'ram'}], volley:{start:9,every:10}}},
+     gline:['hadrian','"Is that a GOATHERD? On my forum? Of course it is. Of course it is."' /* DRAFT */]} ]
 };
 var GN_PHASE=[['wolfe','"The red hats regrouped. Historians call it a regroup. The red hats called it SECONDS."'],
   ['wolfe','"From the red hat side, the battle simply went on. The red hats did not call it a NEW phase. They called it Tuesday."'],
@@ -957,12 +1040,13 @@ function PK(){ return (MPH[mph]&&MPH[mph].kind)||'rescue'; }
 function phasesFor(idx){ var Fr=FRONTS[idx], L=PHASES[Fr.key]; return (!L||SHORT) ? [(L&&L[0])||{name:Fr.title}] : L; }
 function missionClock(idx){ var L=phasesFor(idx), s=0; for(var i=0;i<L.length;i++) s+=(i?L[i].clock+BEAT:FRONTS[idx].clock); return s; }   // the longest the front can run
 function missionStart(){
-  MPH=phasesFor(fi).map(function(p,i){ var o={},k; for(k in p) o[k]=p[k]; o.kind=o.kind||'rescue'; if(i===0){ o.clock=F.clock; o.need=F.need; } if(GN()&&o.gname) o.name=o.gname; return o; });
+  MPH=phasesFor(fi).map(function(p,i){ var o={},k; for(k in p) o[k]=p[k]; o.kind=o.kind||'rescue'; if(GN()&&p.g){ for(k in p.g) o[k]=p.g[k]; o.kind=o.kind||'rescue'; }   /* 1113b: g = the gnome side's own phase (the last front's mirror is not a mirror) */
+    if(i===0){ o.clock=F.clock; o.need=F.need; } if(GN()&&o.gname) o.name=o.gname; return o; });
   mph=0; phaseLog=[]; beatT=0; cardPrev=null; cardT=cardDur=MPH.length>1?3.2:0; pushTo=0;
   for(var i=0;i<friends.length;i++) friends[i].ph=0;
   phaseOpen();
 }
-function phaseOpen(){ PREC={ i:mph, name:MPH[mph].name, kind:PK(), t0:simT, us0:usR(), low:usR(), bmax:war?war.breach:0, hp0:hp, lost0:stats.lost, blue0:stats.blue }; }
+function phaseOpen(){ PREC={ i:mph, name:MPH[mph].name, kind:PK(), feed:MPH[mph].feed||0, fed0:stats.fed||0, t0:simT, us0:usR(), low:usR(), bmax:war?war.breach:0, hp0:hp, lost0:stats.lost, blue0:stats.blue }; }
 function phaseLineOf(rec){ if(!war) return 'HELD'; if(F.wall&&!GN()) return rec.bmax<0.35?'HELD':rec.bmax<0.7?'BENT':'BROKEN';
   var d=rec.us1-rec.us0; return rec.low<=war.W.breakAt+0.02 ? 'BROKEN' : (d<-0.04 || rec.low<=war.W.breakAt+0.08) ? 'BENT' : 'HELD'; }   // BROKEN = it went to the break (and only a front that survived it can show that)
 function phaseGradeOf(rec){ var g;
@@ -973,7 +1057,7 @@ function phaseGradeOf(rec){ var g;
 function phaseClose(reason){
   var rec=PREC||{}; PREC=null;
   rec.reason=reason; rec.t=+(simT-rec.t0).toFixed(1); rec.clock=F.clock; rec.brought=rescuedN(); rec.of=objN(); rec.need=F.need;
-  rec.lost=stats.lost-rec.lost0; rec.blue=stats.blue-rec.blue0; rec.us1=usR(); rec.hit=hp<rec.hp0;
+  rec.fed=(stats.fed||0)-(rec.fed0||0); rec.lost=stats.lost-rec.lost0; rec.blue=stats.blue-rec.blue0; rec.us1=usR(); rec.hit=hp<rec.hp0;
   rec.left = rec.kind==='hold' ? 0 : Math.max(0,Math.ceil(Math.min(stageClock,F.clock)));
   rec.line=phaseLineOf(rec); rec.grade=phaseGradeOf(rec); rec.pts=MPH.length>1?PHASE_PTS[rec.grade]:0; score+=rec.pts;
   phaseLog.push(rec); return rec;
@@ -987,13 +1071,13 @@ function enterPhase(k,o){
   var cp=function(a,b){ var r={},q; for(q in a||{}) r[q]=a[q]; for(q in b||{}) r[q]=b[q]; return r; };
   mph=k; phase=Math.min(3,phase+1);
   // the last phase's stranded who are still on the ground make their own way (no longer the job); whoever you carry stays on
-  for(i=0;i<friends.length;i++){ f=friends[i]; if(f.ph!=null && f.ph<k && !f.muster && !f.escort && f.st==='ground') f.st='gone'; }
+  for(i=0;i<friends.length;i++){ f=friends[i]; if(f.ph!=null && f.ph<k && !f.muster && !f.escort && !f.ammo && f.st==='ground') f.st='gone'; }
   if(S.adopt==='vip') for(i=0;i<friends.length;i++){ f=friends[i]; if(f.w.vip && f.st!=='lost'){ f.escort=false; f.ph=k; } }
-  (S.friends||[]).forEach(function(d,j){ var nf_=mkFriend(M(d.x), GN()?gnWho(d.who,j):d.who, friends.length, d.rock||0); nf_.ph=k; if(o.silent) nf_.st='gone'; friends.push(nf_); });
+  (S.friends||[]).forEach(function(d,j){ var nf_=mkFriend(M(d.x), GN()&&!d.keep?gnWho(d.who,j):d.who, friends.length, d.rock||0); nf_.ph=k; if(o.silent) nf_.st='gone'; friends.push(nf_); });
   F.need=S.need||0; F.clock=S.clock; stageClock=S.clock+(o.beat?BEAT:0); hornSet=false; beatT=o.beat?BEAT:0;
   if(S.depot){ var old=depot; F.depot=cp(F.depot,S.depot);
     if(S.depot.spots) F.depot.spots=S.depot.spots.map(M);
-    if(GN()){ F.depot.name=F.depot.kind==='cradle'?'THE RED HAT CRADLE':'THE RED HAT PEN' /* DRAFT */; if(!F.depot.crew||F.depot.crew==='screws'||F.depot.crew==='thopters') F.depot.crew='taken'; }
+    if(GN() && !S.depot.own){ F.depot.name=F.depot.kind==='cradle'?'THE RED HAT CRADLE':'THE RED HAT PEN' /* DRAFT */; if(!F.depot.crew||F.depot.crew==='screws'||F.depot.crew==='thopters') F.depot.crew='taken'; }
     for(i=0;i<friends.length;i++) if(old && depotIn(friends[i])) friends[i].away=true;
     var D=depotCfg(); depot={ D:D, i:0, n:0, st:o.silent?'open':'drop', t:0, serial:(old?old.serial:0)+1, lifts:old?old.lifts:0, drops:(old?old.drops:0)+1, raids:old?old.raids:0, phases:old?old.phases:0, raidG:null };
     F.drop.x=D.spots[0]; F.drop.label=D.name; }
@@ -1006,6 +1090,7 @@ function enterPhase(k,o){
   siege=(S.siege||[]).map(function(s){ var x=M(s.x); return { x:x, at:s.at, st:'pending', t:0, sent:0, nextT:0, art:(x%2?'tower':'ladders') }; });
   if(S.muster) F.muster={ x:M(S.muster.x), every:S.muster.every, max:S.muster.max, who:S.muster.who, start:S.muster.start };
   musterT=F.muster ? (S.muster&&S.muster.start!=null?S.muster.start:2) : 1e9;
+  if(F.supply) armouryT=0;   // 1113b: every phase's clock restarts, so does the armoury's
   if(S.water){ F.water=cp(F.water,S.water); if(S.water.reset) waterY=GY()+F.water.from; }
   if(S.press){ F.press=cp(F.press,S.press); if(S.press.reset) pressX=F.press.from; }
   if(war){ var W=war.W, Sw=cp(S.war, GN()?S.gwar:null);   // gwar: the gnome side's own tuning (the mirror is not always symmetric)
@@ -1048,11 +1133,11 @@ function retryCheckpoint(){ var ck=CK; startFront(fi,{retry:true, go:true, ck:ck
    STATE
    ===================================================================== */
 var state='attract', simT=0, rt=0;       // simT = sim seconds (play only), rt = real seconds (presentation)
-var blueT=0, blueWarn=0, blueRun=0; var F=null, fi=0, campaign=false, demo=false, autopilot=null;
+var blueT=0, blueWarn=0, blueRun=0, runSaved=0; var F=null, fi=0, campaign=false, demo=false, autopilot=null;
 var score=0, scoreAtStart=0, hp=HULL, stageClock=0, hornSet=false;
 var P=null, friends=[], legion=[], haz=[], shots=[], fx=[], pickups=[], siege=[], gear=[], roofs=[], ramSpawned={};
 var hzT={}, legionT=0, waterY=0, pressX=-1e9, ladderT=0, ladderSpawned={}, tipDone={};
-var emps=[], unloadT=0, musterT=1e9, musterN=0;
+var emps=[], unloadT=0, musterT=1e9, musterN=0, armouryT=1e9, armouryN=0;
 var stats=null, lastResult=null, hzLog=[], msg='', msgCol='#fff', msgT=0, shake=0;
 var ROPEVIS={th:0,om:0,lx:null,pv:0};
 
@@ -1072,7 +1157,7 @@ function surfAt(x){ if(inDrop(x)) return dropSurf(); var rf=roofAt(x); return rf
 function roofAt(x){ for(var i=0;i<roofs.length;i++){ var r=roofs[i]; if(r.st!=='burn' && Math.abs(x-r.x)<=r.w/2) return r; } return null; }
 function flash(m,c,s){ msg=m; msgCol=c||'#efe3c4'; msgT=s||1.2; }
 function mkFriend(x,who,i,rock){ var w=WHO[who]; return { x:x, who:who, w:w, rock:rock||0, st:'ground', y:GY()-(rock||0), vy:0, cd:0, prog:0, fade:0, how:'', ph:i*1.7, sink:0 }; }
-function objF(f){ return !f.muster && !f.escort && (f.ph==null || f.ph===mph); }   // + THIS phase's stranded only (THE MISSIONS)       // the stranded you are scored on (not the muster's fresh troops, not the escort party)
+function objF(f){ return !f.muster && !f.escort && !f.ammo && (f.ph==null || f.ph===mph); }   // + THIS phase's stranded only (THE MISSIONS)       // the stranded you are scored on (not the muster's fresh troops, not the escort party)
 function objN(){ var n=0; for(var i=0;i<friends.length;i++) if(objF(friends[i])) n++; return n; }
 function rescuedN(){ var n=0; for(var i=0;i<friends.length;i++) if(friends[i].st==='safe' && objF(friends[i])) n++; return n; }
 function lostN(){ var n=0; for(var i=0;i<friends.length;i++) if(friends[i].st==='lost' && objF(friends[i])) n++; return n; }
@@ -1099,6 +1184,8 @@ function startFront(idx, opt){
   emps=[]; unloadT=0; musterN=0; musterT=F.muster?(F.muster.start!=null?F.muster.start:5):1e9;
   if(F.escort){ emps=F.escort.emps.map(function(x,i){ return { x:x, i:i, st:'empty', sight:0, crew:null, fireT:1.0, shots:0, shotAt:-9, tx:0, ty:0 }; });
     F.escort.party.forEach(function(p,i){ var f=mkFriend(p.x, p.who, friends.length, 0); f.escort=true; friends.push(f); }); }
+  if(F.supply){ emps=F.supply.emps.map(function(x,i){ return { x:x, i:i, st:'manned', supply:true, ammo:F.supply.ammo, silent:false, sight:EMP_SIGHT, crew:null, fireT:1.5+i*0.9, shots:0, shotAt:-9, tx:0, ty:0 }; }); }
+  armouryT=F.supply?F.supply.armoury.start:1e9; armouryN=0;
   hzT={}; var H=F.hazards||{};
   ['bolts','arrows','upbolts','thopters','gliders','stones'].forEach(function(k){ hzT[k]= H[k] ? H[k].start : 1e9; });
   legionT=F.legion.start;
@@ -1108,7 +1195,7 @@ function startFront(idx, opt){
   gear=(F.gear||[]).map(function(g){ var G=GEAR[g.kind]; return { x:g.x, kind:g.kind, G:G, hp:G.hp||GEAR_HP, max:G.hp||GEAR_HP, att:0, hitT:-9, wreck:false }; });
   roofs=(F.roofs||[]).map(function(r){ return { x:r.x, w:r.w, h:r.h, st:'ok', t:0, gT:0 }; }); ramSpawned={};
   if(F.swarm) for(var n=0;n<F.swarm.n;n++) spawnGnome(F.legion.kinds[(rng()*F.legion.kinds.length)|0], rr(F.swarm.x0,F.swarm.x1), -1);
-  stats={ beamed:0, dodged:0, hits:0, lost:0, spun:0, troops:0, empShots:0, blue:0 }; blueT=0; blueWarn=0; barkQ=null; barkT=0; barkCd={};
+  stats={ beamed:0, dodged:0, hits:0, lost:0, spun:0, troops:0, empShots:0, blue:0, fed:0, silentS:0 }; blueT=0; blueWarn=0; barkQ=null; barkT=0; barkCd={};
   warStart(opt.seed!=null?opt.seed:(SEED+idx*7919)); btFront=null;
   lastResult=null; ROPEVIS={th:0,om:0,lx:null,pv:0};
   CK=null; if(!opt.ck) ckUses=0; missionStart(); if(opt.ck) applyCheckpoint(opt.ck);
@@ -1164,7 +1251,7 @@ function onPress(k){
     if(k==='ArrowUp'||k==='w'){ menuI=(menuI+MENU.length-1)%MENU.length; sfx('menu_move'); }
     else if(k==='ArrowDown'||k==='s'){ menuI=(menuI+1)%MENU.length; sfx('menu_move'); }
     else if(go){ sfx('menu_select');
-      if(menuI===0){ campaign=true; score=0; blueRun=0; startFront(0); }
+      if(menuI===0){ campaign=true; score=0; blueRun=0; runSaved=0; startFront(0); }
       else if(menuI===1){ state='select'; selI=0; }
       else if(menuI===2){ toAttract(); }
       else { state='howto'; } }
@@ -1203,9 +1290,10 @@ function onPress(k){
     if(ckOn && (go||k==='r')){ sfx('menu_select'); retryCheckpoint(); } else if(go||k==='r'||k==='t'){ sfx('menu_select'); retryFront(); } else if(back){ sfx('menu_back'); toTitle(); } return; }
   if(state==='results'){ if(rt<0.9) return;   // CK BOOT: ~0.9 s results hold
     if(k==='r'){ sfx('menu_select'); retryFront(); return; }
-    if(go){ sfx('menu_select'); if(campaign){ state='march'; rt=0; playMusic('theme',0.6); } else { state='select'; playMusic('theme',0.6); } }
+    if(go){ sfx('menu_select'); if(F.ending && lastResult && lastResult.passed){ startOutro(); } else if(campaign){ state='march'; rt=0; playMusic('theme',0.6); } else { state='select'; playMusic('theme',0.6); } }   // 1113b: the last front -> THE OUTRO
     else if(back){ toTitle(); } return; }
-  if(state==='march'){ if(go){ sfx('menu_select'); var nx=nextBuilt(fi); if(nx<0){ state='end'; rt=0; } else startFront(nx); } else if(back){ toTitle(); } return; }
+  if(state==='march'){ if(go){ sfx('menu_select'); var nx=nextBuilt(fi); if(nx<0){ startOutro(); } else startFront(nx); } else if(back){ toTitle(); } return; }
+  if(state==='outro'){ if(otT<0.9) return; if(go){ sfx('menu_select'); outroNext(); } else if(back){ state='end'; rt=0; playMusic('theme',0.6); } return; }
   if(state==='end'){ if(rt<0.9) return; if(go||back){ sfx('menu_select'); toTitle(); } return; }
 }
 function nextBuilt(f){ for(var i=0;i<MARCH.length;i++) if(MARCH[i].f===f){ for(var j=i+1;j<MARCH.length;j++) if(MARCH[j].f!=null) return MARCH[j].f; } return -1; }
@@ -1447,7 +1535,7 @@ function warTick(dt, el){
       if(bx>=0){ var g=legion[bx]; g.gone=true; war.coverKills++; fxAdd(g.x,GY()-34,'dust',null,0.5); flash(GN()?'THE CROSSBOWS COVER YOU':'ROME\'S ARCHERS COVER YOU','#9fe08a',0.8); } } } }
   // THE WALL: the breach fills while red hats stand on the walk and the line at the foot gives way
   if(F.wall){ var up=0; for(var q=0;q<legion.length;q++){ var g=legion[q]; if(!g.gone && !g.climb && !g.lifting) up++; }
-    war.breach=clamp(war.breach + dt*(W.breachPer||0.012)*up + dt*(PK()==='push'?0:1)*Math.max(0,0.5-usShare())*(W.breachLine||0.03) - dt*(up?0:0.004), 0, 1); }
+    war.breach=clamp(war.breach + dt*(W.breachPer||0.012)*up + dt*(PK()==='push'?0:1)*Math.max(0,0.5-usShare())*(W.breachLine||0.03) - dt*(up?0:0.004) + (F.supply&&!GN()?dt*SILENT_BREACH*silentN():0), 0, 1); }   // 1113b: a silent scorpio lets the tide up
 }
 // THE RAY, on the war: a machine or a wizard in reach first, else the files at the seam (called when no red hat on the near row is in reach)
 function warRay(dt, forced){
@@ -1684,13 +1772,16 @@ function hornCheck(){
 function loseFriend(f,how){ if(f.st==='safe'||f.st==='lost') return;
   f.st='lost'; f.how=how; f.fade=1; sfx('lost');
   if(how==='blue'){ stats.blue++; blueRun++; warMorale(-2*WAR_LOST_MORALE); flash('LOST TO THE BLUE  −'+BLUE_PEN,'#9fd0ff',1.6); bark(f.w.vip?'blueVip':'blue'); return; }
+  if(f.ammo){ flash('THE BOLTS ARE LOST — THE ARMOURY WILL SEND MORE','#ff8a5a',1.0); return; }   // 1113b: a sack is not a soul (no morale, not on the card)
   stats.lost++; warMorale(-WAR_LOST_MORALE);
   flash(how==='raided'?'THE RED HATS RAIDED '+depotNow()+' — ONE TAKEN': how==='burned'?'THE ROOF WENT UP — ONE LOST': how==='captured'?'THE LEGION TOOK ONE OF OURS': how==='drowned'?'THE WASH TOOK ONE': how==='swept'?(F.press&&F.press.fire?'THE FIRE PUT ONE IN THE RIVER':'THE PRESS PUT ONE IN THE RIVER'):'LOST IN THE FALL','#ff8a5a',1.2); }
 /* ---------- THE LORE — Hadrian / Davius / Dr. H. Wolfe (Joe 1112: ALL NEW COPY HERE IS DRAFT — Cunk-on-History deadpan) ---------- */
 var SPK={ davius:{name:'DAVIUS DAVUS OF EBORACUM', p:'davius_4', fx:0.585, fy:0.33, z:0.30},
           wolfe:{name:'DR. H. WOLFE', p:'wolfe_1', fx:0.47, fy:0.33, z:0.32},
           // Joe 1112: Hadrian never speaks. When someone talks ABOUT him the card cuts away to his marble BUST (b-roll).
-          onHadrian:{name:'DR. H. WOLFE, ON HADRIAN', p:'wolfe_1', fx:0.925, fy:0.13, z:0.2, bust:true} };
+          onHadrian:{name:'DR. H. WOLFE, ON HADRIAN', p:'wolfe_1', fx:0.925, fy:0.13, z:0.2, bust:true},
+          // 1113b — THE ANTONINE WALL: Joe asked for Hadrian's own lament. He speaks ONLY here, and the card is still his BUST, never a face.
+          hadrian:{name:'HADRIAN, ON THE ANTONINE WALL' /* DRAFT */, p:'wolfe_1', fx:0.925, fy:0.13, z:0.2, bust:true} };
 var HADRIAN_BUST=null;   // SWAP HOOK: set to the ART key of the 3D marble bust b-roll (3D PIPELINE games/truthjunket/renders/broll/) when it lands; until then, the bust in Wolfe's study
 var LORE={
   rescue:[['davius','"That\'s one. I am KEEPING count."'],['wolfe','"Lifted. Not taken — LIFTED. There is a difference, and it is a LEGAL one."'],['davius','"Got \'em. Mind the rope, I drew that rope."'],['onHadrian','"Hadrian said a province is just people standing near each other. So bring them CLOSER."'],['wolfe','"Every one they carried out is one fewer witness. Think about THAT."']],
@@ -1699,6 +1790,7 @@ var LORE={
   line:[['wolfe','"The line is bending. Lines are not supposed to BEND. That is what makes them LINES."'],['davius','"Line\'s going! Drop some lads on it — QUICK!"'],['onHadrian','"Hadrian paid for that line. Personally. He kept the RECEIPTS."']],
   machine:[['wolfe','"A siege engine. Lifted. Into the SKY. Ask yourself where siege engines GO."'],['davius','"Ha! Take THAT up and see how YOU like it."'],['onHadrian','"Hadrian never knocked down a tower. He RELOCATED them. Upward."']],
   emp:[['davius','"Bolt-thrower\'s manned. I drew that winch, you know. Archimedes gets the SONGS."'],['wolfe','"A scorpio: a machine that throws a spear. A spear that throws ITSELF. Think about it."'],['davius','"Wind it, lay it, loose it. Twenty years. Still the best sound in Britannia."']],
+  silent:[['davius','"That scorpio\'s DRY! A bolt-thrower with no bolts is just a very expensive chair!"' /* DRAFT */],['wolfe','"A silent scorpio. The Romans had a word for that. The word was \'run\'."' /* DRAFT */]],
   troops:[['davius','"Lads on the line. THAT\'s the stuff."'],['onHadrian','"Hadrian said every soldier set down is a wall that WALKS. He said a LOT of things."'],['wolfe','"Reinforcements, from the SKY. The Romans called it Tuesday."']],
   win:[['wolfe','"Held. History will say the legions did it. History is a LIAR."'],['davius','"We held. Somebody tell the goats."'],['onHadrian','"Hadrian wrote it all down. Then he hid where he wrote it."'],['wolfe','"Another frontier saved by machines that, officially, never existed. Checkmate."']],
   fail:[['wolfe','"History records no such defeat. Which is EXACTLY what they would want."'],['davius','"That\'s not how I remember it. That\'s how it HAPPENED. Not how I remember it."'],['onHadrian','"Rome lost here. Hadrian simply did not WRITE it down."']]
@@ -1718,7 +1810,8 @@ var FRONT_LORE={ dover:['wolfe','"Dover. Where Britain begins — and where, som
   tyne:['onHadrian','"Hadrian put a bridge in his Wall. A wall with a DOOR in it. He never explained the door."' /* DRAFT */],
   crags:['davius','"Up on the Sill. Wind like a knife. The goats love it. Nobody else does."' /* DRAFT */],
   turf:['wolfe','"A wall of grass, in fog, on fire. If I had made this up, you would say I had made it up."' /* DRAFT */],
-  summit:['onHadrian','"Hadrian came to the top of his Wall once. He said: it goes on a bit. It DOES go on a bit."' /* DRAFT */] };
+  summit:['onHadrian','"Hadrian came to the top of his Wall once. He said: it goes on a bit. It DOES go on a bit."' /* DRAFT */],
+  antonine:['hadrian','"A wall is an argument. Mine said: here, civilisation. Theirs says: and yet."' /* DRAFT */] };
 var GN_LORE=[['wolfe','"And now: the OTHER side. The side history forgot to interview."'],['wolfe','"The red hats had a word for Rome. Scholars agree it is unprintable. I have printed it. Twice."'],['davius','"Fair\'s fair. They had wings too. Mine were better. I\'m just saying."']];
 var barkN=0, barkQ=null, barkT=0, barkCd={}, endQuote=null;
 function pickLine(kind){ var L=LORE[kind]; if(!L) return null; barkN++; return L[(barkN+fi*3)%L.length]; }
@@ -1751,7 +1844,7 @@ function rescueTick(dt, el){
     if(!ladderSpawned[i] && el>=ld.at){ ladderSpawned[i]=1; pickups.push({ x:ld.x, y:BAND_TOP+(bandBot()-BAND_TOP)*0.4, ttl:LADDER_PICK_TTL }); flash('A LADDER CRATE DRIFTS IN','#e8c66a',1.0); } }
   for(var i=pickups.length-1;i>=0;i--){ var pk=pickups[i]; pk.ttl-=dt;
     if(Math.hypot(pk.x-P.x,pk.y-P.y)<70){ pickups.splice(i,1); giveLadder(); continue; } if(pk.ttl<=0) pickups.splice(i,1); }
-  musterTick(el); riderTick(dt);
+  musterTick(el); armouryTick(el); riderTick(dt);
   if(P.gear==='ladder'){ ladderT-=dt; if(ladderT<=0 && !onLadder()){ P.gear='rope'; ladderT=0; flash('LADDER STOWED — BACK ON THE ROPE','#efe3c4',0.9); } }
 
   var ex=P.x, ey=ropeEndY(), hover=P.spd<LADDER_HOVER_V;
@@ -1768,7 +1861,7 @@ function rescueTick(dt, el){
       if(setDownAtEmp(f) && empAt(f.x) && (f.escort||F.escort.main||emps.some(function(e){ return e.st==='sighting'; }))) continue;   // at their post: they stay put until it is manned
       var top=stand-f.w.h;
       if(Math.abs(f.x-ex)<GRAB_R && ey>=top-14 && ey<=stand){
-        if(P.gear==='rope' && !onRope()){ f.st='rope'; sfx('grab'); flash(f.w.animal?'GOT ONE — IN THE SLING. FLY IT TO '+F.drop.label:'GOT ONE — HANG ON! FLY THEM TO '+F.drop.label,'#7fe7ff',1.0); }
+        if(P.gear==='rope' && !onRope()){ f.st='rope'; sfx('grab'); flash(f.ammo?'BOLTS ON THE ROPE — SET THEM DOWN LOW AT A SCORPIO':f.w.animal?'GOT ONE — IN THE SLING. FLY IT TO '+F.drop.label:'GOT ONE — HANG ON! FLY THEM TO '+F.drop.label,'#7fe7ff',1.0); }
         else if(P.gear==='ladder' && !f.w.animal && onLadder()+riders().length<LADDER_CAP){ f.st='ladder'; f.prog=0; sfx('grab'); flash('ON THE LADDER — HOVER SO THEY CAN CLIMB','#7fe7ff',1.0); }
       }
       continue;
@@ -1783,11 +1876,11 @@ function rescueTick(dt, el){
       continue; }
     // carried
     f.x=P.x;
-    if(f.st==='ladder'){ if(hover) f.prog+=dt/LADDER_CLIMB; if(f.prog>=1){ if(f.muster||f.escort){ f.st='ride'; f.prog=0; sfx('grab'); flash(f.escort?'ABOARD — CARRY THEM TO THE SCORPIO':'ABOARD — CARRY THEM TO THE LINE','#7fe7ff',1.0); } else saveFriend(f,'aboard'); continue; }
+    if(f.st==='ladder'){ if(hover) f.prog+=dt/LADDER_CLIMB; if(f.prog>=1){ if(f.muster||f.escort||f.ammo){ f.st='ride'; f.prog=0; sfx('grab'); flash(f.escort?'ABOARD — CARRY THEM TO THE SCORPIO':f.ammo?'BOLTS ABOARD — HOVER LOW OVER A SCORPIO':'ABOARD — CARRY THEM TO THE LINE','#7fe7ff',1.0); } else saveFriend(f,'aboard'); continue; }
       f.y = ey - f.prog*(ROPE_LEN-8) + f.w.h; }
     else f.y = ey + f.w.h;
     if(inDrop(f.x) && canPen(f) && f.y >= dropSurf()-DELIVER_LOW){ saveFriend(f,'drop'); continue; }
-    if(f.st==='rope' && f.y >= GY()-DELIVER_LOW && (lineOK(f) && atSeam(f.x) || setDownAtEmp(f) && empAt(f.x))){ f.st='ground'; f.y=GY(); f.rock=0; f.cd=REGRAB; sfx('deliver'); landed(f); continue; }
+    if(f.st==='rope' && f.y >= GY()-DELIVER_LOW && (lineOK(f) && atSeam(f.x) || setDownAtEmp(f) && empAt(f.x) || f.ammo && supplyAt(f.x))){ f.st='ground'; f.y=GY(); f.rock=0; f.cd=REGRAB; sfx('deliver'); landed(f); continue; }
     if(f.y > GY()-24) for(var q=0;q<legion.length;q++){ var g=legion[q]; if(!g.gone && !g.lifting && !g.climb && Math.abs(g.x-f.x)<CARRY_REACH){ releaseFriend(f,'DRAGGED THROUGH THE LEGION — THEY LET GO'); break; } }
   }
 }
@@ -1796,7 +1889,7 @@ function rescueTick(dt, el){
    the line is bending and set them down AT THE SEAM: your side gains TROOP_FILES files, the line jumps TROOP_PUSH your way.
    A stranded soldier (WHO.troop) can be set down at the seam too: they count as saved AND they fight. */
 var TROOP_PTS=300, TROOP_FILES=3, TROOP_PUSH=0.03, SEAM_R=150, UNLOAD_T=0.7;
-function canPen(f){ return !f.muster && (!f.escort || (emps.length>0 && !curEmp())); }   // the escort goes home once every scorpio is manned
+function canPen(f){ return !f.muster && !f.ammo && (!f.escort || (emps.length>0 && !curEmp())); }   // the escort goes home once every scorpio is manned
 function lineOK(f){ return !!war && !f.escort && (f.muster || f.w.troop); }
 function atSeam(x){ return !!war && Math.abs(x-warX())<SEAM_R; }
 function deliverLine(f){
@@ -1804,6 +1897,7 @@ function deliverLine(f){
   warUs(TROOP_FILES); warPush(TROOP_PUSH); warMorale(0.03); score+=TROOP_PTS; stats.troops++; if(war) war.troops=(war.troops||0)+1;
   fxAdd(f.x,GY()-40,'ring','#ffe9a8',0.6); flash((GN()?'RED HATS':'LEGIONARIES')+' ON THE LINE — IT HOLDS  +'+TROOP_PTS,'#ffe9a8',1.1); sfx('horn'); bark('troops'); }
 function landed(f){ // someone just got to the ground: the seam takes a soldier; a scorpio takes the escort (flash); else false
+  if(f.ammo && supplyAt(f.x)){ feedEmp(supplyAt(f.x), f); return true; }
   if(lineOK(f) && atSeam(f.x)){ deliverLine(f); return true; }
   if(setDownAtEmp(f) && empAt(f.x)){ flash(f.w.vip?(f.w.name+' IS SIGHTING THE '+empName()):'THE ESCORT STANDS TO THE '+empName(),'#ffe27a',1.1); return true; }
   return false; }
@@ -1816,7 +1910,7 @@ function musterTick(el){
   if(musterN===1) flash('FRESH TROOPS AT THE MUSTER — CARRY THEM TO THE LINE','#e8c66a',1.4); }
 // RIDERS: troops and the escort who climb the ladder ride IN the craft (the ladder's cap counts them) until you hover LOW over
 // where they are going — the line, or a scorpio — then they climb down one at a time (UNLOAD_T each).
-function riderDest(f){ return f.escort ? empAt(P.x) : (lineOK(f) && atSeam(P.x)); }
+function riderDest(f){ return f.ammo ? !!supplyAt(P.x) : f.escort ? empAt(P.x) : (lineOK(f) && atSeam(P.x)); }
 function riderTick(dt){
   var R=riders(); if(!R.length){ unloadT=0; return; }
   for(var i=0;i<R.length;i++) if(R[i].escort && !curEmp()){ R[i].st='safe'; R[i].how='aboard'; }   // nothing left to crew: they ride home
@@ -1851,6 +1945,13 @@ function empTick(dt){
       if(e.sight>=EMP_SIGHT && gd){ e.st='manned'; e.crew=gd; gd.st='safe'; gd.how='emp'; gd.x=e.x-34*(e.x<WW()/2?1:-1); e.fireT=1.2;
         score+=EMP_PTS; flash('THE '+empName()+' IS MANNED — '+empsManned()+(F.escort.main?' / '+F.escort.need:'')+'  +'+EMP_PTS,'#ffe27a',1.6); sfx('horn'); bark('emp'); hornCheck(); }
       continue; }
+    if(e.supply){ if(e.ammo<=0){ if(!e.silent){ e.silent=true; flash('A SCORPIO HAS FALLEN SILENT — BRING IT BOLTS','#ff9a7a',1.4); bark('silent'); } stats.silentS+=dt; continue; }
+      e.fireT-=dt; if(e.fireT>0) continue; e.fireT=SUPPLY_EVERY; e.ammo--; e.shots++; stats.empShots++; score+=EMP_HIT_PTS; e.shotAt=simT; sfx('bolt_fire');
+      var wk=null, wd=700; for(var q=0;q<legion.length;q++){ var h=legion[q]; if(h.gone||h.lifting) continue; var d=Math.abs(h.x-e.x)-(h.climb?0:120); if(d<wd){ wd=d; wk=h; } }   // the walk first, then the face
+      if(wk){ wk.gone=true; if(war) war.coverKills++; e.tx=wk.x; e.ty=wk.y-30; fxAdd(wk.x,wk.y-30,'dust',null,0.5); continue; }
+      var mt=null, md=EMP_RANGE; if(war) for(var q=0;q<war.mach.length;q++){ var m=war.mach[q]; if(m.st!=='lifted' && Math.abs(m.x-e.x)<md){ md=Math.abs(m.x-e.x); mt=m; } }
+      if(mt){ mt.bolts=(mt.bolts||0)+1; e.tx=mt.x; e.ty=warRowY()-30; if(mt.bolts>=2){ mt.st='lifted'; mt.t=0; war.machLifted++; warThem(-3); flash('THE SCORPIO BREAKS '+mt.M.name.replace(/^AN? /,'THE '),'#ffe27a',1.2); } continue; }
+      e.ammo++; e.shots--; stats.empShots--; score-=EMP_HIT_PTS; e.shotAt=-9; e.fireT=1.0; continue; }   // nothing on the walk, the face or the field in range: the crew holds the bolt
     e.fireT-=dt; if(e.fireT>0) continue; e.fireT=EMP_EVERY; e.shots++; stats.empShots++; score+=EMP_HIT_PTS; e.shotAt=simT; sfx('bolt_fire');
     var tgt=null, td=EMP_RANGE;
     if(war) for(var q=0;q<war.mach.length;q++){ var m=war.mach[q]; if(m.st!=='lifted' && Math.abs(m.x-e.x)<td){ td=Math.abs(m.x-e.x); tgt=m; } }
@@ -1859,6 +1960,33 @@ function empTick(dt){
     if(g){ g.gone=true; if(war) war.coverKills++; e.tx=g.x; e.ty=g.y-30; fxAdd(g.x,g.y-30,'dust',null,0.5); continue; }
     if(war){ warThem(-1); warPush(0.008); e.tx=warX()+toEnemy()*120; e.ty=warRowY()-20; } }
 }
+
+/* ---------- THE SUPPLY (Claude 1113b — Joe 13/11: "from the roman side, you must fight the tide and provide ammo to the bolt throwers") ----------
+   F.supply: { emps:[x…], ammo, cap, per, armoury:{x, every, max, start} }. The Antonine scorpios are CREWED already (no escort run);
+   each one holds `ammo` bolts and spends one a shot (every SUPPLY_EVERY s). At 0 it falls SILENT: it stops shooting, and every silent
+   scorpio pushes the breach up SILENT_BREACH a second. THE ARMOURY keeps sending armourers with a sack of bolts (WHO.bolts): carry one
+   (the rope, or riders on a ladder) and set them down LOW at a scorpio — it takes `per` bolts (to `cap`). A hold with `feed:N` must see N
+   sacks delivered before its clock, or THE SCORPIOS FALL SILENT (the phase fails). Fed scorpios shoot the red hats on the walk and the
+   climbers on the face first (that is what holds the walk), then the machines, then the line. Nothing here touches a ladder or an arc. */
+var SUPPLY_EVERY=5.0, SILENT_BREACH=0.0025, AMMO_PTS=400;
+function supplyAt(x){ if(!F.supply) return null; var b=null, bd=EMP_R; for(var i=0;i<emps.length;i++){ var e=emps[i]; if(!e.supply) continue; var d=Math.abs(e.x-x); if(d<bd){ bd=d; b=e; } } return b; }
+function silentN(){ var n=0; for(var i=0;i<emps.length;i++) if(emps[i].supply && emps[i].ammo<=0) n++; return n; }
+function feedLeft(){ var S=MPH[mph]; if(!F.supply || !S || !S.feed || !PREC) return 0; return Math.max(0, S.feed-((stats.fed||0)-(PREC.fed0||0))); }
+function feedEmp(e, f){ e.ammo=Math.min(F.supply.cap, e.ammo+F.supply.per); if(e.silent){ e.silent=false; e.fireT=Math.min(e.fireT,0.8); }
+  f.st='safe'; f.how='ammo'; f.fade=1; f.x=e.x+18; f.y=GY(); stats.fed++; score+=AMMO_PTS; sfx('deliver'); fxAdd(e.x,GY()-50,'ring','#ffe27a',0.6);
+  flash('THE SCORPIO IS FED — '+e.ammo+' BOLTS'+(feedLeft()?'   ·   '+feedLeft()+' MORE SACKS THIS PHASE':'')+'  +'+AMMO_PTS,'#ffe27a',1.3); }
+function armouryTick(el){
+  if(!F.supply || el<armouryT) return; var A=F.supply.armoury; armouryT=el+A.every;
+  var waiting=0; for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.ammo && (f.st==='ground'||f.st==='rope'||f.st==='ladder'||f.st==='ride'||f.st==='fall')) waiting++; }
+  if(waiting>=A.max) return;
+  var f=mkFriend(A.x+((armouryN%3)-1)*30, 'bolts', friends.length, 0); f.ammo=true; f.ph=null; friends.push(f); armouryN++;
+  if(armouryN===1) flash('BOLTS AT THE ARMOURY — CARRY THEM TO THE SCORPIOS','#ffe27a',1.6); }
+function supplyNeedy(){ var b=null; for(var i=0;i<emps.length;i++){ var e=emps[i]; if(!e.supply) continue; if(!b || e.ammo<b.ammo || (e.ammo===b.ammo && Math.abs(e.x-P.x)<Math.abs(b.x-P.x))) b=e; } return b; }
+function supplyUrgent(){ if(!F.supply||GN()) return false; var nd=supplyNeedy(), fl=feedLeft();
+  if(PK()!=='hold') return silentN()>=2;   // a rescue: only when the walk is going quiet
+  return (nd && nd.ammo<=0) || fl>0 && stageClock < fl*SUPPLY_PACE+10; }
+var SUPPLY_PACE=14;   // the autopilot: seconds it budgets per sack still owed this phase
+function carryingAmmo(){ var r=onRope(); if(r && r.ammo) return true; var R=riders(); for(var i=0;i<R.length;i++) if(R[i].ammo) return true; return false; }
 
 var TIPS=[
   {id:'rope',  when:function(){ return simT>0.5 && !onRope() && rescuedN()===0; }, until:function(){ return !!onRope()||rescuedN()>0; }, text:'FLY LOW — PASS THE ROPE\'S END TO THEIR HANDS'},
@@ -1878,7 +2006,7 @@ function endCheck(){
   for(var vi=0;vi<friends.length;vi++) if(friends[vi].w.vip && friends[vi].st==='lost') return fail(friends[vi].how==='blue'?'davius_blue':'davius');
   if(war && (!F.wall||GN()) && usR()<=war.W.breakAt) return fail('broken');
   var r=rescuedN(), l=lostN(), n=objN(), ed=escDone(), K=PK();
-  if(K==='hold'){ if(stageClock<=0) return clearPhase('held'); return; }
+  if(K==='hold'){ if(stageClock<=0){ if(feedLeft()>0) return fail('silent'); return clearPhase('held'); } return; }
   if(K==='push'){ if(usR()>=pushTo) return clearPhase('pushed'); if(stageClock<=0) return fail('push'); return; }
   if(n-l < F.need) return fail('lost');
   if(F.escort && F.escort.main && guardsLeft()+empsManned() < F.escort.need) return fail('escort');
@@ -1896,9 +2024,13 @@ var FAILS={ hull:['SHOT DOWN','The ornithopter came down behind the line.'], los
             escort:['THE SCORPIOS ARE SILENT','Not enough bolt-throwers were manned — the escort is spent.' /* DRAFT */],
             escort_g:['THE CATAPULTS ARE SILENT','Not enough catapults were laid — the escort is spent.' /* DRAFT */],
             broken_g:['THE LINE BROKE','The Red Hat Legion gave way. The camp is overrun.' /* DRAFT */],
+            silent:['THE SCORPIOS FELL SILENT','Not enough bolts reached the bolt-throwers. The tide came over the rampart.' /* DRAFT */],
+            davius_g:['DAVIUS IS TAKEN','The goatherd never reached the forum. Nobody will ever know what he would have done there.' /* DRAFT */],
             push:['THE PUSH STALLED','The line would not move. The relief never came.' /* DRAFT */] };
 function fail(reason){
-  if(GN()){ if(reason==='davius_blue') reason='archwiz_blue'; if(reason==='davius') reason='archwiz'; else if(reason==='escort') reason='escort_g'; else if(reason==='broken') reason='broken_g'; }
+  var realDav=vipF() && vipF().w===WHO.davius;   // 1113b: on the last front Davius marches WITH the horde
+  if(GN() && !realDav){ if(reason==='davius_blue') reason='archwiz_blue'; if(reason==='davius') reason='archwiz'; } else if(GN() && reason==='davius') reason='davius_g';
+  if(GN()){ if(reason==='escort') reason='escort_g'; else if(reason==='broken') reason='broken_g'; }
   state='failed'; rt=0; sfx('fail'); playMusic('failed',0.6); endQuote=pickLine(reason==='davius_blue'||reason==='archwiz_blue'?'blueVip':'fail');
   lastResult={ front:fi, key:F.key, passed:false, reason:reason, t:+simT.toFixed(2), rescued:rescuedN(), lost:lostN(), need:F.need, stranded:objN(), hp:hp, war:warSummary(), side:SIDE, troops:stats.troops, manned:empsManned(), blue:stats.blue,
     phase:mph, nPhases:MPH.length, phaseName:MPH[mph]&&MPH[mph].name, phases:phaseLog.slice(), ck:(mph>0&&CK)?mph:0, ckUses:ckUses };
@@ -1915,6 +2047,7 @@ function win(reason){
   if(all) tally.splice(2,0,['EVERYONE BROUGHT OUT', 'YES', ALL_BONUS]);
   if(F.muster && stats.troops) tally.push(['SOLDIERS DROPPED ON THE LINE', stats.troops+'', stats.troops*TROOP_PTS, 'shown']);
   if(F.escort) tally.push([F.escort.main?(empName()+'S MANNED'):('THE '+empName()+' (OPTIONAL)'), empsManned()+' / '+(F.escort.main?F.escort.need:emps.length), F.escort.main?empsManned()*EMP_PTS:empsManned()*EMP_OPT_PTS, F.escort.main?'shown':0]);
+  if(F.supply) tally.push(['BOLT-SACKS CARRIED TO THE SCORPIOS', stats.fed+'', stats.fed*AMMO_PTS, 'shown']);
   tally.push(['LOST TO THE BLUE', stats.blue+'', -stats.blue*BLUE_PEN]);
   if(multi) tally.push(['PHASE GRADES', phaseLog.map(function(p){ return COIN[p.grade]; }).join(' · '), ph, 'shown']);          // already scored at each phase's end
   if(ckUses) tally.push(['CHECKPOINT RETRIES', ckUses+'', -ckUses*CKPT_PEN, 'shown']);                                     // already taken at each retry
@@ -1925,6 +2058,7 @@ function win(reason){
   var grade;
   if(multi){ var gs=0; phaseLog.forEach(function(p){ gs+=GRADES.indexOf(p.grade); }); grade=GRADES[clamp(Math.round(gs/phaseLog.length),0,3)]; if(grade==='AUREUS' && !all) grade='ARGENTEUS'; }
   else grade = all&&hp>=HULL ? 'AUREUS' : all ? 'ARGENTEUS' : r>F.need ? 'DENARIUS' : 'AS';
+  if(campaign) runSaved+=r;
   state='results'; rt=0; sfx('win'); playMusic('results',0.6);
   lastResult={ front:fi, key:F.key, passed:true, reason:reason, t:+simT.toFixed(2), rescued:r, lost:lostN(), need:F.need, stranded:n, hp:hp, tally:tally, grade:grade, frontScore:score-scoreAtStart, total:score, war:warSummary(), side:SIDE, troops:stats.troops, manned:empsManned(), blue:stats.blue,
     phase:mph, nPhases:MPH.length, phases:phaseLog.slice(), ckUses:ckUses };
@@ -1963,7 +2097,7 @@ function makePilot(opts){
     if(threat){ mem.evadeT=0.35; mem.ey=ty; mem.ex=tx; }
     else if(mem.evadeT>0){ mem.evadeT-=1/60; ty=mem.ey; tx=mem.ex; threat=true; }
     // --- 2. the job ---
-    if(!threat && war && !opts.noRay && !opts.noWar && !(P.gear==='ladder'&&onLadder()>0&&onLadder()<LADDER_CAP)){   // --- 1b. the war: stop what is breaking the line
+    if(!threat && war && !opts.noRay && !opts.noWar && !(P.gear==='ladder'&&onLadder()>0&&onLadder()<LADDER_CAP) && !(F.supply && !GN() && (carryingAmmo() || supplyUrgent() && war.breach<0.6))){   // --- 1b. the war: stop what is breaking the line
       var push=PK()==='push', wt=null, danger=push || usR() < Math.max(war.W.breakAt+0.10, Math.min(war.r0-0.08, war.W.breakAt+0.20)) || (F.wall && !GN() && war.breach>0.55);
       if(F.wall && !GN() && (PK()==='hold' || war.breach>0.45)){ var wbd=1e9; for(var wi=0;wi<legion.length;wi++){ var wg=legion[wi]; if(wg.gone||wg.climb) continue; var wdd=Math.abs(wg.x-P.x); if(wdd<wbd){ wbd=wdd; wt=wg; } } }   // THE WALL (1113): the walk before the machines at the foot
       if(!wt) for(var mi=0;mi<war.mach.length;mi++){ var m=war.mach[mi]; if(m.st!=='lifted' && (m.st==='work' || danger)) wt=m; }
@@ -2016,10 +2150,15 @@ function pilotJob(opts,bb,r){
   var low=function(x,f){ return Math.abs(P.x-x)<90 ? bb : Math.min(bb-70, (f?grabY(f):bb)-20); };
   var R=riders();
   if(r && !opts.noRay){ for(var q=0;q<legion.length;q++){ var g=legion[q]; if(!g.gone && !g.climb && Math.abs(g.x-P.x)<26 && r.y>GY()-30) return {ray:true}; } }
+  if(F.supply && !GN()){ var nd=supplyNeedy();   // 1113b THE SUPPLY: bolts aboard go to the hungriest scorpio
+    if(nd && R.some(function(f){ return f.ammo; })) return {tx:nd.x, ty:low(nd.x)};
+    if(nd && r && r.ammo) return {tx:nd.x, ty:low(nd.x,r)}; }
   if(R.length){ var dx=R[0].escort?escortTargetX(R[0]):(war?seamDropX():null); if(dx!=null) return {tx:dx, ty:low(dx)}; }
   if(r && (r.escort||r.muster)){ var dx2=r.escort?escortTargetX(r):(war?seamDropX():null); if(dx2!=null) return {tx:dx2, ty:low(dx2,r)}; }
   if(r && r.w.troop && war && !opts.noTroops && usR()<war.r0-0.02 && Math.abs(P.x-warX())<Math.abs(P.x-F.drop.x)) return {tx:seamDropX(), ty:low(seamDropX(),r)};
   if(r || (P.gear==='ladder' && onLadder()>0)) return null;
+  if(F.supply && !GN() && !opts.noSupply && supplyUrgent()){ var ac=null, acd=1e9; for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.ammo && f.st==='ground' && f.cd<=0){ var d=Math.abs(f.x-P.x); if(d<acd){ acd=d; ac=f; } } }
+    if(ac) return {tx:ac.x, ty:acd>160?Math.min(bb-60,grabY(ac)-40):grabY(ac)}; }
   if(F.escort && F.escort.main && !opts.noRay && !opts.noEscort){ // stand over the escort: ray a hunter closing on Davius or a crew at a scorpio
     var gd=null, gdd=1e9; for(var i=0;i<friends.length;i++){ var f=friends[i]; if(!(f.w.vip&&F.escort.main || f.escort) || f.st!=='ground') continue;
       for(var q=0;q<legion.length;q++){ var g=legion[q]; if(g.gone||g.climb) continue; var d=Math.abs(g.x-f.x); if(d<280 && d<gdd){ gdd=d; gd=g; } } }
@@ -2080,7 +2219,9 @@ var SKIES={
   // VERCOVICIUM: a cold violet dusk on the crags
   crag:  {stops:['#0a0e1c','#1e2a48','#56607e','#a4a0ac'], moon:{x:1320,y:160,r:40}, haze:'#3e4860', amb:'snow'},
   // THE TURF WALL: fog (the fog banks are drawn behind the play: telegraphs stay readable)
-  fog:   {stops:['#4a5258','#6e787c','#949c9c','#b4b8b2'], haze:'#9aa2a2', amb:'drizzle', fog:true}
+  fog:   {stops:['#4a5258','#6e787c','#949c9c','#b4b8b2'], haze:'#9aa2a2', amb:'drizzle', fog:true},
+  // THE ANTONINE WALL (1113b): the northern night — darker than the blood sky, an aurora over the Forth (render-only curtains)
+  aurora:{stops:['#000104','#02060f','#04121c','#081c20'], haze:'#0e2228', amb:'snow', aurora:true}
 };
 var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parallax speed, mode
   dover:[ {n:'hz_dover', dy:-70, h:330, sp:3, haze:0.10}, {n:'dover_downs', dy:22, h:300, sp:7} ],   // the cliffs + pharos ridge, then Joe's chalk downs (1014) in front
@@ -2104,7 +2245,9 @@ var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parall
   tyne:[ {n:'snow_hills', dy:-178, h:120, sp:1.2, sil:'#141c2a'}, {n:'wall_thin', dy:-124, h:56, sp:1.8, haze:0.6}, {n:'fort_strip', dy:-118, h:110, sp:2.4, haze:0.55}, {fn:'thamesBack'} ],
   crags:[ {n:'snow_hills', dy:-110, h:170, sp:1.5, haze:0.55}, {n:'snow_siege', dy:-60, h:120, sp:3, haze:0.5}, {n:'wall_thin', dy:-14, h:64, sp:5, haze:0.45} ],
   turf:[ {n:'snow_hills', dy:-120, h:160, sp:1.5, haze:0.8}, {n:'wall_thin', dy:-70, h:70, sp:3, haze:0.72}, {n:'wall_siege', dy:-8, h:130, sp:6, haze:0.62} ],
-  summit:[ {n:'wash_far_hills', dy:-110, h:220, sp:1.5, sil:'#3a0a07'}, {n:'wall_thin', dy:-70, h:70, sp:3, haze:0.55}, {n:'wall_siege', dy:-8, h:130, sp:6, haze:0.45} ]
+  summit:[ {n:'wash_far_hills', dy:-110, h:220, sp:1.5, sil:'#3a0a07'}, {n:'wall_thin', dy:-70, h:70, sp:3, haze:0.55}, {n:'wall_siege', dy:-8, h:130, sp:6, haze:0.45} ],
+  // THE ANTONINE WALL (1113b): black Caledonian hills, the turf line running away north-west, the host massing at the ditch
+  antonine:[ {n:'snow_hills', dy:-120, h:200, sp:1.2, sil:'#03080c'}, {n:'wall_thin', dy:-74, h:60, sp:2.6, haze:0.8}, {n:'snow_siege', dy:-12, h:130, sp:5.5, haze:0.62} ]
 };
 var drift=0;
 function drawStrip(L, gy){
@@ -2126,7 +2269,18 @@ function drawSky(time){
   if(S.moon){ var m=S.moon; ctx.fillStyle='rgba(220,232,255,0.08)'; ctx.beginPath(); ctx.arc(m.x,m.y,m.r*3,0,6.283); ctx.fill();
     ctx.fillStyle='#dfe7f4'; ctx.beginPath(); ctx.arc(m.x,m.y,m.r,0,6.283); ctx.fill(); ctx.fillStyle='rgba(140,155,185,0.35)'; ctx.beginPath(); ctx.arc(m.x-12,m.y-8,9,0,6.283); ctx.arc(m.x+14,m.y+12,6,0,6.283); ctx.fill();
     ctx.fillStyle='#cfe0ff'; for(var i=0;i<90;i++){ var sx=(i*173)%LW, sy=(i*97)%(GY()-260); ctx.globalAlpha=0.2+0.4*Math.abs(Math.sin(i+rt*0.8)); ctx.fillRect(sx,sy,1.6,1.6); } ctx.globalAlpha=1; }
+  if(S.aurora) drawAurora(1);
 }
+// THE AURORA (1113b): stars, then three slow curtains of green and violet light hung in vertical strokes. Render-only (rt + hashes).
+function drawAurora(a){
+  ctx.save(); ctx.fillStyle='#cfe0ff'; for(var i=0;i<110;i++){ var sx=(i*173)%LW, sy=(i*97)%Math.max(60,GY()-200); ctx.globalAlpha=a*(0.15+0.35*Math.abs(Math.sin(i*1.3+rt*0.7))); ctx.fillRect(sx,sy,1.5,1.5); }
+  ctx.globalCompositeOperation='lighter';
+  var C=[[0.18,'80,255,170',0.46,240],[0.52,'120,255,190',0.36,190],[0.80,'170,110,255',0.26,220]];
+  for(var c=0;c<C.length;c++){ var cx=C[c][0]*LW, col=C[c][1], al=C[c][2]*a, top=40+c*30, len=C[c][3];
+    for(var k=-26;k<=26;k++){ var x=cx+k*14+Math.sin(rt*0.25+k*0.21+c)*40, y0=top+20*Math.sin(k*0.33+rt*0.3+c*2), fall=1-Math.abs(k)/27;
+      var g=ctx.createLinearGradient(0,y0,0,y0+len); g.addColorStop(0,'rgba('+col+',0)'); g.addColorStop(0.25,'rgba('+col+','+(al*fall*(0.6+0.4*Math.sin(rt*0.9+k)))+')'); g.addColorStop(1,'rgba('+col+',0)');
+      ctx.fillStyle=g; ctx.fillRect(x,y0,10,len); } }
+  ctx.restore(); }
 function drawGround(){
   var gy=GY();
   if(F.wall){ drawWallFace(); return; }
@@ -2142,7 +2296,7 @@ function drawGround(){
 }
 function drawWallFace(){
   if(L3.wallFace()) return;   // LAB3D
-  var gy=GY(), WL_=F.wallLook, turf=WL_==='turf', crag=WL_==='crag';   // THE WALL ARC: stone (W1) · crag (W3/W5: the Whin Sill under the stone) · turf (W4: cut sods)
+  var gy=GY(), WL_=F.wallLook, ant=WL_==='antonine', turf=WL_==='turf'||ant, crag=WL_==='crag';   // THE WALL ARC: stone (W1) · crag (W3/W5: the Whin Sill under the stone) · turf (W4: cut sods)
   var src = turf ? (ok('ground_grass') ? tinted('ground_grass','#26241a',0.62,false) : null) : (ok('ground_flag') ? tinted('ground_flag',crag?'#151a26':'#1b2438',crag?0.58:0.45,false) : null);
   var X0=camX-(camX%240), X1=camX+LW;
   ctx.fillStyle=turf?'#2c2a1c':crag?'#1f2330':'#2b3140'; ctx.fillRect(camX,gy,LW,LH-gy);
@@ -2160,9 +2314,28 @@ function drawWallFace(){
   if(crag) for(var n=Math.floor(camX/300)-1; n<=Math.floor(X1/300)+1; n++){ var cx_=n*300+bh(n*53+3)*160; ctx.fillStyle='rgba(8,10,16,0.32)';   // the Whin Sill showing through the face: dark columnar rock
     ctx.beginPath(); ctx.moveTo(cx_-60,LH); ctx.lineTo(cx_-30,gy+40+bh(n*11)*60); ctx.lineTo(cx_+10,gy+30+bh(n*17)*40); ctx.lineTo(cx_+50,gy+70); ctx.lineTo(cx_+80,LH); ctx.closePath(); ctx.fill(); }
   }
+  if(ant){ // 1113b THE ANTONINE WALL: the turf rampart sits on a dressed STONE BASE (bands of ashlar low on the face), and the forum stands on the walk
+    var sb=ok('ground_flag')?tinted('ground_flag','#141a24',0.6,false):null, by=gy+150;
+    if(sb){ var th2=70, tw2=th2*ar('ground_flag'); for(var y=by; y<LH; y+=th2-2) for(var x=camX-(camX%(tw2-1))-tw2; x<X1; x+=tw2-1) ctx.drawImage(sb,x,y,tw2,th2); }
+    else { ctx.fillStyle='#262c38'; ctx.fillRect(camX,by,LW,LH-by); }
+    ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.fillRect(camX,by-4,LW,6);
+    if(F.forum!=null) drawForum(F.forum, gy); }
   // the army at the foot of the Wall (render-only)
   if(ok('battle_frieze')){ var img=tinted('battle_frieze','#0b1222',0.45,false); var h=120, w=h*ar('battle_frieze'); for(var x=camX-((camX+drift*20)%w); x<X1; x+=w) ctx.drawImage(img,x,LH-h+16,w,h); }
   drawBattle(); drawWar();   // the live battle line at the foot of the Wall, in front of the frieze
+}
+// THE FORUM ON THE WALL (1113b): the Emperor's command platform — a plinth, six columns, an entablature and a pediment, braziers.
+// Pure shapes (no new art); world-anchored on the walk. The figure of Hadrian is never drawn in play (the bust speaks).
+function drawForum(x, gy){
+  var w=300, ph=16, ch=118, top=gy-ph-ch;
+  ctx.fillStyle='#3a3e4a'; ctx.fillRect(x-w/2-14,gy-ph,w+28,ph+4); ctx.fillStyle='#565c6c'; ctx.fillRect(x-w/2-14,gy-ph,w+28,3);
+  for(var i=0;i<6;i++){ var cx=x-w/2+18+i*(w-36)/5; ctx.fillStyle='#4c5262'; ctx.fillRect(cx-9,top,18,ch); ctx.fillStyle='rgba(150,230,200,0.10)'; ctx.fillRect(cx-9,top,5,ch); ctx.fillStyle='#5a6070'; ctx.fillRect(cx-12,top-6,24,7); }
+  ctx.fillStyle='#4a5060'; ctx.fillRect(x-w/2-8,top-20,w+16,16);
+  ctx.fillStyle='#424858'; ctx.beginPath(); ctx.moveTo(x-w/2-12,top-20); ctx.lineTo(x,top-62); ctx.lineTo(x+w/2+12,top-20); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(120,255,190,0.18)'; ctx.lineWidth=2; ctx.stroke();
+  for(var s_=-1;s_<=1;s_+=2){ var bx=x+s_*(w/2+4), fl=0.6+0.4*Math.sin(rt*8+s_); spr('brazier',bx,gy-ph+2,22,{a:0.95});
+    var gg=ctx.createRadialGradient(bx,gy-ph-26,2,bx,gy-ph-26,60); gg.addColorStop(0,'rgba(255,160,70,'+(0.30*fl)+')'); gg.addColorStop(1,'rgba(255,140,60,0)'); ctx.fillStyle=gg; ctx.fillRect(bx-60,gy-ph-86,120,120); }
+  wtxt('THE FORUM' /* DRAFT */, x, top-78, 14, '#cfe8dc', 0.7);
 }
 function drawWater(){
   if(!F.water) return; var wy=waterY; if(wy>LH) return;
@@ -2335,6 +2508,7 @@ function drawFriends(){
       if(w.vip){ wtxt(w.name,f.x,yb-w.h-52,15,'#ffe27a'); }
       else if(f.escort) wtxt('ESCORT',f.x,yb-w.h-14,12,'#ffe27a',0.9);
       else if(f.muster) wtxt('▲ FOR THE LINE',f.x,yb-w.h-14,12,'#e8c66a',0.8);
+      else if(f.ammo) wtxt('▲ BOLTS',f.x,yb-w.h-14,12,'#ffe27a',0.9);
       if(f.rock>0 && !roofs.length && F.wall){}   // (the turret is drawn by wallLedges, rescued or not)
       else if(f.rock>0 && !roofs.length){ ctx.fillStyle=F.time==='blood'?'#1d0605':'#4a4a3a'; ctx.beginPath(); ctx.ellipse(f.x,yb+f.rock*0.5+4,40,f.rock*0.5+6,0,0,6.283); ctx.fill(); spr('boulders',f.x,yb+6,f.rock+14,{a:0.85}); }
       figGlow(f.x,yb,w.h,1); if(objF(f) && !(f.w.vip && atPost(f.x))) helpFlag(f.x,yb,w.h, F.press && f.x-pressX<150);
@@ -2531,7 +2705,8 @@ var BATTLE={
   tyne:       { rome0:0.56, rows:[ {dy:LON_QUAY-6, h:15, haze:0.45, keep:0.5}, {dy:LON_QUAY+2, h:20, haze:0.30, keep:0.55} ] },
   crags:      { foot:true, rows:[ {dy:-58, h:52, haze:0.45}, {dy:-8, h:72, haze:0.30} ] },
   turf:       { foot:true, rows:[ {dy:-58, h:52, haze:0.55}, {dy:-8, h:72, haze:0.40} ] },
-  summit:     { foot:true, rows:[ {dy:-58, h:52, haze:0.40}, {dy:-8, h:72, haze:0.26} ] }
+  summit:     { foot:true, rows:[ {dy:-58, h:52, haze:0.40}, {dy:-8, h:72, haze:0.26} ] },
+  antonine:   { foot:true, rows:[ {dy:-58, h:52, haze:0.50}, {dy:-8, h:72, haze:0.34} ] }   // 1113b: the whole host at the foot of the turf
 };
 var BT_ROME=['legionary_a','legionary_b','legionary_c','legionary_a','legionary_b'], BT_ROME_STD=['signifer','cornicen'];
 var BT_GNOME=['gnome_axe','gnome_spear','gnome_shield','gnome_charge','gnome_heavy','gnome_axe','gnome_spear'], BT_GNOME_STD=['gnome_bannerman'];
@@ -2746,6 +2921,7 @@ function drawBlue(){ var ld=state==='play'&&loaded(), inn=ld&&P.y<BLUE_Y, k=ld?1
 }
 
 function drawEmps(){
+  if(F.supply){ var A=F.supply.armoury, gyA=GY(); spr('wh_cart', A.x, gyA+4, 70, {}); wtxt('THE ARMOURY' /* DRAFT */, A.x, gyA-96, 14, '#ffe27a', 0.85); }
   for(var i=0;i<emps.length;i++){ var e=emps[i], gy=GY(), flip=toEnemy()<0, since=simT-e.shotAt;
     var frame = e.st==='manned' ? (since<0.4 ? ['fire_1_smear','fire_2','fire_3','fire_4','fire_5'][Math.min(4,Math.floor(since*12))] : e.fireT<1.2 ? 'wind_'+(1+Math.min(7,Math.floor((1.2-e.fireT)/1.2*8))) : 'aim_level') : e.st==='sighting' ? 'aim_up' : 'empty';
     var drew=false;
@@ -2753,6 +2929,8 @@ function drawEmps(){
       drew=rigDraw('scorpion',frame,e.x,gy+4,clamp(k,0.3,0.62),{flip:flip,a:e.st==='empty'?0.8:1}); ctx.restore(); } }
     if(!drew) spr(GN()?'gnome_catapult':'wh_ballista', e.x, gy+6, GN()?52:80, {flip:flip, a:e.st==='empty'?0.8:1});
     if(e.st==='manned' && since<0.35){ var u=since/0.35, bx=lerp(e.x,e.tx,u), by=lerp(gy-50,e.ty,u)-Math.sin(u*3.14)*60; ctx.strokeStyle='rgba(60,40,20,0.95)'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx-(e.tx-e.x)/Math.max(1,Math.abs(e.tx-e.x))*26,by+8); ctx.stroke(); }
+    if(e.supply){ var dry=e.ammo<=0; for(var b=0;b<F.supply.cap;b++){ ctx.fillStyle=b<e.ammo?'#ffe27a':'rgba(255,255,255,0.18)'; ctx.fillRect(e.x-F.supply.cap*5+b*10,gy-132,7,12); }
+      wtxt(dry?'SILENT — BRING BOLTS':'SCORPIO', e.x, gy-146, 13, dry?'#ff8a6a':'#9fe08a', dry?(0.55+0.45*Math.sin(rt*6)):0.9); continue; }
     var lab = e.st==='manned' ? 'MANNED' : e.st==='sighting' ? 'SIGHTING '+Math.round(100*e.sight/EMP_SIGHT)+'%' : (vipF()&&vipF().w.vip?'▼ '+empName()+' — SET '+(GN()?'THE WIZARD':'DAVIUS')+' + ONE ESCORT HERE':'▼ '+empName());
     wtxt(lab, e.x, gy-118, 13, e.st==='manned'?'#9fe08a':e.st==='sighting'?'#ffe27a':'#ffcf9a', e.st==='empty'?(0.6+0.4*Math.sin(rt*3)):1); }
 }
@@ -2766,7 +2944,8 @@ function drawMinimap(){
     ctx.fillStyle=war.surge?'#ff8a5a':'#ffe9a8'; ctx.fillRect(sx-1.5,y0-3,3,mh+6); }
   ctx.fillStyle='#9fe08a'; ctx.fillRect(m(F.drop.x)-6,y0+4,12,9);
   if(F.muster){ ctx.fillStyle='#e8c66a'; ctx.beginPath(); ctx.moveTo(m(F.muster.x),y0+3); ctx.lineTo(m(F.muster.x)-5,y0+12); ctx.lineTo(m(F.muster.x)+5,y0+12); ctx.fill(); }
-  for(var i=0;i<emps.length;i++){ ctx.fillStyle=emps[i].st==='manned'?'#9fe08a':'#ffcf9a'; ctx.fillRect(m(emps[i].x)-4,y0+15,8,7); }
+  for(var i=0;i<emps.length;i++){ ctx.fillStyle=emps[i].supply?(emps[i].ammo<=0?'#ff4a2a':emps[i].ammo<=2?'#ffcf9a':'#9fe08a'):emps[i].st==='manned'?'#9fe08a':'#ffcf9a'; ctx.fillRect(m(emps[i].x)-4,y0+15,8,7); }
+  if(F.supply){ ctx.fillStyle='#ffe27a'; ctx.fillRect(m(F.supply.armoury.x)-3,y0+2,6,10); }
   for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.st!=='ground') continue; ctx.fillStyle=f.w.vip?'#ffe27a':f.muster?'#e8c66a':f.escort?'#ffd27a':'#7fe7ff'; ctx.fillRect(m(f.x)-1.5,y0+mh-12,3,f.w.vip?8:5); }
   for(var i=0;i<legion.length;i++){ if(legion[i].gone) continue; ctx.fillStyle='#ff6a4a'; ctx.fillRect(m(legion[i].x)-1,y0+mh-8,2,4); }
   if(war) for(var i=0;i<war.mach.length;i++) if(war.mach[i].st!=='lifted'){ ctx.fillStyle='#ff3b2a'; ctx.fillRect(m(war.mach[i].x)-3,y0+2,6,6); }
@@ -2775,6 +2954,7 @@ function drawMinimap(){
   var marks=[[F.drop.x, depotNow(), '#9fe08a']]; if(war) marks.push([warX(), 'THE LINE', war.surge&&war.surge.dir<0?'#ff8a5a':'#ffe9a8']);
   var v=vipF(); if(F.escort && v && v.st==='ground') marks.push([v.x, v.w.name, '#ffe27a']);
   if(F.muster){ var mt=friends.some(function(f){ return f.muster && f.st==='ground'; }); if(mt) marks.push([F.muster.x,'TROOPS','#e8c66a']); }
+  if(F.supply){ if(carryingAmmo()){ var nd_=supplyNeedy(); if(nd_) marks.push([nd_.x,'HUNGRIEST SCORPIO','#ffe27a']); } else if(friends.some(function(f){ return f.ammo && f.st==='ground'; })) marks.push([F.supply.armoury.x,'BOLTS','#ffe27a']); }
   var ay=GY()-260; for(var j=0;j<marks.length;j++){ var mx=marks[j][0]-camX; if(mx>20 && mx<LW-20) continue; var left=mx<=20, ex=left?24:LW-24, yy=ay+j*34, dist=Math.round(Math.abs(marks[j][0]-P.x)/10)*10;
     ctx.fillStyle=marks[j][2]; ctx.beginPath(); if(left){ ctx.moveTo(ex-14,yy); ctx.lineTo(ex+4,yy-11); ctx.lineTo(ex+4,yy+11); } else { ctx.moveTo(ex+14,yy); ctx.lineTo(ex-4,yy-11); ctx.lineTo(ex-4,yy+11); } ctx.closePath(); ctx.fill();
     txt(marks[j][1]+' · '+dist+' paces', left?ex+12:ex-12, yy, 12, marks[j][2], left?'left':'right', 'bold', 0.9); }
@@ -2822,7 +3002,7 @@ function drawHUD(){
   // gear line
   var dn = depot ? (depot.st==='open' ? depotNow()+' '+depot.n+'/'+depot.D.cap : depot.st==='full' ? depotNow()+' FULL — LIFT IN '+Math.max(0,Math.ceil(depot.D.liftDelay-depot.t))+'s' : depot.st==='lift' ? 'THE LIFT IS UP — HOLD YOUR RIDER' : 'A FRESH '+depotNow().replace(/^THE /,'')+' IS COMING DOWN') : '';
   var gl = P.gear==='ladder' ? 'LADDER '+Math.max(0,Math.ceil(ladderT))+'s · '+onLadder()+'/'+LADDER_CAP+(P.spd<LADDER_HOVER_V?' · CLIMBING':' · hover to climb')
-         : onRope() ? (lineOK(onRope())&&!objF(onRope()) ? 'ROPE · CARRYING A SOLDIER — set them down AT THE LINE' : onRope().escort ? 'ROPE · CARRYING '+(onRope().w.vip?onRope().w.name:'THE ESCORT')+' — set down LOW at a '+empName() : 'ROPE · CARRYING — set them down in '+depotNow()+(lineOK(onRope())?' (or AT THE LINE — they fight)':'')) : 'ROPE · fly LOW to reach the stranded';
+         : onRope() ? (lineOK(onRope())&&!objF(onRope()) ? 'ROPE · CARRYING A SOLDIER — set them down AT THE LINE' : onRope().ammo ? 'ROPE · CARRYING BOLTS — set them down LOW at a SCORPIO' : onRope().escort ? 'ROPE · CARRYING '+(onRope().w.vip?onRope().w.name:'THE ESCORT')+' — set down LOW at a '+empName() : 'ROPE · CARRYING — set them down in '+depotNow()+(lineOK(onRope())?' (or AT THE LINE — they fight)':'')) : 'ROPE · fly LOW to reach the stranded';
   var nr=riders().length; if(nr) gl+='   ·   ABOARD '+nr+' — hover LOW over '+(riders()[0].escort?'a '+empName():'THE LINE');
   if(dn) txt(dn,32,132,14,depot.st==='open'?'#bfe7a8':'#ffcf7a','left','bold');
   txt(gl,32,108,14,P.gear==='ladder'?GOLD:'#d8c49a','left','bold');
@@ -2837,6 +3017,8 @@ function drawHUD(){
   drawWarBar();
   if(F.escort){ var v=vipF(), vs=v?(v.st==='lost'?(v.how==='blue'?'LOST TO THE BLUE':'LOST'):v.st==='ground'?(atPost(v.x)?'AT HIS POST':'ON THE GROUND'):v.st==='safe'?'SAFE':'WITH YOU'):'—';
     txt(empName()+'S MANNED '+empsManned()+(F.escort.main?' / '+F.escort.need:' / '+emps.length+' (OPTIONAL)')+'   ·   '+(v?v.w.name:'')+': '+vs+'   ·   ESCORT LEFT '+guardsLeft(),32,156,14,'#ffe27a','left','bold'); }
+  if(F.supply){ var bl=emps.map(function(e){ return e.ammo<=0?'✕':''+e.ammo; }).join(' · '), fl=feedLeft(), sn=silentN();
+    txt('SCORPIO BOLTS  '+bl+'   ·   SACKS CARRIED '+stats.fed+(MPH[mph]&&MPH[mph].feed?'   ·   THIS PHASE '+(MPH[mph].feed-fl)+' / '+MPH[mph].feed:'')+(sn?'   ·   '+sn+' SILENT':''),32,156,14,sn?'#ff9a7a':'#ffe27a','left','bold'); }
   if(F.muster){ var mw_=0; for(var i=0;i<friends.length;i++) if(friends[i].muster && friends[i].st==='ground') mw_++; txt('FRESH TROOPS WAITING: '+mw_+'   ·   DROPPED ON THE LINE: '+stats.troops,32,F.escort?180:156,14,'#e8c66a','left','bold'); }
   drawMinimap(); drawBark();
   if(loaded() && P.y<BLUE_Y+30){ var ia=P.y<BLUE_Y?1:0.55; panel(LW/2-300,196,600,44,0.6*ia); txt(P.y<BLUE_Y?'TOO HIGH — THE BLUE WILL TAKE THEM':'THIN AIR ABOVE — EASE OFF THE CLIMB',LW/2,219,20,'#dcefff','center','bold',ia*(0.75+0.25*Math.sin(rt*10))); }
@@ -3013,7 +3195,7 @@ function drawBrief(dt){
   drift+=dt*0.5; drawSky(F.time); if(!L3.bg()){ var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); } ctx.save(); ctx.translate(-camX,0); drawGround(); ctx.restore();
   ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,LW,LH);
   var a=clamp(rt/0.5,0,1), n=MARCH.findIndex(function(m){return m.f===fi;})+1;
-  txt('THE MARCH · '+(F.wall||F.wall2?'THE WALL':F.approach?'THE ROAD NORTH':'STAGE '+n),LW/2,150,18,'#c9b27a','center','bold',a);
+  txt('THE MARCH · '+(F.beyond?'BEYOND THE WALL' /* DRAFT */:F.wall||F.wall2?'THE WALL':F.approach?'THE ROAD NORTH':'STAGE '+n),LW/2,150,18,'#c9b27a','center','bold',a);
   txt(F.title,LW/2,220,70,GOLD,'center','bold',a); txt(F.latin,LW/2,280,22,PARCH,'center','bold',a);
   panel(LW/2-560,320,1120,300,0.7*a);
   wrap(F.brief,LW/2,360,1040,24,'#f3ead2',a);
@@ -3051,7 +3233,7 @@ function drawMissionResults(R,a){
   cols.forEach(function(c){ txt(c[2],c[0],y+26,13,'#c9b27a',c[1],'bold',a); });
   R.phases.forEach(function(p,i){ var al=clamp((rt-0.4-i*0.35)/0.3,0,1), ry=y+62+i*40; if(al>0 && !R['_p'+i]){ R['_p'+i]=1; sfx('tally'); }
     txt((i+1)+'.  '+p.name,cols[0][0],ry,19,PARCH,'left','bold',al);
-    txt(p.kind==='rescue'?p.brought+' / '+p.of+' OUT':p.kind==='push'?'PUSHED':(p.of?'HELD · '+p.brought+'/'+p.of:'HELD'),cols[1][0],ry,17,CYAN,'center','bold',al);
+    txt(p.kind==='rescue'?p.brought+' / '+p.of+' OUT':p.kind==='push'?'PUSHED':p.feed?'HELD · FED '+p.fed+'/'+p.feed:(p.of?'HELD · '+p.brought+'/'+p.of:'HELD'),cols[1][0],ry,17,CYAN,'center','bold',al);
     txt(p.line,cols[2][0],ry,17,LINE_COL[p.line],'center','bold',al); txt(Math.round(p.t)+'s',cols[3][0],ry,17,'#e9dfc8','center','bold',al,'ui-monospace,Menlo,monospace');
     txt(p.grade,cols[4][0],ry,18,GRADE_COL[p.grade],'center','bold',al); txt('+'+p.pts,cols[5][0],ry,17,GOLD,'right','bold',al,'ui-monospace,Menlo,monospace'); });
   var t0=0.4+R.phases.length*0.35, ty=y+64+R.phases.length*40+18, rows=R.tally, half=Math.ceil(rows.length/2);
@@ -3089,13 +3271,93 @@ function drawMarch(){
   txt('SCORE  '+score+'      LOST TO THE BLUE  '+blueRun,LW/2,LH-70,22,GOLD,'center','bold','ui-monospace');
   txt('SPACE — '+(nx<0?'ONWARD':'FLY '+FRONTS[nx].title),LW/2,LH-34,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
 }
+/* =====================================================================
+   THE OUTRO (Claude 1113b) — after THE ANTONINE WALL, from either side, the same ending (Joe 13/11): the forum and the fall, the
+   survivors' retreat to Hadrian's Wall, the TJTV crawl, Dr. H. Wolfe's analysis of the mysterious end of Hadrian, then the
+   channel glitches out (docs/HADRIAN-CAMPAIGN.md §VII, the coda: never answer it — illness? Davius? the gnomes letting the sky
+   fall? LOST TO HISTORY). Joe 13/11 (2): the flying machines are lost in the chaos of the exit from Britannia, and the gnomes
+   never show themselves to men again — all except Davius, "who may very well just be a short man". Render-only, timed;
+   SPACE skips a beat, ESC goes to the end card. Every line is DRAFT. (The coda's Dr. L crash is OWED here: the web build has no
+   drl frames.)
+   ===================================================================== */
+var OUTRO=[
+  {k:'fall', d:12},
+  {k:'retreat', d:9},
+  {k:'crawl', d:13, p:'gnomean_legion', head:'BREAKING · THE EMPEROR IS DEAD' /* DRAFT */, sub:'ROME: "ILLNESS." · AN ENQUIRY IS "NOT NECESSARY"' /* DRAFT */},
+  {k:'wolfe', p:'wolfe_2', d:9, role:'OCCULT ROMAN HISTORY · PETER UNIVERSITY', q:'"Rome says illness. Rome ALWAYS says illness. A man falls off the top of a wall — illness. Sudden. VERY sudden."' /* DRAFT */},
+  {k:'wolfe', p:'wolfe_4', d:10, role:'AUTHOR, "GNOMEAN WARFARE IN LATE ROMAN BRITAIN"', q:'"Then there is Davius. A potion for the nerves. A potion for the knees. A potion for the POTIONS. He lost his FAA licence and blamed the wind. Then the goats. Then, once, the FAA."' /* DRAFT */},
+  {k:'wolfe', p:'wolfe_6', d:10, role:'TRUTHJUNKET TV', q:'"And the machines? Gone — lost in the scramble out of Britannia. The gnomes swore never to show themselves to men again. All of them. Except Davius. Who may very well... just be a short man."' /* DRAFT */},
+  {k:'wolfe', p:'wolfe_1', d:10, role:'TRUTHJUNKET TV', q:'"Did the gnomes keep faith with him? Did the sky simply... stop? The page is torn exactly there. Some things are lost to history."' /* DRAFT */},
+  {k:'glitch', d:3.2}
+];
+var OUTRO_CRAWL=['HADRIAN DEAD AT 62 · OFFICIAL CAUSE: "ILLNESS"','THE LEGIONS QUIT CALEDONIA · BACK ON HADRIAN\'S WALL BY THE KALENDS',
+  'GOATHERD DAVIUS DAVUS "HELPING WITH ENQUIRIES" · DENIES EVER HOLDING AN FAA LICENCE · THEN SAYS IT LAPSED · THEN BLAMES THE WIND',
+  'ORNITHOPTER CORPS: "NO SUCH UNIT" · ALL RECORDS "LOST IN THE MOVE"','GNOMES ISSUE STATEMENT: THEY WILL NEVER SHOW THEMSELVES TO MEN AGAIN · STATEMENT DELIVERED BY NOBODY',
+  'EBORACUM APOTHECARIES REPORT A RECORD QUARTER','THE ANTONINE WALL "WAS NEVER HERE," SAYS THE ANTONINE WALL'];   /* DRAFT */
+var HADRIAN_LAST='"Graeculus, they called me. Little Greek. They will say I loved the Greeks too much. Tell them: not ENOUGH."';   /* DRAFT */
+var otk=0, otT=0;
+function startOutro(){ state='outro'; otk=0; otT=0; rt=0; playMusic('outro_antonine',0.7); }
+function outroSurvivors(){ return campaign ? runSaved : (lastResult&&lastResult.rescued)||0; }
+function outroNext(){ otk++; otT=0; if(otk>=OUTRO.length){ state='end'; rt=0; playMusic('theme',0.6); } }
+function drawOutro(dt){
+  otT+=dt; var S=OUTRO[otk]; if(!S){ state='end'; return; } if(otT>=S.d){ outroNext(); return; }
+  var u=otT/S.d, fade=Math.min(1,otT/0.6,(S.d-otT)/0.6); ctx.fillStyle='#000'; ctx.fillRect(0,0,LW,LH);
+  if(S.k==='fall'){ // the forum on the rampart, the horde on the stair, and one small purple figure going over — all the way down. Stylized.
+    var g=ctx.createLinearGradient(0,0,0,LH); g.addColorStop(0,'#000104'); g.addColorStop(1,'#06141a'); ctx.fillStyle=g; ctx.fillRect(0,0,LW,LH); drawAurora(fade);
+    var wy=LH*0.53, fx_=LW*0.58; ctx.save(); ctx.globalAlpha=fade;
+    ctx.fillStyle='#0c161c'; ctx.fillRect(0,wy,LW,LH-wy);   // the rampart face, a cliff of turf on stone
+    ctx.fillStyle='#1a2a2c'; ctx.fillRect(0,wy,LW,5); ctx.fillStyle='#16222a'; for(var r=0;r<9;r++) ctx.fillRect(0,wy+60+r*58,LW,3);
+    ctx.fillStyle='#1c2a34'; ctx.fillRect(fx_-170,wy-14,340,16); for(var c=0;c<6;c++) ctx.fillRect(fx_-150+c*58,wy-140,20,128);
+    ctx.fillRect(fx_-162,wy-160,324,20); ctx.beginPath(); ctx.moveTo(fx_-170,wy-160); ctx.lineTo(fx_,wy-214); ctx.lineTo(fx_+170,wy-160); ctx.closePath(); ctx.fill();
+    for(var i=0;i<16;i++){ var hx=fx_-520+Math.min(otT,4)*36+i*22+Math.sin(rt*3+i)*2, hh=26+(i*7)%14; ctx.fillStyle=i===3?'#5a4428':'#0a0e12'; ctx.fillRect(hx,wy-hh,12,hh); ctx.fillStyle='#7a1410'; ctx.beginPath(); ctx.moveTo(hx-2,wy-hh); ctx.lineTo(hx+6,wy-hh-14); ctx.lineTo(hx+14,wy-hh); ctx.fill(); }   // the horde (red hats) at the forum; the goatherd among them
+    var t0=4.2, ft=Math.max(0,otT-t0), py=wy-40+0.5*240*ft*ft, px=fx_+170+ft*26;
+    if(otT<t0){ ctx.fillStyle='#2a1030'; ctx.fillRect(fx_+150,wy-46,12,34); ctx.fillStyle='#8a2aa0'; ctx.fillRect(fx_+146,wy-40,20,18); }   // the Emperor, at the edge (purple)
+    else if(py<LH+40){ ctx.save(); ctx.translate(px,py); ctx.rotate(ft*2.2); ctx.fillStyle='#2a1030'; ctx.fillRect(-6,-17,12,34); ctx.fillStyle='#8a2aa0'; ctx.fillRect(-12,-10,24,16); ctx.restore();
+      ctx.strokeStyle='rgba(120,40,140,0.35)'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(fx_+160,wy-30); ctx.lineTo(px,py); ctx.stroke(); }
+    ctx.restore();
+    txt('THE FINAL FORUM' /* DRAFT */,LW/2,90,44,GOLD,'center','bold',fade);
+    wrap(HADRIAN_LAST+'  — HADRIAN',LW/2,150,1100,22,'#e8dcc0',clamp((otT-0.8)/0.8,0,1)*fade,'italic');
+    if(otT>t0+0.8){ var ca=clamp((otT-t0-0.8)/0.8,0,1)*fade; panel(LW/2-520,LH-112,1040,96,0.65*ca);
+      txt('AND THE EMPEROR FELL FROM HIS WALL — ALL THE WAY DOWN.' /* DRAFT */,LW/2,LH-76,26,PARCH,'center','bold',ca);
+      txt((SIDE==='gnome'?'THE HORDE REACHED HIM. DAVIUS WAS THERE. NOBODY AGREES WHAT HE DID.':'THE TIDE CAME OVER THE FORUM. THE BOLTS RAN OUT AT THE END. THEY ALWAYS DO.') /* DRAFT */,LW/2,LH-40,18,'#c9b27a','center','bold',ca); }
+    tjBug(); return; }
+  if(S.k==='retreat'){ // the survivors walk south, back to Hadrian's Wall (the CK ident's night Wall, with the column walking it)
+    identNight(fade, 2+otT*0.6);
+    ctx.save(); ctx.globalAlpha=fade; RIG_GRADE='night'; var n=8; for(var i=0;i<n;i++){ var wx=LW*1.05-((otT*42+i*120)%(LW*1.2)), kind=i%3===0?'signifer':i%2?'legionary_a':'legionary_b';
+      try{ ctx.filter='brightness(0.55) saturate(0.5)'; }catch(e){} actorSpr(kind,wx,LH-72,80,{flip:true,phase:i*0.4},'walk'); try{ ctx.filter='none'; }catch(e){} } RIG_GRADE=null; ctx.restore();
+    panel(LW/2-520,70,1040,150,0.6*fade);
+    txt('THE RETREAT' /* DRAFT */,LW/2,112,40,GOLD,'center','bold',fade);
+    txt('THE SURVIVORS OF THE CAMPAIGN WALK SOUTH, BACK TO HADRIAN\'S WALL' /* DRAFT */,LW/2,160,20,PARCH,'center','bold',fade);
+    txt(outroSurvivors()+' BROUGHT OUT ON THE MARCH · '+blueRun+' LOST TO THE BLUE',LW/2,196,18,CYAN,'center','bold',fade);
+    tjBug(); return; }
+  if(S.k==='crawl'){
+    coverDraw(S.p, 1.02+0.06*u, 0.5, 0.45, fade*0.85); ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,0,LW,LH);
+    ctx.save(); ctx.globalAlpha=fade; ctx.fillStyle='rgba(150,10,10,0.92)'; ctx.fillRect(0,LH-230,LW,64); ctx.fillStyle='rgba(10,8,6,0.9)'; ctx.fillRect(0,LH-166,LW,40); ctx.restore();
+    txt(S.head,60,LH-198,34,'#fff','left','bold',fade); txt(S.sub,60,LH-146,18,'#ffd25a','left','bold',fade);
+    var tick=OUTRO_CRAWL.join('   ✦   ')+'   ✦   '; ctx.save(); ctx.globalAlpha=fade; ctx.fillStyle='#0a0806'; ctx.fillRect(0,LH-96,LW,52); ctx.fillStyle='#ffd25a'; ctx.fillRect(0,LH-96,170,52); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(176,LH-96,LW-176,52); ctx.clip(); ctx.font='bold 22px Georgia,serif'; var tw=NODE?tick.length*12:ctx.measureText(tick).width, off=-((otT*150)%tw);
+    for(var x=176+off; x<LW; x+=tw) txt(tick,x,LH-70,22,'#fff6dc','left','bold',fade); ctx.restore();
+    txt('TJTV NEWS',85,LH-70,20,'#0a0806','center','bold',fade);
+    tjBug(); return; }
+  if(S.k==='wolfe'){
+    coverDraw(S.p, lerp(1.04,1.16,ease(u)), 0.5, 0.42, fade);
+    var vg=ctx.createRadialGradient(LW/2,LH/2,LH*0.4,LW/2,LH/2,LH); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.6)'); ctx.fillStyle=vg; ctx.fillRect(0,0,LW,LH);
+    txt('EXPERT ANALYSIS · THE MYSTERIOUS END OF HADRIAN' /* DRAFT */,LW/2,90,20,'#ffd25a','center','bold',fade);
+    lowerThird('DR. H. WOLFE',S.role,fade); var qa=clamp((otT-1.0)/0.8,0,1)*fade; panel(LW/2-600,LH-300,1200,120,0.62*qa); wrap(S.q,LW/2,LH-262,1140,23,'#fff6dc',qa,'italic bold');
+    tjBug(); return; }
+  if(S.k==='glitch'){ // TJTV does what it always does when someone gets too close (coda §VII). No red REC dot (Joe 1112).
+    var bars=['#c0c0c0','#c0c000','#00c0c0','#00c000','#c000c0','#c00000','#0000c0'], gl=Math.floor(otT*14)%3;
+    if(otT<1.4){ for(var i=0;i<7;i++){ ctx.fillStyle=bars[(i+gl)%7]; ctx.fillRect(i*LW/7+((otT*997)%1<0.3?vr(-20,20):0),0,LW/7+1,LH*0.7); } ctx.fillStyle='#111'; ctx.fillRect(0,LH*0.7,LW,LH*0.3); }
+    else txt('SIGNAL LOST',LW/2,LH/2,48,'#e9e9e9','center','bold',clamp((otT-1.5)/0.4,0,1)*Math.min(1,(S.d-otT)/0.4));
+    return; }
+}
 function drawEnd(){
   coverDraw('wall_for_them',1.05+0.03*Math.sin(rt*0.1),0.5,0.5,0.6); ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,LW,LH);
-  txt('THE WALL HOLDS — FOR NOW',LW/2,170,56,GOLD,'center','bold'); txt('SCORE  '+score+'      LOST TO THE BLUE  '+blueRun,LW/2,240,30,PARCH,'center','bold');
+  txt('BACK TO HADRIAN\'S WALL' /* DRAFT */,LW/2,170,56,GOLD,'center','bold'); txt('SCORE  '+score+'      LOST TO THE BLUE  '+blueRun,LW/2,240,30,PARCH,'center','bold');
   panel(LW/2-560,290,1120,330,0.7);
-  txt('DOVER TO WINSHIELDS · '+MARCH.length+' FRONTS · THE MARCH IS OVER' /* DRAFT */,LW/2,330,22,'#c9b27a','center','bold');
-  txt('STILL TO COME ON THE SUMMIT' /* DRAFT */,LW/2,380,18,'#c9b27a','center','bold');
-  for(var i=0;i<STILL_TO_COME.length;i++) txt(STILL_TO_COME[i],LW/2,422+i*40,22,PARCH,'center','bold');
+  txt('DOVER TO THE ANTONINE WALL · '+MARCH.length+' FRONTS · THE MARCH IS OVER' /* DRAFT */,LW/2,330,22,'#c9b27a','center','bold');
+  txt('THE UNIVERSAL PROJECT · LOST TO HISTORY' /* DRAFT */,LW/2,380,18,'#c9b27a','center','bold');
+  for(var i=0;i<END_LINES.length;i++) txt(END_LINES[i],LW/2,422+i*40,22,PARCH,'center','bold');
   wrap('"History says the frontier was secured. History also says Hadrian died in bed. I have QUESTIONS."  — DR. H. WOLFE',LW/2,580,1060,19,'#d8ccb0',1,'italic');
   txt('SPACE — TITLE',LW/2,LH-50,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
 }
@@ -3241,6 +3503,7 @@ function frame(ts){
   else if(state==='results') drawResults(dt);
   else if(state==='failed') drawFailed(dt);
   else if(state==='march') drawMarch();
+  else if(state==='outro') drawOutro(dt);
   else if(state==='end') drawEnd();
   L3.badge();   // LAB3D
   ctx.restore();
@@ -3259,17 +3522,17 @@ function selfTest(){
   var dt=1/60, IDLE=makePilot({idle:true});
   campaign=false; AU.off=true; SIDE='rome';
   // ---- structure ----
-  okk('sixteen fronts are built and nothing on the march is sealed (Dover → York → THE ROAD NORTH → W1–W5)', FRONTS.length===16 && MARCH.length===16 && MARCH.every(function(m){return m.f!=null && !!FRONTS[m.f];}) && new Set(MARCH.map(function(m){return m.f;})).size===16, MARCH.length+' stops on the march');
+  okk('seventeen fronts are built and nothing on the march is sealed (Dover → York → THE ROAD NORTH → W1–W5 → THE ANTONINE WALL)', FRONTS.length===17 && MARCH.length===17 && MARCH.every(function(m){return m.f!=null && !!FRONTS[m.f];}) && new Set(MARCH.map(function(m){return m.f;})).size===17, MARCH.length+' stops on the march');
   // ---- THE WALL ARC (Claude 1113: Joe 13/11 "the wall level should be long or multiple levels … the approach to the wall. total war to get there") ----
-  var ARC=['york','dere','coria','wall','tyne','crags','turf','summit'], arcF=ARC.map(function(k){ return FRONTS.findIndex(function(Fr){ return Fr.key===k; }); }), arcM=arcF.map(function(f){ return MARCH.findIndex(function(m){ return m.f===f; }); });
-  okk('[wall arc] the march reads as one push: York → DERE STREET → CORIA → W1 SEGEDUNUM → W2 CILURNUM → W3 VERCOVICIUM → W4 THE TURF WALL → W5 WINSHIELDS (the last stop)', arcF.every(function(f){ return f>=0; }) && arcM.every(function(m,i){ return i===0 || m===arcM[i-1]+1; }) && arcM[arcM.length-1]===MARCH.length-1, arcM.join(' → '));
+  var ARC=['york','dere','coria','wall','tyne','crags','turf','summit','antonine'], arcF=ARC.map(function(k){ return FRONTS.findIndex(function(Fr){ return Fr.key===k; }); }), arcM=arcF.map(function(f){ return MARCH.findIndex(function(m){ return m.f===f; }); });
+  okk('[wall arc] the march reads as one push: York → DERE STREET → CORIA → W1 SEGEDUNUM → W2 CILURNUM → W3 VERCOVICIUM → W4 THE TURF WALL → W5 WINSHIELDS → THE ANTONINE WALL (the last stop)', arcF.every(function(f){ return f>=0; }) && arcM.every(function(m,i){ return i===0 || m===arcM[i-1]+1; }) && arcM[arcM.length-1]===MARCH.length-1, arcM.join(' → '));
   var arcNew=ARC.slice(1).map(function(k){ return FRONTS.find(function(Fr){ return Fr.key===k; }); });
   okk('[wall arc] every Wall-arc front is a 4-phase mission (rescue → hold → rescue → push/hold) with a title, a Latin line, a sky, a music bed and its own backdrop', arcNew.every(function(Fr){ var L=PHASES[Fr.key]; return L && L.length===4 && (L[1].kind==='hold' || Fr.key==='wall') && L.some(function(p){ return p.kind==='hold'; }) && !!Fr.title && !!Fr.latin && !!SKIES[Fr.time] && MUSIC_SLOTS.indexOf(Fr.music)>=0 && (LAYERS[Fr.key]||[]).length>=3 && !!BATTLE[Fr.key] && !!FRONT_LORE[Fr.key]; }), arcNew.map(function(Fr){ return Fr.key+':'+(PHASES[Fr.key]||[]).length; }).join(' '));
   function threats(Fr){ var t={}; Object.keys(Fr.hazards||{}).forEach(function(k){ t[k]=1; }); (PHASES[Fr.key]||[]).forEach(function(p){ Object.keys(p.hazards||{}).forEach(function(k){ t[k]=1; }); ((p.war||{}).machines||[]).forEach(function(m){ t['m_'+m.kind]=1; }); if((p.war||{}).wizard) t.wizard=1; if(p.siege) t.siege=1; });
     ((Fr.war||{}).machines||[]).forEach(function(m){ t['m_'+m.kind]=1; }); if((Fr.war||{}).wizard) t.wizard=1; if(Fr.siege) t.siege=1; if(Fr.legion.hunts) t.hunts=1; if(Fr.roofs) t.fire=1; if(Fr.press) t.press=1; return Object.keys(t).length; }
   var tc=arcNew.map(threats);
-  okk('[wall arc] TOTAL WAR: the road north brings stones, gliders, machines, wizards and taken thopters; the summit has the most threats of the march', threats(arcNew[0])>=6 && threats(arcNew[1])>=7 && tc[tc.length-1]===Math.max.apply(null,FRONTS.map(threats)), arcNew.map(function(Fr,i){ return Fr.key+' '+tc[i]; }).join(' · '));
-  okk('[wall arc] burning, smoke and dark: the arc flies under smoke (ash, pyre), rain, a crag dusk, fog and the blood sky — no daylight', arcNew.map(function(Fr){ return Fr.time; }).join(',')==='ash,pyre,night,rain,crag,fog,blood' && SKIES.fog.fog && SKIES.ash.smoke && SKIES.pyre.smoke);
+  okk('[wall arc] TOTAL WAR: the road north brings stones, gliders, machines, wizards and taken thopters; the Antonine Wall has the most threats of the campaign', threats(arcNew[0])>=6 && threats(arcNew[1])>=7 && tc[tc.length-1]===Math.max.apply(null,FRONTS.map(threats)), arcNew.map(function(Fr,i){ return Fr.key+' '+tc[i]; }).join(' · '));
+  okk('[wall arc] burning, smoke and dark: the arc flies under smoke (ash, pyre), rain, a crag dusk, fog, the blood sky and the northern aurora — no daylight', arcNew.map(function(Fr){ return Fr.time; }).join(',')==='ash,pyre,night,rain,crag,fog,blood,aurora' && SKIES.aurora.aurora && SKIES.fog.fog && SKIES.ash.smoke && SKIES.pyre.smoke);
   okk('[wall arc] the troops muster: every road-north and Wall push is fed by troop drops', arcNew.every(function(Fr){ var L=PHASES[Fr.key]; return L.every(function(p){ return p.kind!=='push' || !!p.muster; }); }) && !!FRONTS.find(function(Fr){ return Fr.key==='dere'; }).muster);
   okk('[wall arc] Q741: W1 SEGEDUNUM is four phases now (THE WALK RETAKEN, a hold, before THE COUNTERATTACK)', PHASES.wall.length===4 && PHASES.wall[2].kind==='hold' && PHASES.wall[3].kind==='push');
   okk('[wall arc] the HADRIAN art only: every new backdrop strip is a manifest key', arcNew.every(function(Fr){ return (LAYERS[Fr.key]||[]).every(function(L){ return L.fn ? !!STRIPFN[L.fn] : !!ART[L.n]; }); }));
@@ -3553,9 +3816,59 @@ function selfTest(){
   okk('the march goes on from W1 SEGEDUNUM to W2 CILURNUM (the Wall arc is unsealed)', state==='brief' && fi===TY);
   fi=TY; state='march'; onPress(' ');
   okk('...and on from W2 to W3 VERCOVICIUM', state==='brief' && fi===CR);
-  var SU=FRONTS.findIndex(function(Fr){ return Fr.key==='summit'; }); fi=SU; F=FRONTS[SU]; state='march'; onPress(' ');
-  okk('after W5 WINSHIELDS the march ends on THE WALL HOLDS', state==='end');
+  var SU=FRONTS.findIndex(function(Fr){ return Fr.key==='summit'; }), AN=FRONTS.findIndex(function(Fr){ return Fr.key==='antonine'; });
+  fi=SU; F=FRONTS[SU]; state='march'; onPress(' ');
+  okk('[order] after W5 WINSHIELDS the march goes on NORTH to THE ANTONINE WALL (W5 is no longer the finale)', state==='brief' && fi===AN && !FRONTS[SU].finale && !!FRONTS[AN].finale);
+  fi=AN; F=FRONTS[AN]; state='march'; onPress(' ');
+  okk('[ending] after the Antonine Wall the march has nowhere left to go: THE OUTRO', state==='outro' && otk===0);
   campaign=false;
+  // ---- 1113b: FRONT 17 — THE ANTONINE WALL, THE UNIVERSAL PROJECT ----
+  var chain=[], cI=FRONTS.findIndex(function(Fr){ return Fr.key==='york'; }); while(cI>=0 && chain.length<20){ chain.push(FRONTS[cI].key); cI=nextBuilt(cI); }
+  okk('[order] the campaign chain (nextBuilt) runs York → Dere Street → Coria → W1 → W2 → W3 → W4 → W5 → the Antonine Wall, and stops', chain.join(',')==='york,dere,coria,wall,tyne,crags,turf,summit,antonine', chain.join(' → '));
+  var bOrd=MARCH.filter(function(m){ return m.f!=null; }).map(function(m){ return FRONTS[m.f].key; });
+  okk('[order] CHOOSE A FRONT and the march map list the MARCH order, not the ?front= ids (W1 = ?front=4 sits after Coria)', bOrd.slice(-9).join(',')==='york,dere,coria,wall,tyne,crags,turf,summit,antonine' && FRONTS[3].key==='wall' && bOrd.indexOf('wall')===bOrd.indexOf('coria')+1, bOrd.slice(-9).join(' · '));
+  okk('[antonine] ?front=17 is THE ANTONINE WALL — THE UNIVERSAL PROJECT: the last stop, a Wall front, beyond the Wall, with the ending', AN===16 && MARCH[MARCH.length-1].f===AN && nextBuilt(AN)<0 && FRONTS[AN].wall && FRONTS[AN].beyond && FRONTS[AN].ending && /UNIVERSAL PROJECT/.test(MARCH[16].name));
+  okk('[antonine] its own sky (darker than the blood sky), music cue (with a fallback bed), parallax, battle row, lore, the forum on the walk', SKIES.aurora.stops[3]<SKIES.blood.stops[3] && MUSIC_SLOTS.indexOf('front_antonine')>=0 && MUSIC_FALLBACK.front_antonine==='front_wall' && LAYERS.antonine.length>=3 && !!BATTLE.antonine && !!FRONT_LORE.antonine && FRONTS[AN].forum>0);
+  okk('[antonine] Hadrian laments the Universal Project in every cutaway, both sides — and the card is still his BUST', PHASES.antonine.slice(1).every(function(p){ return p.line[0]==='hadrian' && p.gline[0]==='hadrian'; }) && SPK.hadrian.bust && FRONT_LORE.antonine[0]==='hadrian');
+  SIDE='rome'; startFront(AN,{go:true,seed:9}); legion=[]; haz=[]; shots=[]; pickups=[]; legionT=1e9; for(var hk in hzT) hzT[hk]=1e9; siege=[]; war.W.machines=[]; war.W.volley=null; war.W.wizard=null; war.W.surge=null; war.surgeT=1e9; war.waveT=1e9;
+  okk('[supply] Rome: four scorpios on the walk, crewed, each holding bolts; THE ARMOURY is behind the fort', emps.length===4 && emps.every(function(e){ return e.supply && e.st==='manned' && e.ammo===F.supply.ammo; }) && F.supply.armoury.x<emps[0].x);
+  war.W.cover=false; emps.forEach(function(e){ e.fireT=1e9; }); var e0=emps[0], sh0; e0.ammo=1; e0.fireT=0; run(0.3); var held=e0.ammo===1 && e0.shots===0;
+  spawnGnome('axe', e0.x+140, -1); var g0=legion[legion.length-1]; e0.fireT=0; run(0.3); sh0=e0.shots;
+  okk('[supply] with nothing in reach the crew holds its bolts; a red hat on the walk gets one (and the bolt is spent)', held && g0.gone && sh0===1 && e0.ammo===0, 'shots '+sh0+' · ammo '+e0.ammo);
+  spawnGnome('axe', e0.x+140, -1); var g1=legion[legion.length-1]; run(SUPPLY_EVERY+1);
+  okk('[supply] ...and, empty, it falls SILENT: no more shots, the red hat walks on', e0.ammo===0 && e0.silent && e0.shots===sh0 && !g1.gone && silentN()>=1, 'shots '+e0.shots+' · ammo '+e0.ammo); legion=[];
+  emps.forEach(function(e){ e.ammo=0; e.silent=true; }); war.breach=0.3; var bA=war.breach; run(5); var dSil=war.breach-bA;
+  emps.forEach(function(e){ e.ammo=F.supply.cap; e.silent=false; e.fireT=99; }); war.breach=0.3; run(5); var dFed=war.breach-0.3;
+  okk('[supply] silent scorpios let the tide up: the breach climbs faster with all four dry', dSil>dFed+0.02, 'dry +'+dSil.toFixed(3)+' · fed +'+dFed.toFixed(3)+' over 5 s');
+  var am=friends.filter(function(f){ return f.ammo && f.st==='ground'; });
+  okk('[supply] THE ARMOURY sends armourers with bolt-sacks (never more than its max waiting); they are not stranded to score', am.length>=1 && am.length<=F.supply.armoury.max && am.every(function(f){ return !objF(f) && Math.abs(f.x-F.supply.armoury.x)<60; }), am.length+' waiting');
+  var e1=emps[1], c1=am[0], sc1, fd0=stats.fed; e1.ammo=0; e1.silent=true; e1.fireT=99; park(c1.x,grabY(c1)); run(0.2); var onR=c1.st==='rope'; sc1=score; park(e1.x,maxY()); run(0.4);
+  okk('[supply] carry a sack on the rope and set it down LOW at a scorpio: it is FED (+bolts, +'+AMMO_PTS+'), it sings again', onR && c1.st==='safe' && c1.how==='ammo' && e1.ammo===F.supply.per && !e1.silent && stats.fed===fd0+1 && score-sc1>=AMMO_PTS, 'ammo '+e1.ammo+' · fed '+stats.fed);
+  var c2=mkFriend(P.x,'bolts',friends.length,0); c2.ammo=true; c2.ph=null; friends.push(c2); c2.st='ride'; var e2=emps[2]; e2.ammo=0; e2.fireT=99; park(e2.x,maxY()); run(1.2);
+  okk('[supply] a sack riding the ladder climbs down at a scorpio too (hover LOW over it)', c2.st==='safe' && e2.ammo===F.supply.per, c2.st+' · ammo '+e2.ammo);
+  var c3=mkFriend(600,'bolts',friends.length,0); c3.ammo=true; c3.ph=null; friends.push(c3); var lo0=stats.lost, ln0=lostN(), mo0=war.morale; loseFriend(c3,'captured');
+  okk('[supply] a lost sack is not a lost soul (no morale, not on the card)', c3.st==='lost' && stats.lost===lo0 && lostN()===ln0 && war.morale===mo0, c3.st+' · lost '+lo0+'→'+stats.lost+' · lostN '+ln0+'→'+lostN()+' · morale '+mo0+'→'+war.morale);
+  enterPhase(1,{}); hp=HULL; war.breach=0; stageClock=0.4; run(1.0); var lrS=lastResult||{};
+  okk('[supply] FEED THE SCORPIOS: a hold that ends with sacks still owed FAILS — THE SCORPIOS FELL SILENT', state==='failed' && lrS.reason==='silent' && FAILS.silent && MPH[1].feed>0, (lrS.reason||state));
+  startFront(AN,{go:true,seed:10}); legion=[]; legionT=1e9; for(var hk2 in hzT) hzT[hk2]=1e9; enterPhase(1,{}); hp=HULL; war.breach=0; stats.fed+=MPH[1].feed; stageClock=0.4; run(1.0);
+  okk('[supply] ...and with every sack delivered the hold clears to THE FORUM ON THE WALL', state==='play' && mph===2 && /FORUM/.test(MPH[2].name), state+' · phase '+(mph+1));
+  startFront(AN,{go:true,seed:11,side:'gnome'});
+  okk('[antonine] the gnome side is the breakthrough, not a mirrored supply run: no scorpios to feed; THE BREAKTHROUGH (push) → THE HORDE CLIMBS → THE FINAL FORUM', !F.supply && emps.length===0 && MPH[1].kind==='push' && MPH[1].name==='THE BREAKTHROUGH' && !!MPH[1].muster && MPH[2].kind==='rescue' && MPH[3].name==='THE FINAL FORUM' && MPH[3].kind==='hold');
+  enterPhase(1,{}); enterPhase(2,{}); var dv=friends.filter(function(f){ return f.w===WHO.davius; })[0];
+  okk('[antonine] gnome side: DAVIUS marches with the horde to THE FORUM STAIR (he is the VIP; losing him is DAVIUS IS TAKEN, not the Arch-Wizard)', !!dv && dv.w.vip && F.drop.label==='THE FORUM STAIR' && !!FAILS.davius_g);
+  dv.st='lost'; endCheck(); var lrD=lastResult||{};
+  okk('[antonine] ...and if the Legion takes him, the card says so', lrD.reason==='davius_g', lrD.reason);
+  SIDE='rome';
+  // ---- THE ENDING (both sides): results -> THE OUTRO (forum + fall, the retreat, the TJTV crawl, Dr. Wolfe x4, the glitch) -> the end card ----
+  ['rome','gnome'].forEach(function(sd){ startFront(AN,{go:true,seed:12,side:sd}); campaign=true; runSaved=41; mph=MPH.length-1; phaseOpen(); win('held');
+    var res=state==='results'; rt=2; onPress(' '); var inO=state==='outro' && otk===0 && outroSurvivors()>=41;
+    var ks=[]; for(var b=0;b<OUTRO.length+2 && state==='outro';b++){ ks.push(OUTRO[otk].k); otT=1; onPress(' '); }
+    okk('[ending] '+sd.toUpperCase()+': winning the Antonine Wall plays THE OUTRO — '+ks.join(' → ')+' — then the end card', res && inO && ks.join(',')==='fall,retreat,crawl,wolfe,wolfe,wolfe,wolfe,glitch' && state==='end'); });
+  var allQ=OUTRO.map(function(o){ return (o.q||'')+' '+(o.head||'')+' '+(o.sub||''); }).join(' ')+' '+OUTRO_CRAWL.join(' ');
+  okk('[ending] the TJTV crawl + H. Wolfe: illness? Davius (potions, excuses, the lost FAA licence)? the machines lost in the exit from Britannia, the gnomes never seen again — except Davius, who may just be a short man — and LOST TO HISTORY (never answered)',
+    /ILLNESS/i.test(allQ) && /potion/i.test(allQ) && /FAA licence/i.test(allQ) && /Britannia/.test(allQ) && /never show themselves to men again/i.test(allQ) && /short man/.test(allQ) && /lost to history/i.test(allQ) && OUTRO.filter(function(o){ return o.k==='wolfe'; }).length>=3);
+  okk('[ending] the end card: DOVER TO THE ANTONINE WALL · 17 FRONTS; no more "still to come on the summit"', MARCH.length===17 && END_LINES.length===3 && typeof STILL_TO_COME==='undefined');
+  campaign=false; state='title';
 
   var pass=R.every(function(r){return r.ok;});
   return { pass:pass, results:R, rates:rates, seed:SEED };
@@ -3605,8 +3918,10 @@ if(qp('selftest')!==null){ try{ selfTestPage(); }catch(e){ document.body.innerHT
     if(state!=='play') rt=5;
     playMusic(state==='play'?F.music:'theme',0.7);
   }
-  else if(qp('campaign')!==null){ campaign=true; score=0; startFront(0); playMusic('theme',0.7); }
+  else if(qp('campaign')!==null){ campaign=true; score=0; runSaved=0; startFront(0); playMusic('theme',0.7); }
   else if(qp('march')!==null){ campaign=true; F=FRONTS[0]; fi=0; state='march'; playMusic('theme',0.7); }
+  else if(qp('outro')!==null){ startFront(FRONTS.length-1,{seed:5}); startOutro(); otk=clamp(+qp('outro')||0,0,OUTRO.length-1); otT=+(qp('t')||0); }   // 1113b: THE OUTRO from beat K (&t=s into it)
+  else if(qp('end')!==null){ state='end'; rt=2; playMusic('theme',0.7); }
   else if(qp('title')!==null){ toTitle(); }
   else if(qp('howto')!==null){ state='howto'; playMusic('theme',0.7); }
   else if(qp('select')!==null){ state='select'; playMusic('theme',0.7); }
