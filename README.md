@@ -58,11 +58,12 @@ Bring out enough before the horn and the front is held.
 | THE SCREW | **F**, **X** or **SHIFT** | **B**, **X** or **LT** |
 | Start / confirm | **SPACE** or **ENTER** | **A** / **START** |
 | Retry the front | **R** | **A** on the retry screen |
-| Back to the title | **ESC** | **SELECT** |
+| Pause menu (in a front) | **ESC**, **P** or **ENTER** | **START** |
+| Back to the title | **ESC** (menus) | **SELECT** |
 | Sound on/off | **M** | |
 
 On the front map, **1** to **9** jump straight to the first nine fronts, in march order.
-There is no pause yet: **ESC** during a front goes back to the title.
+**ESC** during a front opens the pause menu: resume, how to fly, sound, retry the front, or quit to the title.
 
 The game is laid out for a computer screen, 16:9.
 
@@ -145,11 +146,13 @@ fly it for Rome or, from the far side, for the gnomes.
   Most sound effects are in; the ray, the screw, the grab, the horn and a few
   warnings still play placeholder blips.
 - **The duel.** Hadrian against the Gnomean King is designed but not built.
-- **The Antonine Wall.** It borrows the Wall's music and is drawn from
-  existing art for now; its own music and plate are still to come.
+- **The Antonine Wall.** It borrows the Wall's music for now; its own music
+  and the ending's music are still to come.
 - **Art.** Commissioned art for the friendly gnome engineers, the wall faces and
   the duel is still to come. The green-capped gnomes you rescue now are
-  recoloured red-hat figures standing in for it.
+  recoloured red-hat figures standing in for it. The backdrops from Dere Street to the
+  Antonine Wall, the forum and the attract's night Wall are Blender renders;
+  the title plate is due a second pass.
 
 ## Credits
 

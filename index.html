@@ -115,6 +115,8 @@ var ART={
   lon_south_bank:'art/lon_south_bank.png',
   lon_reeds_a:'art/lon_reeds_a.png', lon_reeds_b:'art/lon_reeds_b.png', lon_reeds_c:'art/lon_reeds_c.png', lon_reeds_d:'art/lon_reeds_d.png',
   lon_bush_a:'art/lon_bush_a.png', lon_bush_b:'art/lon_bush_b.png', lon_mixed_a:'art/lon_mixed_a.png',
+  wa_dere:'art/layers/wa_dere.png', wa_coria:'art/layers/wa_coria.png', wa_tyne:'art/layers/wa_tyne.png', wa_crags:'art/layers/wa_crags.png',   // 1116 THE WALL ARC plates (pax_wallarc.py)
+  wa_turf:'art/layers/wa_turf.png', wa_summit:'art/layers/wa_summit.png', wa_antonine:'art/layers/wa_antonine.png', wa_forum:'art/wa_forum.png',
   wh_far:'art/layers/wh_far.png', wh_hill:'art/layers/wh_hill.png', wh_near:'art/layers/wh_near.png',
   wh_onager:'art/wh_onager.png', wh_ballista:'art/wh_ballista.png', wh_cart:'art/wh_cart.png',
   wash_far_hills:'art/layers/wash_far_hills.png', wash_far_ruins:'art/layers/wash_far_ruins.png', wash_mid_camp:'art/layers/wash_mid_camp.png',
@@ -2197,26 +2199,26 @@ var SKIES={
   dawn:  {stops:['#4f6f9c','#9db4c9','#f0d2a6','#f6b884'], sun:{x:230,y:430,r:54,col:'255,232,190',glow:0.6,disc:0.55}, haze:'#e9d6bb', amb:'gulls'},
   dusk:  {stops:['#0e1f22','#20403a','#7a6a3e','#d68a3c'], sun:{x:1240,y:560,r:58,col:'255,170,90',glow:0.5}, haze:'#3a4a34', amb:'motes'},
   blood: {stops:['#160304','#4a0a08','#9b1f0e','#e2622a'], sun:{x:1060,y:470,r:170,col:'255,120,60',glow:0.75}, haze:'#7a1a0c', amb:'embers'},
-  night: {stops:['#04070f','#0b1630','#1b2c4f','#3c5170'], moon:{x:1300,y:170,r:46}, haze:'#26354f', amb:'snow'},
+  night: {stops:['#04070f','#0b1630','#1b2c4f','#3c5170'], moon:{x:1420,y:250,r:46}, haze:'#26354f', amb:'snow'},
   // THE WHITE HORSE VALE: a cold wet dawn (the Python build rains on it) — the sun coming up in the EAST, behind the host
   vale:  {stops:['#3e4a63','#7d8aa0','#d9c7b0','#f2b98a'], sun:{x:1430,y:452,r:46,col:'255,214,160',glow:0.55,disc:0.8}, haze:'#b9b4ae', amb:'drizzle'},
   // LONDON CALLING: the city's first night under threat — lamplit, warm at the horizon where the signal fires run north
-  city:  {stops:['#060817','#141a38','#3b2a48','#a8583a'], moon:{x:250,y:140,r:34}, haze:'#2c2842', amb:'embers'},
+  city:  {stops:['#060817','#141a38','#3b2a48','#a8583a'], moon:{x:250,y:240,r:34}, haze:'#2c2842', amb:'embers'},
   // LONDON PROPER: a smoke-brown first light over a burning forum (Claude 1112)
   smoke: {stops:['#211b1e','#433432','#87573e','#d18a52'], sun:{x:1190,y:520,r:58,col:'255,170,110',glow:0.5,disc:0.55}, haze:'#5a4640', amb:'embers'},
   // LIVERPOOL: canon LIVERPOOL = the SUNRISE (the beltway successor) — a clear cold dawn over the Mersey
   sunrise:{stops:['#2b3550','#6a6f8a','#e0a27a','#f7c98a'], sun:{x:1470,y:610,r:66,col:'255,222,165',glow:0.7,disc:0.85}, haze:'#c9a890', amb:'gulls'},
   // YORK: nightfall, the town already burning at the horizon
-  ember: {stops:['#0c0812','#2a1430','#6a2a2a','#c0582a'], moon:{x:300,y:150,r:38}, haze:'#3a2230', amb:'embers'},
+  ember: {stops:['#0c0812','#2a1430','#6a2a2a','#c0582a'], moon:{x:300,y:240,r:38}, haze:'#3a2230', amb:'embers'},
   // THE WALL ARC (Claude 1113)
   // DERE STREET: an afternoon under the smoke of the burning farms
   ash:   {stops:['#38322f','#5f5048','#9c6c52','#d39a6a'], sun:{x:1360,y:480,r:50,col:'255,190,140',glow:0.45,disc:0.5}, haze:'#76665c', amb:'embers', smoke:true},
   // CORIA: night, the stores burning — the whole horizon red
-  pyre:  {stops:['#07060c','#1e0f1a','#5a1c14','#c4521e'], moon:{x:260,y:150,r:30}, haze:'#3a1e1e', amb:'embers', smoke:true},
+  pyre:  {stops:['#07060c','#1e0f1a','#5a1c14','#c4521e'], moon:{x:260,y:240,r:30}, haze:'#3a1e1e', amb:'embers', smoke:true},
   // CILURNUM: rain at night on the North Tyne
   rain:  {stops:['#05080e','#101a2a','#24344a','#3e5066'], haze:'#2a3646', amb:'rain'},
   // VERCOVICIUM: a cold violet dusk on the crags
-  crag:  {stops:['#0a0e1c','#1e2a48','#56607e','#a4a0ac'], moon:{x:1320,y:160,r:40}, haze:'#3e4860', amb:'snow'},
+  crag:  {stops:['#0a0e1c','#1e2a48','#56607e','#a4a0ac'], moon:{x:1420,y:250,r:40}, haze:'#3e4860', amb:'snow'},
   // THE TURF WALL: fog (the fog banks are drawn behind the play: telegraphs stay readable)
   fog:   {stops:['#4a5258','#6e787c','#949c9c','#b4b8b2'], haze:'#9aa2a2', amb:'drizzle', fog:true},
   // THE ANTONINE WALL (1113b): the northern night — darker than the blood sky, an aurora over the Forth (render-only curtains)
@@ -2239,14 +2241,14 @@ var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parall
   scorpio:[ {n:'vale_far_hills', dy:-130, h:220, sp:1.5, sil:'#26301f'}, {n:'hills_white_horse', dy:-70, h:160, sp:3, haze:0.5}, {n:'camp_tents', dy:-6, h:120, sp:5, haze:0.4}, {n:'wh_near', dy:24, h:150, sp:7, haze:0.45} ],
   york:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#1a1020'}, {n:'fort_strip', dy:-62, h:140, sp:2.5, haze:0.5}, {n:'palisade_fort', dy:-8, h:120, sp:5, haze:0.32} ],
   // THE WALL ARC (Claude 1113) — HADRIAN library strips only; dedicated plates are OWED (docs/PAX-LEVELS-1113.md)
-  dere:[ {n:'vale_far_hills', dy:-130, h:220, sp:1.5, sil:'#3a302c'}, {n:'village_strip', dy:-64, h:150, sp:3, haze:0.5}, {n:'vale_near_ruins', dy:14, h:160, sp:6, haze:0.42} ],
-  coria:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#180c12'}, {n:'fort_strip', dy:-64, h:140, sp:2.5, haze:0.55}, {n:'vale_supply', dy:-10, h:150, sp:5, haze:0.45} ],
-  tyne:[ {n:'snow_hills', dy:-178, h:120, sp:1.2, sil:'#141c2a'}, {n:'wall_thin', dy:-124, h:56, sp:1.8, haze:0.6}, {n:'fort_strip', dy:-118, h:110, sp:2.4, haze:0.55}, {fn:'thamesBack'} ],
-  crags:[ {n:'snow_hills', dy:-110, h:170, sp:1.5, haze:0.55}, {n:'snow_siege', dy:-60, h:120, sp:3, haze:0.5}, {n:'wall_thin', dy:-14, h:64, sp:5, haze:0.45} ],
-  turf:[ {n:'snow_hills', dy:-120, h:160, sp:1.5, haze:0.8}, {n:'wall_thin', dy:-70, h:70, sp:3, haze:0.72}, {n:'wall_siege', dy:-8, h:130, sp:6, haze:0.62} ],
-  summit:[ {n:'wash_far_hills', dy:-110, h:220, sp:1.5, sil:'#3a0a07'}, {n:'wall_thin', dy:-70, h:70, sp:3, haze:0.55}, {n:'wall_siege', dy:-8, h:130, sp:6, haze:0.45} ],
+  dere:[ {n:'vale_far_hills', dy:-130, h:220, sp:1.5, sil:'#3a302c'}, {n:'wa_dere', dy:-34, h:160, sp:3, haze:0.3}, {n:'vale_near_ruins', dy:14, h:160, sp:6, haze:0.42} ],   // 1116: the Blender Dere Street plate (pax_wallarc.py)
+  coria:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#180c12'}, {n:'wa_coria', dy:-36, h:150, sp:2.5, haze:0.25}, {n:'vale_supply', dy:-10, h:150, sp:5, haze:0.45} ],   // 1116: Coria by night (Blender)
+  tyne:[ {n:'snow_hills', dy:-178, h:120, sp:1.2, sil:'#141c2a'}, {n:'wa_tyne', dy:-104, h:140, sp:2.2, haze:0.35}, {fn:'thamesBack'} ],   // 1116: Cilurnum + the Tyne bridge (Blender)
+  crags:[ {n:'snow_hills', dy:-190, h:110, sp:0.9, sil:'#141c34'}, {n:'wa_crags', dy:-64, h:260, sp:1.6, haze:0.22}, {n:'snow_siege', dy:4, h:100, sp:5, haze:0.55} ],   // 1116: the Whin Sill + turrets (Blender)
+  turf:[ {n:'snow_hills', dy:-150, h:160, sp:1.2, haze:0.8}, {n:'wa_turf', dy:-66, h:180, sp:2.4, haze:0.32}, {n:'wall_siege', dy:-8, h:110, sp:6, haze:0.66} ],   // 1116: the Turf Wall in fog (Blender)
+  summit:[ {n:'wash_far_hills', dy:-150, h:220, sp:1.2, sil:'#3a0a07'}, {n:'wa_summit', dy:-66, h:250, sp:2, haze:0.18}, {n:'wall_siege', dy:-8, h:110, sp:6, haze:0.5} ],   // 1116: Winshields summit (Blender)
   // THE ANTONINE WALL (1113b): black Caledonian hills, the turf line running away north-west, the host massing at the ditch
-  antonine:[ {n:'snow_hills', dy:-120, h:200, sp:1.2, sil:'#03080c'}, {n:'wall_thin', dy:-74, h:60, sp:2.6, haze:0.8}, {n:'snow_siege', dy:-12, h:130, sp:5.5, haze:0.62} ]
+  antonine:[ {n:'snow_hills', dy:-150, h:200, sp:1.2, sil:'#03080c'}, {n:'wa_antonine', dy:-66, h:200, sp:2.2, haze:0.28}, {n:'snow_siege', dy:-12, h:110, sp:5.5, haze:0.66} ]   // 1116: turf on stone + the fort (Blender)
 };
 var drift=0;
 function drawStrip(L, gy){
@@ -2325,6 +2327,9 @@ function drawWallFace(){
 // Pure shapes (no new art); world-anchored on the walk. The figure of Hadrian is never drawn in play (the bust speaks).
 function drawForum(x, gy){
   var w=300, ph=16, ch=118, top=gy-ph-ch;
+  if(ok('wa_forum')){ var fh=300*IMG.wa_forum.height/IMG.wa_forum.width; ctx.drawImage(IMG.wa_forum, x-150, gy+4-fh, 300, fh);   // 1116: the Blender forum (Q814)
+    for(var s_=-1;s_<=1;s_+=2){ var bx=x+s_*105, fl=0.6+0.4*Math.sin(rt*8+s_), gg=ctx.createRadialGradient(bx,gy-44,2,bx,gy-44,60); gg.addColorStop(0,'rgba(255,160,70,'+(0.30*fl)+')'); gg.addColorStop(1,'rgba(255,140,60,0)'); ctx.fillStyle=gg; ctx.fillRect(bx-60,gy-104,120,120); }
+    wtxt('THE FORUM' /* DRAFT */, x, gy-fh-14, 14, '#cfe8dc', 0.7); return; }
   ctx.fillStyle='#3a3e4a'; ctx.fillRect(x-w/2-14,gy-ph,w+28,ph+4); ctx.fillStyle='#565c6c'; ctx.fillRect(x-w/2-14,gy-ph,w+28,3);
   for(var i=0;i<6;i++){ var cx=x-w/2+18+i*(w-36)/5; ctx.fillStyle='#4c5262'; ctx.fillRect(cx-9,top,18,ch); ctx.fillStyle='rgba(150,230,200,0.10)'; ctx.fillRect(cx-9,top,5,ch); ctx.fillStyle='#5a6070'; ctx.fillRect(cx-12,top-6,24,7); }
   ctx.fillStyle='#4a5060'; ctx.fillRect(x-w/2-8,top-20,w+16,16);
@@ -2495,14 +2500,20 @@ function wallLedges(){ if(!F.wall||roofs.length) return; var seen={};   // THE W
   for(var i=0;i<friends.length;i++){ var f=friends[i]; if(!(f.rock>0) || f.st==='gone' || seen[f.x|0]) continue; seen[f.x|0]=1; var yb=GY()-f.rock; var tw_=74, tx_=f.x-tw_/2, ty_=yb+6;   // THE WALL ARC: the crews stand on a TURRET / crag ledge built up off the walk (stone, capped)
         ctx.fillStyle=F.wallLook==='turf'?'#3a3424':'#363b48'; ctx.fillRect(tx_,ty_,tw_,GY()-ty_); ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fillRect(tx_,ty_,10,GY()-ty_);
         ctx.fillStyle='#5c6475'; ctx.fillRect(tx_-6,ty_-4,tw_+12,8); for(var k_=0;k_<3;k_++){ ctx.fillStyle='#4a5162'; ctx.fillRect(tx_-6+k_*30,ty_-16,18,12); } } }
+// 1116: name tags never sit on each other or on a scorpio's MANNED / SIGHTING / SILENT tag — a placed tag nudges the next one up
+var _tags=[];
+function tagY(x,y,w){ for(var n=0;n<8;n++){ var hit=false; for(var i=0;i<_tags.length;i++){ var t=_tags[i]; if(Math.abs(t.x-x)<(t.w+w)/2+4 && Math.abs(t.y-y)<17){ hit=true; y=t.y-18; break; } } if(!hit) break; }
+  _tags.push({x:x,y:y,w:w}); return y; }
 function drawFriends(){
-  wallLedges();
+  wallLedges(); _tags=[]; var gy0=GY();
+  for(var i=0;i<emps.length;i++){ var e_=emps[i]; if(e_.supply){ _tags.push({x:e_.x,y:gy0-146,w:200},{x:e_.x,y:gy0-126,w:F.supply.cap*10+10}); } else _tags.push({x:e_.x,y:gy0-118,w:e_.st==='empty'?380:150}); }
+  if(F.supply) _tags.push({x:F.supply.armoury.x,y:gy0-96,w:150});
   for(var i=0;i<friends.length;i++){ var f=friends[i], w=f.w;
     if(f.st==='ground'){ var yb=GY()-f.rock, flip=f.x>F.drop.x;
-      if(w.vip){ wtxt(w.name,f.x,yb-w.h-52,15,'#ffe27a'); }
-      else if(f.escort) wtxt('ESCORT',f.x,yb-w.h-14,12,'#ffe27a',0.9);
-      else if(f.muster) wtxt('▲ FOR THE LINE',f.x,yb-w.h-14,12,'#e8c66a',0.8);
-      else if(f.ammo) wtxt('▲ BOLTS',f.x,yb-w.h-14,12,'#ffe27a',0.9);
+      if(w.vip){ wtxt(w.name,f.x,tagY(f.x,yb-w.h-52,w.name.length*9+10),15,'#ffe27a'); }
+      else if(f.escort) wtxt('ESCORT',f.x,tagY(f.x,yb-w.h-14,60),12,'#ffe27a',0.9);
+      else if(f.muster) wtxt('▲ FOR THE LINE',f.x,tagY(f.x,yb-w.h-14,110),12,'#e8c66a',0.8);
+      else if(f.ammo) wtxt('▲ BOLTS',f.x,tagY(f.x,yb-w.h-14,64),12,'#ffe27a',0.9);
       if(f.rock>0 && !roofs.length && F.wall){}   // (the turret is drawn by wallLedges, rescued or not)
       else if(f.rock>0 && !roofs.length){ ctx.fillStyle=F.time==='blood'?'#1d0605':'#4a4a3a'; ctx.beginPath(); ctx.ellipse(f.x,yb+f.rock*0.5+4,40,f.rock*0.5+6,0,0,6.283); ctx.fill(); spr('boulders',f.x,yb+6,f.rock+14,{a:0.85}); }
       figGlow(f.x,yb,w.h,1); if(objF(f) && !(f.w.vip && atPost(f.x))) helpFlag(f.x,yb,w.h, F.press && f.x-pressX<150);
@@ -3017,7 +3028,7 @@ function drawHUD(){
   txt('FOR '+sideName(),LW-32,140,12,GN()?'#ff9a7a':GOLD,'right','bold',0.8);
   if(cardT>0) drawPhaseCard();
   if(msgT>0 && !(cardT>0 && cardPrev)) txt(msg,LW/2,170,26,msgCol,'center','bold',clamp(msgT,0,1));
-  if(tipNow){ panel(LW/2-430,LH-70,860,46,0.7); txt(tipNow,LW/2,LH-47,18,'#fff3c4','center','bold'); }
+  if(tipNow){ var ty_=WW()>LW?252:LH-70; panel(LW/2-430,ty_,860,46,0.7); txt(tipNow,LW/2,ty_+23,18,'#fff3c4','center','bold'); }   // 1116: off the map strip on wide fronts
   if(demo){ txt('DRAMATIZED RECONSTRUCTION',LW-30,LH-28,14,'#ffffff','right','bold',0.75); }
 }
 
@@ -3063,6 +3074,10 @@ function identNight(a, t){
   ctx.fillStyle=mg; ctx.fillRect(mx-mr*3.2,my-mr*3.2,mr*6.4,mr*6.4);
   ctx.beginPath(); ctx.arc(mx,my,mr,-Math.PI/2,Math.PI/2,false); ctx.ellipse(mx,my,mr*0.42,mr,0,Math.PI/2,-Math.PI/2,true); ctx.closePath();
   var cg=ctx.createLinearGradient(mx,my-mr,mx+mr,my+mr); cg.addColorStop(0,'#5a76a6'); cg.addColorStop(1,'#263c66'); ctx.fillStyle=cg; ctx.fill();
+  // 1116: the Blender Whin Sill under the moon (pax_wallarc.py crags): the Wall riding the crags, turrets on the crest — replaces the flat vector hills
+  if(ok('wa_crags')){ var cr=tinted('wa_crags','#0e1a34',0.55,false), ch_=230, cw_=ch_*ar('wa_crags'), off_=-(t*6)%cw_;
+    for(var k=0,x=off_-cw_;x<LW;x+=cw_,k++){ ctx.save(); if(k%2){ ctx.translate(x+cw_,0); ctx.scale(-1,1); ctx.drawImage(cr,0,HZ+34-ch_,cw_,ch_); } else ctx.drawImage(cr,x,HZ+34-ch_,cw_,ch_); ctx.restore(); } }
+  else {
   // far hills + the Wall snaking over them (the library's wall strip, hazed to a silhouette)
   ctx.fillStyle='#0b1428'; ctx.beginPath(); ctx.moveTo(0,HZ+40); for(var x=0;x<=LW;x+=20) ctx.lineTo(x, HZ-10-28*Math.sin(x*0.004+0.6)-14*Math.sin(x*0.011)); ctx.lineTo(LW,HZ+40); ctx.closePath(); ctx.fill();
   var hill=function(x){ return HZ-10-28*Math.sin(x*0.004+0.6)-14*Math.sin(x*0.011); };
@@ -3071,6 +3086,7 @@ function identNight(a, t){
   if(ok('ident_wall')){ var mw=tinted('ident_wall','#0c1630',0.86,false), fw=tinted('ident_wall','#101d3a',0.72,false);
     if(mw) snake(mw, 0.03, function(x){ return HZ-58-16*Math.sin(x*0.006+2.0); }, 0);
     if(fw) snake(fw, 0.05, hill, -2); }
+  }
   // THE WALL along the bottom: the W1 wall kit (Blender stone, coursed ashlar + parapet), night-graded, moonlit from the left
   var IY=WT-24-6, MT=IY+24, EB=IY+61;        // image top, merlon tops, embrasure bottoms (ident_wall at 1008 x 378)
   RIG_GRADE='night'; var pat=[[120,560,22,0],[620,1080,18,2.1],[1340,1560,20,4.4]];   // the patrol walks the walk BEHIND the parapet
@@ -3177,9 +3193,11 @@ function drawSelect(){
   var bi=0;
   for(var i=0;i<MARCH.length;i++){ var m=MARCH[i], st_=Math.min(48,680/MARCH.length), y=166+i*st_, isB=m.f!=null, sel=isB && built[selI]===m;
     if(sel) panel(LW/2-470,y-st_/2+3,940,st_-6,0.7);
-    txt((isB?(++bi)+'.  ':'—  ')+m.name, LW/2-440, y, st_<44?19:22, isB?(sel?'#fff3c4':PARCH):'#6f6656','left','bold');
+    var nm=(isB?(++bi)+'.  ':'—  ')+m.name, nfs=st_<44?19:22; txt(nm, LW/2-440, y, nfs, isB?(sel?'#fff3c4':PARCH):'#6f6656','left','bold');
     var Fm=isB&&FRONTS[m.f], bst=isB&&BEST[Fm.key+':'+SIDE];
-    txt(isB?(Fm.place+' · '+(Fm.escort&&Fm.escort.main?'ESCORT':Fm.high?'HIGH GROUND':(Fm.depot&&Fm.depot.kind==='cradle'?'CRADLE':'PEN'))+(Fm.muster?' · TROOPS':'')+((Fm.ww||LW)>LW?' · WIDE':'')+(bst?'  ·  BEST '+bst.grade:'')):('SEALED · '+m.note), LW/2+440, y, 14, isB?(bst?'#9fe08a':'#c9b27a'):'#5f584a','right', isB?'bold':'italic'); }
+    var mw_=function(t,sz){ ctx.font='bold '+sz+'px Georgia,serif'; return NODE?t.length*sz*0.6:ctx.measureText(t).width; }, room=880-mw_(nm,nfs)-28;   // 1116: the right-hand tag never runs into a long name
+    var tag=isB?((mw_(Fm.place,14)>room*0.5 && room<520 ? '' : Fm.place+' · ')+(Fm.escort&&Fm.escort.main?'ESCORT':Fm.high?'HIGH GROUND':(Fm.depot&&Fm.depot.kind==='cradle'?'CRADLE':'PEN'))+(Fm.muster?' · TROOPS':'')+((Fm.ww||LW)>LW?' · WIDE':'')+(bst?'  ·  BEST '+bst.grade:'')):('SEALED · '+m.note);
+    txt(tag, LW/2+440, y, 14, isB?(bst?'#9fe08a':'#c9b27a'):'#5f584a','right', isB?'bold':'italic'); }
   txt('↑ ↓ or 1–9  ·  ← → SIDE  ·  SPACE fly it  ·  ESC back',LW/2,LH-24,15,'#bba98a','center','bold');
 }
 function drawBrief(dt){
@@ -3188,17 +3206,29 @@ function drawBrief(dt){
   var a=clamp(rt/0.5,0,1), n=MARCH.findIndex(function(m){return m.f===fi;})+1;
   txt('THE MARCH · '+(F.beyond?'BEYOND THE WALL' /* DRAFT */:F.wall||F.wall2?'THE WALL':F.approach?'THE ROAD NORTH':'STAGE '+n),LW/2,150,18,'#c9b27a','center','bold',a);
   txt(F.title,LW/2,220,70,GOLD,'center','bold',a); txt(F.latin,LW/2,280,22,PARCH,'center','bold',a);
-  panel(LW/2-560,320,1120,300,0.7*a);
-  wrap(F.brief,LW/2,360,1040,24,'#f3ead2',a);
-  if(MPH.length>1){ txt(MPH.length+' PHASES:  '+MPH.map(function(p){ return p.name; }).join('  ›  '),LW/2,456,19,'#ffcf9a','center','bold',a);
-    txt('PHASE 1 — '+(F.escort&&F.escort.main?'MAN '+F.escort.need+' '+empName()+'S  ·  ':'')+'BRING OUT '+F.need+' OF '+F.friends.length+'  ·  '+F.clock+'s'+(F.ww>LW?'  ·  WIDE FRONT':''),LW/2,484,20,CYAN,'center','bold',a); }
-  else txt((F.escort&&F.escort.main?'MAN '+F.escort.need+' '+empName()+'S  ·  ':'')+'BRING OUT '+F.need+' OF '+F.friends.length+' BEFORE THE HORN  ·  '+F.clock+'s'+(F.ww>LW?'  ·  WIDE FRONT':''),LW/2,470,22,CYAN,'center','bold',a);
+  // 1116: a measured FLOW layout (was fixed y's — long briefs ran the NEW line into the lore quote). Blocks stack, the panel
+  // fits them, and the whole block shrinks a step at a time until it clears the footer.
+  var ph1=(F.escort&&F.escort.main?'MAN '+F.escort.need+' '+empName()+'S  ·  ':'')+'BRING OUT '+F.need+' OF '+F.friends.length, lq=frontLore(), B_=[];
+  if(MPH.length>1) B_.push({t:MPH.length+' PHASES:  '+MPH.map(function(p){ return p.name; }).join('  ›  '),s:19,c:'#ffcf9a',one:1},{t:'PHASE 1 — '+ph1+'  ·  '+F.clock+'s'+(F.ww>LW?'  ·  WIDE FRONT':''),s:20,c:CYAN,one:1});
+  else B_.push({t:ph1+' BEFORE THE HORN  ·  '+F.clock+'s'+(F.ww>LW?'  ·  WIDE FRONT':''),s:22,c:CYAN,one:1});
+  var blocks=[{t:F.brief,s:24,c:'#f3ead2',gap:10}].concat(B_); blocks[blocks.length-1].gap=12;
+  blocks.push({t:'NEW: '+F.newThing,s:19,c:'#ffcf9a',gap:10}); if(lq) blocks.push({t:lq[1]+'  — '+SPK[lq[0]].name,s:18,c:'#e8dcc0',w:'italic'});
+  var wq={t:F.wolfe+'  — DR. H. WOLFE',s:20,c:'#d8ccb0',w:'italic'}, k=1, lay=null, top=322;
+  for(var tries=0;tries<6;tries++){ var y=top+18, out=[];
+    for(var i=0;i<blocks.length;i++){ var bk=blocks[i], sz=Math.round(bk.s*k), ls=bk.one?[bk.t]:wrapLines(bk.t,1040,sz,bk.w||'bold');
+      for(var j=0;j<ls.length;j++){ out.push([ls[j],y+sz*0.5,sz,bk.c,bk.w||'bold']); y+=sz*1.42; } y+=(bk.gap||4)*k; }
+    var pb=y+8, wl=wrapLines(wq.t,1100,Math.round(wq.s*k),'italic'), wy=pb+26, end=wy+wl.length*wq.s*k*1.42;
+    lay={out:out,pb:pb,wl:wl,wy:wy}; if(end<LH-84) break; k-=0.07; }
+  panel(LW/2-560,top,1120,lay.pb-top,0.7*a);
+  for(var i=0;i<lay.out.length;i++){ var o=lay.out[i]; txt(o[0],LW/2,o[1],o[2],o[3],'center',o[4],a); }
+  for(var i=0;i<lay.wl.length;i++) txt(lay.wl[i],LW/2,lay.wy+i*wq.s*k*1.42+wq.s*k*0.5,Math.round(wq.s*k),wq.c,'center','italic',a);
   txt('YOU FLY FOR '+sideName()+(F.muster?'  ·  TROOP DROPS':'')+(F.high?'  ·  HIGH GROUND':''),LW/2,150-30,16,GN()?'#ff9a7a':'#e8c66a','center','bold',a);
-  wrap('NEW: '+F.newThing,LW/2,520,1040,19,'#ffcf9a',a);
-  var lq=frontLore(); if(lq) wrap(lq[1]+'  — '+SPK[lq[0]].name,LW/2,585,1040,18,'#e8dcc0',a,'italic');
-  wrap(F.wolfe+'  — DR. H. WOLFE',LW/2,680,1100,20,'#d8ccb0',a,'italic');
   txt('SPACE — FLY   ·   ESC — TITLE',LW/2,LH-50,22,GOLD,'center','bold',0.5+0.5*Math.sin(rt*4));
 }
+function wrapLines(s,maxW,size,weight){ ctx.font=(weight||'bold')+' '+size+'px Georgia,serif'; var words=String(s).split(' '), line='', out=[];
+  var mw=function(t){ return NODE?t.length*size*0.52:ctx.measureText(t).width; };
+  for(var i=0;i<words.length;i++){ var t=line?line+' '+words[i]:words[i]; if(mw(t)>maxW && line){ out.push(line); line=words[i]; } else line=t; }
+  if(line) out.push(line); return out; }
 function wrap(s,x,y,maxW,size,col,a,weight){ ctx.font=(weight||'bold')+' '+size+'px Georgia,serif'; var words=s.split(' '), line='', ly=y;
   for(var i=0;i<words.length;i++){ var t=line?line+' '+words[i]:words[i]; if(ctx.measureText(t).width>maxW && line){ txt(line,x,ly,size,col,'center',weight||'bold',a); line=words[i]; ly+=size*1.45; } else line=t; }
   if(line) txt(line,x,ly,size,col,'center',weight||'bold',a); }
@@ -3290,6 +3320,37 @@ var otk=0, otT=0;
 function startOutro(){ state='outro'; otk=0; otT=0; rt=0; playMusic('outro_antonine',0.7); }
 function outroSurvivors(){ return campaign ? runSaved : (lastResult&&lastResult.rescued)||0; }
 function outroNext(){ otk++; otT=0; if(otk>=OUTRO.length){ state='end'; rt=0; playMusic('theme',0.6); } }
+// THE EMPEROR, STYLIZED (1116, Q814: was two purple rects). A small cut-paper figure — bronze cuirass, gold laurel, the purple
+// paludamentum streaming — rim-lit by the aurora. Never a face (only the bust has one): the head is a dark profile under the wreath.
+// fall=0 stands at the edge, arms out (the lament); fall>0 tumbles with the cloak streaming UP against the drop. Render-only.
+function drawEmperor(x, y, s, rot, fall, a){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.scale(s,s); ctx.globalAlpha=a==null?1:a;
+  var fl=Math.sin(rt*(fall?11:3.2)), up=fall?1:0;
+  // the cloak (behind): pinned at the shoulders, streaming back (standing) or up (falling)
+  ctx.save(); if(up){ ctx.translate(0,-42); ctx.rotate(-rot); ctx.translate(0,42); }   // falling: the cloak always streams to the SKY
+  ctx.fillStyle='#5a1a6e'; ctx.beginPath(); ctx.moveTo(-6,-46); ctx.lineTo(6,-46);
+  if(up){ ctx.bezierCurveTo(16,-62,10+fl*6,-86,22+fl*4,-104); ctx.bezierCurveTo(6,-96,-4+fl*5,-92,-14,-100); ctx.bezierCurveTo(-12,-80,-14,-62,-6,-46); }
+  else { ctx.bezierCurveTo(10,-30,12+fl*2,-12,16+fl*3,2); ctx.lineTo(-10,2); ctx.bezierCurveTo(-12,-14,-12,-30,-6,-46); }
+  ctx.fill(); ctx.fillStyle='#7c2a94'; ctx.beginPath(); ctx.moveTo(-4,-46); ctx.lineTo(4,-46); ctx.lineTo(up?6+fl*3:9+fl*2,up?-88:-6); ctx.lineTo(up?-2:-3,up?-80:-8); ctx.closePath(); ctx.fill(); ctx.restore();
+  // legs (greaves), tunic skirt (pteruges)
+  ctx.strokeStyle='#2a1c14'; ctx.lineWidth=4.2; ctx.lineCap='round'; var kk=up?fl*8:0;
+  ctx.beginPath(); ctx.moveTo(-3,-22); ctx.lineTo(-5-kk*0.4,-2); ctx.moveTo(3,-22); ctx.lineTo(5+kk,-3+Math.abs(kk)*0.3); ctx.stroke();
+  ctx.fillStyle='#b8a070'; for(var i=0;i<5;i++){ ctx.fillRect(-8+i*3.4,-27,2.6,8); }
+  // cuirass: a bronze muscled torso, gilt rim
+  var cg=ctx.createLinearGradient(-8,-48,8,-24); cg.addColorStop(0,'#e0b85a'); cg.addColorStop(1,'#7a5420'); ctx.fillStyle=cg;
+  ctx.beginPath(); ctx.moveTo(-8,-46); ctx.quadraticCurveTo(-10,-34,-7,-25); ctx.lineTo(7,-25); ctx.quadraticCurveTo(10,-34,8,-46); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(255,226,140,0.7)'; ctx.lineWidth=1; ctx.stroke(); ctx.fillStyle='#6a1e7e'; ctx.fillRect(-8,-30,16,2.4);   // the sash
+  // arms: out in the lament, flung wide in the fall
+  ctx.strokeStyle='#c49a68'; ctx.lineWidth=3.2; var ar=up?0.9+fl*0.5:0.35+0.08*Math.sin(rt*2);
+  ctx.beginPath(); ctx.moveTo(-7,-44); ctx.lineTo(-7-15*Math.cos(ar),-44-15*Math.sin(ar)); ctx.moveTo(7,-44); ctx.lineTo(7+15*Math.cos(ar*0.8),-44-15*Math.sin(ar*0.8)); ctx.stroke();
+  // the head: a dark profile, the beard, the laurel (gold)
+  ctx.fillStyle='#b48a5c'; ctx.beginPath(); ctx.arc(0,-54,6,0,6.283); ctx.fill(); ctx.fillStyle='#3a2a1e'; ctx.beginPath(); ctx.moveTo(-5,-53); ctx.quadraticCurveTo(0,-44,5.5,-52); ctx.lineTo(3,-55); ctx.quadraticCurveTo(0,-50,-3,-55); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.arc(0,-56,6.2,Math.PI*1.02,Math.PI*1.98); ctx.fill();   // the curls under the wreath, the beard (no features: only the bust has a face)
+  ctx.fillStyle='#e8c040'; for(var i=0;i<7;i++){ var an=Math.PI*(1.05+i*0.13); ctx.beginPath(); ctx.ellipse(Math.cos(an)*6.4,-55+Math.sin(an)*6.4,2.3,1.1,an+1.4,0,6.283); ctx.fill(); }
+  // the aurora's rim light down the far edge
+  ctx.globalCompositeOperation='lighter'; ctx.strokeStyle='rgba(110,255,190,0.35)'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(8,-46); ctx.quadraticCurveTo(10,-34,7,-25); ctx.moveTo(5.5,-58); ctx.arc(0,-54,6,-0.7,0.6); ctx.stroke();
+  ctx.restore();
+}
 function drawOutro(dt){
   otT+=dt; var S=OUTRO[otk]; if(!S){ state='end'; return; } if(otT>=S.d){ outroNext(); return; }
   var u=otT/S.d, fade=Math.min(1,otT/0.6,(S.d-otT)/0.6); ctx.fillStyle='#000'; ctx.fillRect(0,0,LW,LH);
@@ -3298,13 +3359,15 @@ function drawOutro(dt){
     var wy=LH*0.53, fx_=LW*0.58; ctx.save(); ctx.globalAlpha=fade;
     ctx.fillStyle='#0c161c'; ctx.fillRect(0,wy,LW,LH-wy);   // the rampart face, a cliff of turf on stone
     ctx.fillStyle='#1a2a2c'; ctx.fillRect(0,wy,LW,5); ctx.fillStyle='#16222a'; for(var r=0;r<9;r++) ctx.fillRect(0,wy+60+r*58,LW,3);
-    ctx.fillStyle='#1c2a34'; ctx.fillRect(fx_-170,wy-14,340,16); for(var c=0;c<6;c++) ctx.fillRect(fx_-150+c*58,wy-140,20,128);
-    ctx.fillRect(fx_-162,wy-160,324,20); ctx.beginPath(); ctx.moveTo(fx_-170,wy-160); ctx.lineTo(fx_,wy-214); ctx.lineTo(fx_+170,wy-160); ctx.closePath(); ctx.fill();
+    var fim_=ok('wa_forum')?tinted('wa_forum','#0a1822',0.4,false):null;   // 1116: the Blender forum (pax_wallarc.py), moon-tinted
+    if(fim_){ var fw_=360, fh_=fw_*fim_.height/fim_.width; ctx.drawImage(fim_,fx_-fw_/2,wy+2-fh_,fw_,fh_); }
+    else { ctx.fillStyle='#1c2a34'; ctx.fillRect(fx_-170,wy-14,340,16); for(var c=0;c<6;c++) ctx.fillRect(fx_-150+c*58,wy-140,20,128);
+    ctx.fillRect(fx_-162,wy-160,324,20); ctx.beginPath(); ctx.moveTo(fx_-170,wy-160); ctx.lineTo(fx_,wy-214); ctx.lineTo(fx_+170,wy-160); ctx.closePath(); ctx.fill(); }
     for(var i=0;i<16;i++){ var hx=fx_-520+Math.min(otT,4)*36+i*22+Math.sin(rt*3+i)*2, hh=26+(i*7)%14; ctx.fillStyle=i===3?'#5a4428':'#0a0e12'; ctx.fillRect(hx,wy-hh,12,hh); ctx.fillStyle='#7a1410'; ctx.beginPath(); ctx.moveTo(hx-2,wy-hh); ctx.lineTo(hx+6,wy-hh-14); ctx.lineTo(hx+14,wy-hh); ctx.fill(); }   // the horde (red hats) at the forum; the goatherd among them
     var t0=4.2, ft=Math.max(0,otT-t0), py=wy-40+0.5*240*ft*ft, px=fx_+170+ft*26;
-    if(otT<t0){ ctx.fillStyle='#2a1030'; ctx.fillRect(fx_+150,wy-46,12,34); ctx.fillStyle='#8a2aa0'; ctx.fillRect(fx_+146,wy-40,20,18); }   // the Emperor, at the edge (purple)
-    else if(py<LH+40){ ctx.save(); ctx.translate(px,py); ctx.rotate(ft*2.2); ctx.fillStyle='#2a1030'; ctx.fillRect(-6,-17,12,34); ctx.fillStyle='#8a2aa0'; ctx.fillRect(-12,-10,24,16); ctx.restore();
-      ctx.strokeStyle='rgba(120,40,140,0.35)'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(fx_+160,wy-30); ctx.lineTo(px,py); ctx.stroke(); }
+    if(otT<t0) drawEmperor(fx_+156,wy-12,1.25,0,0,1);   // the Emperor at the edge, arms out (the lament)
+    else if(py<LH+120){ drawEmperor(px,py+30,1.25,Math.sin(ft*3.1)*0.9+ft*0.9,1,1);
+      var tg=ctx.createLinearGradient(fx_+160,wy-30,px,py); tg.addColorStop(0,'rgba(124,42,148,0)'); tg.addColorStop(1,'rgba(124,42,148,0.35)'); ctx.strokeStyle=tg; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(fx_+160,wy-30); ctx.lineTo(px,py); ctx.stroke(); }
     ctx.restore();
     txt('THE FINAL FORUM' /* DRAFT */,LW/2,90,44,GOLD,'center','bold',fade);
     wrap(HADRIAN_LAST+'  — HADRIAN',LW/2,150,1100,22,'#e8dcc0',clamp((otT-0.8)/0.8,0,1)*fade,'italic');
@@ -3323,7 +3386,7 @@ function drawOutro(dt){
     tjBug(); return; }
   if(S.k==='crawl'){
     coverDraw(S.p, 1.02+0.06*u, 0.5, 0.45, fade*0.85); ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,0,LW,LH);
-    ctx.save(); ctx.globalAlpha=fade; ctx.fillStyle='rgba(150,10,10,0.92)'; ctx.fillRect(0,LH-230,LW,64); ctx.fillStyle='rgba(10,8,6,0.9)'; ctx.fillRect(0,LH-166,LW,40); ctx.restore();
+    ctx.save(); ctx.globalAlpha=fade; ctx.fillStyle='rgba(6,4,3,0.9)'; ctx.fillRect(0,LH-232,LW,232); ctx.fillStyle='rgba(150,10,10,0.92)'; ctx.fillRect(0,LH-230,LW,64);   /* 1116: one solid lower third (the plate's own caption showed between the bars) */ ctx.fillStyle='rgba(10,8,6,0.9)'; ctx.fillRect(0,LH-166,LW,40); ctx.restore();
     txt(S.head,60,LH-198,34,'#fff','left','bold',fade); txt(S.sub,60,LH-146,18,'#ffd25a','left','bold',fade);
     var tick=OUTRO_CRAWL.join('   ✦   ')+'   ✦   '; ctx.save(); ctx.globalAlpha=fade; ctx.fillStyle='#0a0806'; ctx.fillRect(0,LH-96,LW,52); ctx.fillStyle='#ffd25a'; ctx.fillRect(0,LH-96,170,52); ctx.restore();
     ctx.save(); ctx.beginPath(); ctx.rect(176,LH-96,LW-176,52); ctx.clip(); ctx.font='bold 22px Georgia,serif'; var tw=NODE?tick.length*12:ctx.measureText(tick).width, off=-((otT*150)%tw);
@@ -3343,7 +3406,7 @@ function drawOutro(dt){
     return; }
 }
 function drawEnd(){
-  coverDraw('wall_for_them',1.05+0.03*Math.sin(rt*0.1),0.5,0.5,0.6); ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,LW,LH);
+  coverDraw('wall_for_them',2.3+0.03*Math.sin(rt*0.1),0.92,0.42,0.6); ctx.fillStyle='rgba(0,0,0,0.55)';   /* 1116: framed on the Wall + storm, off the plate's own lettering */ ctx.fillRect(0,0,LW,LH);
   txt('BACK TO HADRIAN\'S WALL' /* DRAFT */,LW/2,170,56,GOLD,'center','bold'); txt('SCORE  '+score+'      LOST TO THE BLUE  '+blueRun,LW/2,240,30,PARCH,'center','bold');
   panel(LW/2-560,290,1120,330,0.7);
   txt('DOVER TO THE ANTONINE WALL · '+MARCH.length+' FRONTS · THE MARCH IS OVER' /* DRAFT */,LW/2,330,22,'#c9b27a','center','bold');
