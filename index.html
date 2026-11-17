@@ -130,6 +130,10 @@ var ART={
   davius_4:'art/plates/davius_4.jpg',
   wolfe_3:'art/plates/wolfe_3.jpg', wolfe_5:'art/plates/wolfe_5.jpg', wolfe_7:'art/plates/wolfe_7.jpg',          // 1117 THE LOADING SCREENS: Wolfe's other studio frames
   davius_1:'art/plates/davius_1.jpg', davius_2:'art/plates/davius_2.jpg', davius_3:'art/plates/davius_3.jpg',    // ...and Davius's other three interview poses
+  comic_wolfe_1:'art/plates/comic_wolfe_1.jpg', comic_wolfe_2:'art/plates/comic_wolfe_2.jpg', comic_wolfe_3:'art/plates/comic_wolfe_3.jpg', comic_wolfe_4:'art/plates/comic_wolfe_4.jpg',   // 1117b THE COMIC frames (comicize)
+  comic_wolfe_5:'art/plates/comic_wolfe_5.jpg', comic_wolfe_6:'art/plates/comic_wolfe_6.jpg', comic_wolfe_7:'art/plates/comic_wolfe_7.jpg',
+  comic_davius_1:'art/plates/comic_davius_1.jpg', comic_davius_2:'art/plates/comic_davius_2.jpg', comic_davius_3:'art/plates/comic_davius_3.jpg', comic_davius_4:'art/plates/comic_davius_4.jpg', comic_bust:'art/plates/comic_bust.jpg',
+  hadrian_bust:'art/plates/hadrian_bust.jpg', hadrian_bust_c:'art/plates/hadrian_bust_c.jpg', wall_night:'art/plates/wall_night.jpg', screw_detail:'art/plates/screw_detail.jpg',   // 1117b the TruthJunket kit: THE BUST + b-roll
   ident_wall:'art/ident_wall.png', ident_milecastle:'art/ident_milecastle.png'
 };
 /* CUTOUT_ASSETS_BEGIN */
@@ -442,7 +446,7 @@ var FRONTS=[
     brief:'Survey stakes. Half a ditch. No wall. And the ground to the east is MOVING. The legion mustered to BUILD a fort — not to fight for their lives in the open.',
     wolfe:'"They struck before the wall. They struck what was not yet NAMED."',
     newThing:'THE AMBUSH — the host is already on the camp, out of the EAST. Red hats HUNT the stranded on open ground; the catapult, the ballista and the cart hold them while they hack through. THE RAY lifts them off.' /* DRAFT */,
-    barks:['FROM THE EAST! THE FORT\'S NOT UP — COVER THE LINE!','CAUGHT IN THE OPEN UNDER THAT BLASTED HORSE — FLY!','NO WALLS, NO DITCH, NO TIME! GRAPPLE THEM OFF THE CAMP!'],
+    barks:['FROM THE EAST! THE FORT\'S NOT UP — COVER THE LINE!','CAUGHT IN THE OPEN UNDER THAT BLASTED HORSE — FLY!','NO WALLS, NO DITCH, NO TIME! ROPE THEM OFF THE CAMP!' /* 1117b: was GRAPPLE (no such verb on web) */],
     subs:['The chalk horse has watched this hill a thousand years. It is watching now.','Survey stakes. Half a ditch. No wall. And the ground to the east is MOVING.',
           'The legion mustered to BUILD a fort — not to fight for their lives in the open.','DR. WOLFE: \'They struck before the wall. They struck what was not yet NAMED.\''],
     endAll:'THE CAMP HELD.', endHorn:'The legion lives to raise the wall. Barely.',
@@ -607,7 +611,7 @@ var FRONTS=[
     brief:'Coria: the last town before the Wall, and every stores-cart for the frontier is parked in its streets. The host came round in the dark. The stores are burning. The carts and the engines are all the cover there is.' /* DRAFT */,
     wolfe:'"Coria fed the Wall. Bread, boots, bolts. An army marches on its stomach. This army\'s stomach was ON FIRE."' /* DRAFT */,
     newThing:'THE NIGHT ATTACK — the red hats HUNT on open ground; the carts and the engines hold them while they hack through. WIZARDS raise their staffs in the back ranks: RAY them first. TAKEN THOPTERS and BOLTS in the dark.' /* DRAFT */,
-    barks:['THEY\'RE IN AMONG THE CARTS — GRAPPLE THEM OUT!' /* DRAFT */,'A WIZARD IN THE BACK RANKS — LIFT HIM!' /* DRAFT */,'OUR OWN BIRDS, OUT OF THE DARK! WATCH THE RED LANE!' /* DRAFT */],
+    barks:['THEY\'RE IN AMONG THE CARTS — ROPE THEM OUT!' /* DRAFT; 1117b: was GRAPPLE */,'A WIZARD IN THE BACK RANKS — LIFT HIM!' /* DRAFT */,'OUR OWN BIRDS, OUT OF THE DARK! WATCH THE RED LANE!' /* DRAFT */],
     subs:['Coria: the stores town on the road, two miles short of the Wall.' /* DRAFT */,'DAVIUS: \'I sold them the carts. Good carts. They don\'t burn. Well. They burn SLOWER.\'' /* DRAFT */],
     endAll:'THE STORES ARE AWAY.' /* DRAFT */, endHorn:'Coria burns. The Wall will eat this winter, just.' /* DRAFT */,
     friends:[{x:1300,who:'sack'},{x:1420,who:'logs'},{x:1640,who:'c_bundle'},{x:1760,who:'hammer'},{x:2020,who:'mother'},{x:2120,who:'c_child'},
@@ -847,7 +851,7 @@ var PHASES={
      line:['davius','"Right. Enough holding. Put some lads at the foot of that Wall and PUSH."'],
      muster:{x:300, every:6, max:3, start:2, who:['leg_a','leg_b','leg_c']}, war:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}, gwar:{morale:0.3, lean:0.7, machines:[{at:40,kind:'ram'}], volley:{start:6,every:7}}} ],
   vale:[
-    {name:'THE AMBUSH', sub:'GRAPPLE THE CAMP OFF THE OPEN GROUND'},
+    {name:'THE AMBUSH', sub:'ROPE THE CAMP OFF THE OPEN GROUND — THE RAY FOR THE HUNTERS'},
     {name:'THE FORT GOES UP', kind:'hold', clock:80, sub:'HOLD THE LINE WHILE THE LEGION DIGS THE FORT',
      line:['davius','"Ditch first, then the bank, then the wall. The gnomes do NOT wait for the wall."'],
      war:{shift:0.12, machines:[{at:10,kind:'ram'},{at:36,kind:'tower'}], volley:{start:6,every:6.5}}, gwar:{shift:0.3, machines:[{at:20,kind:'ram'}]},
@@ -922,7 +926,7 @@ var PHASES={
      line:['onHadrian','"Hadrian said a road is only Roman as far as the last legionary standing on it. He was standing well BACK at the time."'],
      muster:{x:1000, every:6, max:3, start:2, who:['leg_a','leg_b','leg_c']}, war:{shift:-0.12, morale:0.2, lean:0.7, machines:[{at:34,kind:'ram'}], volley:{start:6,every:7}}, gwar:{morale:0.3, lean:0.7}} ],
   coria:[
-    {name:'THE STORES BURN', sub:'GRAPPLE THE STORES CREWS OUT FROM AMONG THE CARTS'},
+    {name:'THE STORES BURN', sub:'ROPE THE STORES CREWS OUT FROM AMONG THE CARTS'},
     {name:'THE NIGHT ATTACK', kind:'hold', clock:85, sub:'THE HOST IS ALL ROUND THE TOWN — HOLD THE LINE IN THE DARK',
      line:['wolfe','"A night attack. Gnomes, it is said, see in the dark. It is also said they do NOT. Which tells you everything about who is doing the saying."'],
      war:{machines:[{at:8,kind:'tower'},{at:30,kind:'ram'},{at:52,kind:'catapult'}], wizard:{start:10,every:17}, volley:{start:6,every:7}},
@@ -1204,7 +1208,7 @@ function startFront(idx, opt){
   lastResult=null; ROPEVIS={th:0,om:0,lx:null,pv:0};
   CK=null; if(!opt.ck) ckUses=0; missionStart(); if(opt.ck) applyCheckpoint(opt.ck);
   state = opt.go ? 'play' : 'brief'; rt=0;
-  if(state==='brief'){ loadStart(); var lk=qp('load'); if(lk!==null && !loadQ){ loadQ=1; ldK=clamp(+lk||0,0,LOAD_NAMES.length); ldT=+(qp('lt')||0); ldAll=LOAD_MAXWAIT; } }   // 1117: the loading sequence (&load=K&lt=S = the shot rig)
+  if(state==='brief'){ loadStart(); var lk=qp('load'); if(lk!==null && !loadQ){ loadQ=1; ldK=clamp(+lk||0,0,SEQ.length); ldT=+(qp('lt')||0); if(ldT<0) ldT=SEQ[ldK]?Math.max(0,SEQ[ldK].d+ldT):1; ldAll=LOAD_MAXWAIT; ldFreeze=qp('lt')!==null; if(qp('ltr') && SEQ[ldK]) SEQ[ldK].tr=qp('ltr'); } }   // 1117: the loading sequence (&load=K&lt=S = the shot rig)
   if(state==='play') beginPlay();
 }
 function beginPlay(){ state='play'; flash(F.title, '#e8c66a', 1.8); if(!demo){ sfx('coin'); playMusic(F.music, 0.7); } }
@@ -1275,7 +1279,7 @@ function onPress(k){
     return;
   }
   if(state==='brief'){ if(back){ sfx('menu_back'); toTitle(); return; }   // 1117: the loading sequence — any press, once the front is READY, skips to OBJECTIVES; the next one flies it
-    if(ldK<LOAD_NAMES.length){ if(loadReady()){ loadSkip(); sfx('menu_move'); } return; }
+    if(ldK<SEQ.length){ if(loadReady()){ loadSkip(); sfx('menu_move'); } return; }
     if(ldT>=0.35){ sfx('menu_select'); beginPlay(); } return; }
   if(state==='play'){ if(back||k==='p'||(go&&k==='Enter')){ if(demo){ if(back) toTitle(); } else { state='paused'; pauseI=0; pauseHow=false; sfx('menu_move'); } } else if(k==='r'&&!demo){ retryFront(); } return; }
   if(state==='paused'){ // UI-AUDIT 1110: the pause menu (ESC / P / START). The sim does not tick while paused.
@@ -1789,7 +1793,7 @@ var SPK={ davius:{name:'DAVIUS DAVUS OF EBORACUM', p:'davius_4', fx:0.585, fy:0.
           onHadrian:{name:'DR. H. WOLFE, ON HADRIAN', p:'wolfe_1', fx:0.925, fy:0.13, z:0.2, bust:true},
           // 1113b — THE ANTONINE WALL: Joe asked for Hadrian's own lament. He speaks ONLY here, and the card is still his BUST, never a face.
           hadrian:{name:'HADRIAN, ON THE ANTONINE WALL' /* DRAFT */, p:'wolfe_1', fx:0.925, fy:0.13, z:0.2, bust:true} };
-var HADRIAN_BUST=null;   // SWAP HOOK: set to the ART key of the 3D marble bust b-roll (3D PIPELINE games/truthjunket/renders/broll/) when it lands; until then, the bust in Wolfe's study
+var HADRIAN_BUST='hadrian_bust';   // 1117b: the TruthJunket kit's marble bust b-roll landed (3D PIPELINE games/truthjunket/renders/broll/bust_front_museum_16x9)
 var LORE={
   rescue:[['davius','"That\'s one. I am KEEPING count."'],['wolfe','"Lifted. Not taken — LIFTED. There is a difference, and it is a LEGAL one."'],['davius','"Got \'em. Mind the rope, I drew that rope."'],['onHadrian','"Hadrian said a province is just people standing near each other. So bring them CLOSER."'],['wolfe','"Every one they carried out is one fewer witness. Think about THAT."']],
   blue:[['davius','"TOO HIGH! The blue doesn\'t give \'em BACK!"'],['wolfe','"Lost to the blue. The Roman records simply say: \'went UP.\'"'],['onHadrian','"Hadrian looked up and asked: what of the blue? Well. NOW we know."'],['davius','"Gentle on the climb! They\'re PEOPLE, not ballast!"'],['wolfe','"Terminal velocity. The Romans had a word for it. The word was \'oh.\'"']],
@@ -1924,22 +1928,104 @@ var LOAD={
     s:'BEYOND THE WALL. THE UNIVERSAL PROJECT.' /* DRAFT */,
     rule:'THE SUPPLY: carry bolts from the armoury to every scorpio. A dry scorpio falls SILENT.' /* DRAFT */ }
 };
-var loadQ=0, LOAD_MIN=1.0, LOAD_MAXWAIT=6.0, LOAD_FADE=0.45, LOAD_NAMES=['wolfe','davius','broll','rules'];
-var ldK=0, ldT=0, ldAll=0, ldD=[6,5,4.6,8], ldMusOk=true, ldWolfe=[];
+/* ---------- 1117b THE POD: comic interstitials + cheap late-night REENACTMENT (Joe 1117) ----------
+   "create 2d comic strip type interstitials … use solid lines and colors and simply reuse the art at least in the face and
+   have it be different that way. use clever inversions of color or hit transitions using the sprites or flying machines. have
+   H wolfe narrate some over broll too … be using the hadrian bust when referred, or reenactment style renders rather than game
+   action, make it look sorta bad like our truthjunket brand sorta loves to deliver".
+   The pod is a per-front SHOT LIST (no fixed order) built from TOKENS: W0..W2 Wolfe on camera (his front quote, then LOAD.w) ·
+   V0/V1 Wolfe V.O. over a REENACTMENT (LOAD.vo over LOAD.re: a plate or 'world' = the front's own set, with a stiff cut-out
+   "actor" LOAD.act sliding across) · D Davius on camera (LOAD.d) · CA/CB/CC a COMIC page (2–3 panels of the comic_* frames,
+   cropped ECU / close-up / mid / mirrored profile, caption LOAD.cap, balloon LOAD.bal, SFX LOAD.sfx) · R / RW a one-panel
+   REACTION cut (Davius / Wolfe) · S the NARRATOR stinger (LOAD.s) over the front's set. ANY Wolfe line that names
+   Hadrian / Caesar / the Emperor cuts to THE BUST instead (the TruthJunket kit render). The RULES card always closes it.
+   Every cut is a TRANSITION: invert flash · duotone · ornithopter wipe · red-hat swarm wipe · screw iris · star wipe ·
+   sprite smash-cut · dip. The look is cheap TV ON PURPOSE: over-cranked Ken Burns, self-bloom "vaseline", chroma ghost,
+   scanlines, a tracking band, a crooked lower third, DRAMATIZATION / ARTIST'S CONCEPTION tags. All copy below is DRAFT. */
+var POD={
+  dover:{ vo:['"At dawn they came up the cliffs. Not around them. UP them. Ask yourself why a gnome would choose the HARD way."' /* DRAFT */],
+    bal:'"Ropes! I SAID bring the ROPES!"' /* DRAFT */, sfx:'SKRUNCH!' /* DRAFT */, cap:'DUBRIS, AD 122. DAWN.' /* DRAFT */, re:'gnomean_legion', act:'gnome_charge' },
+  nottingham:{ vo:['"Sherwood. Where Rome sent its tax collectors, and got back their HATS."' /* DRAFT */],
+    bal:'"They shot my HAT. I was IN the hat."' /* DRAFT */, sfx:'THWIP!' /* DRAFT */, cap:'MEANWHILE, UNDER THE CANOPY…' /* DRAFT */, re:'world', act:'hood_archer' },
+  wash:{ vo:['"Hadrian built dams. The gnomes built BETTER dams. Then they took them AWAY."' /* DRAFT */],
+    bal:'"Glub. That\'s the noise. GLUB."' /* DRAFT */, sfx:'KRAKOOM!' /* DRAFT */, cap:'THE SILURES. THE DAM. THE WATER.' /* DRAFT */, re:'world', act:'legionary_b' },
+  wall:{ vo:['"Night on the Wall. Hadrian\'s men watched the north. Nobody thought to watch the LADDERS."' /* DRAFT */],
+    bal:'"Up the ladders. It is ALWAYS the ladders."' /* DRAFT */, sfx:'KLONK!' /* DRAFT */, cap:'SEGEDUNUM. THE EAST END. NIGHT.' /* DRAFT */, re:'wall_night', act:'legionary_a' },
+  vale:{ vo:['"The legion came to Uffington to build a fort. The host came to Uffington KNOWING they would."' /* DRAFT */,
+             '"The chalk horse saw who showed them the way. The chalk horse is not TALKING."' /* DRAFT */],
+    bal:'"Somebody drew them a map. I know maps. That was a GOOD map."' /* DRAFT */, sfx:'SHHHK!' /* DRAFT */, cap:'UFFINGTON. THE LAST MORNING OF THE PEACE.' /* DRAFT */,
+    re:'world', act:'gnome_spear', tpl:'V0 W0 R V1 CB W1 S' },   // Uffington: cold open on the V.O.; the traitor stays UNNAMED (canon)
+  london:{ vo:['"The beacons said LONDINIUM IS NEXT. Londinium read it, and did what cities do. It PANICKED."' /* DRAFT */],
+    bal:'"Never liked bridges. Bridges have TWO ends."' /* DRAFT */, sfx:'CREEEAK!' /* DRAFT */, cap:'LONDINIUM. THE BRIDGE. BY NIGHT.' /* DRAFT */, re:'world', act:'civ_bundle' },
+  forum:{ vo:['"The Emperor loved a forum. He said it was where Rome did its THINKING. That morning it did its burning."' /* DRAFT */],
+    bal:'"Off the roof! OFF! Mind the tiles, I MADE those."' /* DRAFT */, sfx:'FWOOSH!' /* DRAFT */, cap:'THE FORUM. FIRST LIGHT. SMOKE.' /* DRAFT */, re:'world', act:'civ_scribe' },
+  docks:{ vo:['"An evacuation by AIR. In AD 122. The books call it a shipping record. I call it a COVER-UP."' /* DRAFT */],
+    bal:'"Airships. Can\'t land. Lovely though."' /* DRAFT */, sfx:'WHUMP!' /* DRAFT */, cap:'THE MERSEY. THE LAST FLEET.' /* DRAFT */, re:'world', act:'airship_long' },
+  york:{ vo:['"Eboracum. The gnomes brought a ram. The goats brought nothing. Typical goats."' /* DRAFT */],
+    bal:'"The neighbours FIRST. Then the goat. Then ME."' /* DRAFT */, sfx:'BOOM! BOOM!' /* DRAFT */, cap:'EBORACUM. NIGHTFALL.' /* DRAFT */, re:'world', act:'ram_crew' },
+  scorpio:{ vo:['"Hadrian\'s engineers built the scorpio to throw a bolt half a mile. Davius made it throw one into the FUTURE."' /* DRAFT */],
+    bal:'"Left a bit. LEFT. Your other left."' /* DRAFT */, sfx:'THUNK!' /* DRAFT */, cap:'ISURIUM. THE RIDGE.' /* DRAFT */, re:'screw_detail', act:'legionary_c' },
+  dere:{ vo:['"Dere Street was built to bring the army north. By that week the army was all that was left on it."' /* DRAFT */],
+    bal:'"Every farm. EVERY farm. Even the one with the nice gate."' /* DRAFT */, sfx:'CRACKLE!' /* DRAFT */, cap:'DERE STREET. THE ROAD NORTH.' /* DRAFT */, re:'world', act:'testudo' },
+  coria:{ vo:['"Caesar\'s armies marched on their stomachs. At Coria, the stomach was full of SMOKE."' /* DRAFT */],
+    bal:'"My carts! Those were GOOD carts!"' /* DRAFT */, sfx:'KA-BLAM!' /* DRAFT */, cap:'CORIA. THE STORES. BY FIRELIGHT.' /* DRAFT */, re:'world', act:'gnome_heavy' },
+  tyne:{ vo:['"A bridge, in a wall, over a river, in the rain, on fire. Hadrian had a SENSE of humour."' /* DRAFT */],
+    bal:'"Fire. Rain. Bridge. Pick TWO."' /* DRAFT */, sfx:'HISSSS!' /* DRAFT */, cap:'CILURNUM. THE TYNE. RAIN.' /* DRAFT */, re:'wall_night', act:'civ_woman' },
+  crags:{ vo:['"The Whin Sill. A cliff so steep the Wall simply sat on top of it and gave UP."' /* DRAFT */],
+    bal:'"Mind the edge. The edge does NOT mind you."' /* DRAFT */, sfx:'WHOOOSH!' /* DRAFT */, cap:'VERCOVICIUM. THE CRAGS. DUSK.' /* DRAFT */, re:'wall_night', act:'gnome_climber_a' },
+  turf:{ vo:['"A cohort, lost in fog, on a burning wall of grass. The records say they were never found. Did anyone LOOK?"' /* DRAFT */],
+    bal:'"Hello? HELLO? Anybody lost?"' /* DRAFT */, sfx:'FWUMP!' /* DRAFT */, cap:'THE TURF WALL. FOG.' /* DRAFT */, re:'world', act:'legionary_c' },
+  summit:{ vo:['"Winshields. The highest point on Hadrian\'s Wall. The war came up the hill, and the Wall had nowhere higher to GO."' /* DRAFT */],
+    bal:'"Top of the Wall. Bottom of my LUCK."' /* DRAFT */, sfx:'KRA-KOOM!' /* DRAFT */, cap:'WINSHIELDS. THE LAST DAY.' /* DRAFT */, re:'wall_for_them', act:'gnome_bannerman' },
+  antonine:{ vo:['"After Hadrian, a new emperor built a new wall, further north. Nobody asked the OLD wall how it felt."' /* DRAFT */],
+    bal:'"Further north than SENSE, I said."' /* DRAFT */, sfx:'SHRAKKA!' /* DRAFT */, cap:'BEYOND THE WALL.' /* DRAFT */, re:'world', act:'signifer' }
+};
+(function(){ for(var k in POD){ var P=POD[k], L=LOAD[k]; if(L) for(var j in P) L[j]=P[j]; } })();
+var POD_TPL=['W0 V0 CA R S','S W0 CB V0 W1','V0 R W0 CC D S','CA W0 V0 RW D S','W0 R V0 CB W1 S'];   // the five running orders (front order mod 5)
+var POD_TR=['thopter','invert','iris','swarm','duotone','star','smash','dip'], POD_TR_IN=0.55;
+var EMP_RX=/HADRIAN|CAESAR|EMPEROR/i;   // Wolfe names him -> THE BUST
+var FACE={ // eye centre x, y (fractions of the frame) + face width (fraction of width) — for the comic crops
+  comic_wolfe_1:[0.47,0.29,0.12], comic_wolfe_2:[0.50,0.24,0.17], comic_wolfe_3:[0.45,0.22,0.15], comic_wolfe_4:[0.60,0.27,0.16],
+  comic_wolfe_5:[0.48,0.31,0.25], comic_wolfe_6:[0.58,0.36,0.22], comic_wolfe_7:[0.45,0.35,0.25],
+  comic_davius_1:[0.70,0.29,0.14], comic_davius_2:[0.57,0.28,0.14], comic_davius_3:[0.57,0.27,0.14], comic_davius_4:[0.57,0.29,0.15],
+  comic_bust:[0.47,0.37,0.13] };
+var RE_FOCUS={ gnomean_legion:[0.62,0.62,1.9], wall_for_them:[0.80,0.36,2.0], wall_night:[0.5,0.55,1.05], screw_detail:[0.45,0.45,1.1] };
+var SEQ=[];
+function marchOrder(){ return Math.max(0,MARCH.findIndex(function(m){ return m.f===fi; })); }
+function buildPod(){
+  var L=LOAD[F.key]||{}, W=[F.wolfe].concat(L.w||[]).filter(Boolean), V=L.vo||[], o=marchOrder(), cw='comic_'+(L.wp||'wolfe_1'), cd='comic_'+(L.dp||'davius_4');
+  var wolfe=function(t,i){ return EMP_RX.test(t)?{k:'bust',p:i%2?'hadrian_bust_c':'hadrian_bust',t:t}:{k:'talk',who:'w',p:L.wp||'wolfe_1',t:t}; };
+  var vo=function(t){ return EMP_RX.test(t)?{k:'bust',p:'hadrian_bust',t:t,vo:1}:{k:'vo',p:L.re||'world',act:L.act,t:t}; };
+  var cwb=EMP_RX.test(W.join(' ')+V.join(' '))?'comic_bust':cw;
+  var T={ S:{k:'stinger',t:L.s||F.title}, D:{k:'talk',who:'d',p:L.dp||'davius_4',t:L.d},
+    CA:{k:'comic',lay:'A',panels:[{img:cw,crop:'mid',cap:L.cap},{img:cd,crop:'ecu',sfx:L.sfx},{img:cd,crop:'cu',prof:1,bal:L.bal}]},
+    CB:{k:'comic',lay:'B',panels:[{img:cwb,crop:'cu',cap:L.cap},{img:cd,crop:'cu',bal:L.bal,sfx:L.sfx}]},
+    CC:{k:'comic',lay:'C',panels:[{img:cd,crop:'ecu',sfx:L.sfx},{img:cw,crop:'ecu',inv:1},{img:cd,crop:'mid',bal:L.bal,cap:L.cap}]},
+    R:{k:'react',img:cd,crop:'eyes',sfx:L.sfx||'!?',inv:o%2}, RW:{k:'react',img:cw,crop:'eyes',sfx:'?!',inv:(o+1)%2} };
+  var out=[]; (L.tpl||POD_TPL[o%POD_TPL.length]).split(' ').forEach(function(tok){ var s=null, m;
+    if((m=/^W(\d)$/.exec(tok))) s=W[+m[1]]?wolfe(W[+m[1]],+m[1]):null; else if((m=/^V(\d)$/.exec(tok))) s=V[+m[1]]?vo(V[+m[1]]):null; else if(T[tok]) s=T[tok];
+    if(s && (s.k!=='talk'||s.t)){ var c={}; for(var q in s) c[q]=s[q]; out.push(c); } });
+  out.push({k:'rules'});
+  out.forEach(function(s,i){ s.tr = i===0||s.k==='rules' ? 'dip' : POD_TR[(o*3+i)%POD_TR.length];
+    s.d = s.k==='talk'||s.k==='bust'||s.k==='vo' ? lineDur(s.t)+1.0 : s.k==='comic' ? 0.6+s.panels.length*0.9+lineDur(s.panels.map(function(p){ return p.bal||p.cap||''; }).join(' '))*0.7
+        : s.k==='react' ? 1.3 : s.k==='stinger' ? 4.2 : 8.5; });
+  return out;
+}
+var loadQ=0, LOAD_MIN=1.0, LOAD_MAXWAIT=6.0, LOAD_FADE=0.45;   // 1117b: the beats are the per-front SEQ (buildPod), not a fixed list
+var ldK=0, ldT=0, ldAll=0, ldFreeze=false, ldMusOk=true, ldWolfe=[];
 function wolfeName(){ return 'H. WOLFE'; }   // Q1171: Joe wrote "H. Wolfe"; the attract + barks still say DR. H. WOLFE
 function lineDur(t){ return clamp(1.7+String(t).length*0.045, 2.4, 5.2); }
 function loadStart(){   // called by startFront when the briefing sequence will play
-  var L=LOAD[F.key]||{}; ldK=0; ldT=0; ldAll=0;
+  var L=LOAD[F.key]||{}; ldK=0; ldT=0; ldAll=0; ldFreeze=false;
   ldWolfe=[F.wolfe].concat(L.w||[]).filter(Boolean).slice(0,3);
-  var wd=0; for(var i=0;i<ldWolfe.length;i++) wd+=lineDur(ldWolfe[i]);
-  ldD=[wd+0.7, lineDur(L.d||'')+1.4, 4.8, 8.5];
+  SEQ=buildPod();
   ldMusOk=true;
   if(!NODE && !AU.off && F.music){ ldMusOk=false; try{ var el=new Audio(); el.preload='auto';   // warm the front's bed while the sequence plays
     el.oncanplaythrough=el.onerror=function(){ ldMusOk=true; }; el.src=musicPath(F.music); el.load(); }catch(e){ ldMusOk=true; } }
 }
 function artSettled(){ var n=0, d=0; for(var k in IMG){ n++; if(IMG[k].ok||IMG[k].bad||NODE) d++; } return n?d/n:1; }
 function loadReady(){ if(ldAll<LOAD_MIN) return false; if(NODE||ldAll>=LOAD_MAXWAIT) return true; return artSettled()>=1 && ldMusOk; }
-function loadSkip(){ ldK=LOAD_NAMES.length; ldT=0; }
+function loadSkip(){ ldK=SEQ.length; ldT=0; }
 function phoneView(){ return !NODE && Math.min(innerWidth,innerHeight)<520; }
 function touchOnly(){ try{ return !NODE && matchMedia('(pointer: coarse)').matches; }catch(e){ return false; } }
 function padOn(){ if(NODE||!navigator.getGamepads) return false; var g=navigator.getGamepads(); for(var i=0;i<g.length;i++) if(g[i]&&g[i].connected) return true; return false; }
@@ -1962,7 +2048,7 @@ function phaseLine(p,i){ var k=p.kind||'rescue', n=p.need||F.need, of=i?(p.frien
   var job=k==='hold'?'HOLD '+c+' s':k==='push'?'PUSH THE LINE · '+c+' s':'BRING OUT '+n+(of?' OF '+of:'')+' · '+c+' s';
   return {lab:'PHASE '+(i+1), t:(GN()&&p.gname?p.gname:p.name)+'  —  '+job, sub:p.sub}; }
 function bark(kind){ if(demo) return; if((barkCd[kind]||-1e9)>simT || (barkT>0 && kind!=='blue' && kind!=='blueVip')) return; var q=pickLine(kind); if(!q) return; barkCd[kind]=simT+(kind==='line'?14:8); barkQ=q; barkT=3.4; }
-function portrait(sp,x,y,w,h,a){ var S=SPK[sp]; if(S&&S.bust&&HADRIAN_BUST&&ok(HADRIAN_BUST)) S={p:HADRIAN_BUST,fx:0.5,fy:0.4,z:0.9}; if(!S||!ok(S.p)) return; var im=IMG[S.p], iw=im.naturalWidth, ih=im.naturalHeight, sw=iw*S.z, sh=sw*h/w;
+function portrait(sp,x,y,w,h,a){ var S=SPK[sp]; if(S&&S.bust&&HADRIAN_BUST&&ok(HADRIAN_BUST)) S={p:HADRIAN_BUST,fx:0.47,fy:0.42,z:0.42}; if(!S||!ok(S.p)) return; var im=IMG[S.p], iw=im.naturalWidth, ih=im.naturalHeight, sw=iw*S.z, sh=sw*h/w;
   ctx.save(); ctx.globalAlpha=a; ctx.drawImage(im, clamp(S.fx*iw-sw/2,0,iw-sw), clamp(S.fy*ih-sh/2,0,ih-sh), sw, sh, x,y,w,h); ctx.strokeStyle='rgba(232,198,106,0.8)'; ctx.lineWidth=2; ctx.strokeRect(x,y,w,h); ctx.restore(); }
 function drawBark(){ if(!barkQ || barkT<=0) return; var a=clamp(Math.min(barkT/0.4,(3.4-barkT)/0.25),0,1), x=LW-596, y=158;
   panel(x,y,580,92,0.72*a); portrait(barkQ[0],x+8,y+8,92,76,a);
@@ -3345,49 +3431,151 @@ function drawSelect(){
   txt('↑ ↓ or 1–9  ·  ← → SIDE  ·  SPACE fly it  ·  ESC back',LW/2,LH-24,15,'#bba98a','center','bold');
 }
 // THE LOADING SEQUENCE + OBJECTIVES (Joe 1117; the data + the rules readers sit with LOAD above). state stays 'brief' throughout.
+// THE LOADING SEQUENCE (Joe 1117 + 1117b): the POD shots (SEQ, built by buildPod) › THE RULES › OBJECTIVES (holds). state stays 'brief'.
+function drawWorld(dt, pan){   // the front's own set (the stinger/reenactment pans it; the rules + objectives hold it)
+  var kc=camX; ctx.save();
+  if(pan!=null){ var z=1.0+0.12*pan; camX=clamp(lerp(0.1,0.9,F.mir?1-pan:pan)*(WW()-LW),0,Math.max(0,WW()-LW)); ctx.translate(LW/2,LH*0.6); ctx.scale(z,z); ctx.translate(-LW/2,-LH*0.6); }
+  drift+=dt*0.5; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); ctx.save(); ctx.translate(-camX,0); drawGround(); ctx.restore();
+  ctx.restore(); camX=kc; }
 function drawBrief(dt){
+  if(ldFreeze) dt=0;   // the shot rig (&load=K&lt=S) holds the frame
   ldT+=dt; ldAll+=dt;
-  while(ldK<LOAD_NAMES.length && ldT>=ldD[ldK]){ ldT-=ldD[ldK]; ldK++; }
-  var bk=ldK<LOAD_NAMES.length?LOAD_NAMES[ldK]:'obj', L=LOAD[F.key]||{}, kc=camX, dur=ldD[ldK]||1, u=ease(ldT/dur);
-  var fa=bk==='obj'?clamp(ldT/0.5,0,1):clamp(Math.min(ldT/LOAD_FADE,(dur-ldT)/LOAD_FADE),0,1);   // every beat dips through black: nothing hard-cuts
+  while(ldK<SEQ.length && ldT>=SEQ[ldK].d){ ldT-=SEQ[ldK].d; ldK++; }
   ctx.fillStyle='#000'; ctx.fillRect(0,0,LW,LH);
-  if(bk==='broll'||bk==='rules'||bk==='obj'){   // the front's own world (B-ROLL: a slow Ken-Burns push and pan across it)
-    ctx.save();
-    if(bk==='broll'){ var z=1.0+0.07*u; camX=clamp(lerp(0.12,0.88,F.mir?1-u:u)*(WW()-LW),0,Math.max(0,WW()-LW)); ctx.translate(LW/2,LH*0.6); ctx.scale(z,z); ctx.translate(-LW/2,-LH*0.6); }
-    drift+=dt*0.5; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); ctx.save(); ctx.translate(-camX,0); drawGround(); ctx.restore();
-    ctx.restore(); camX=kc;
-  }
-  if(bk==='obj'){ drawObjectives(fa); return; }
-  var ph=phoneView(), K=ph?1.25:1;
-  if(bk==='wolfe'||bk==='davius'){ var wo=bk==='wolfe';
-    if(wo) coverDraw(L.wp||'wolfe_1', lerp(1.0,1.07,u), lerp(0.5,0.53,u), lerp(0.36,0.33,u), fa);
-    else coverDraw(L.dp||'davius_4', lerp(1.24,1.30,u), lerp(0.56,0.58,u), 0.47, fa);   // zoomed past the frame's baked TJ bug + lower third (the engine draws its own)
-    var vg=ctx.createRadialGradient(LW/2,LH/2,LH*0.4,LW/2,LH/2,LH); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.6)'); ctx.save(); ctx.globalAlpha=fa; ctx.fillStyle=vg; ctx.fillRect(0,0,LW,LH); ctx.restore();
-    if(wo){ panel(24,22,250,40,0.6*fa); txt('TRUTHJUNKET TV',40,42,17,'#ffd25a','left','bold',fa); }
-    lowerThird(wo?wolfeName():'DAVIUS DAVUS OF EBORACUM', wo?'OCCULT ROMAN HISTORY · PETER UNIVERSITY':'RET. AERIAL-SCREW DESIGNER · FRONTIER GOATHERD', fa);
-    if(wo){ var t0=0.35; for(var i=0;i<ldWolfe.length;i++){ var d=lineDur(ldWolfe[i]), last=i===ldWolfe.length-1;
-        if(ldT>=t0 && (ldT<t0+d || last)){ quoteBox(ldWolfe[i], fa*clamp(Math.min((ldT-t0)/0.3, last?1:(t0+d-ldT)/0.3),0,1), K); break; } t0+=d; } }
-    else if(L.d) quoteBox(L.d, fa*clamp((ldT-0.5)/0.4,0,1), K);
-  }
-  if(bk==='broll'){ ctx.fillStyle='rgba(0,0,0,'+(1-fa)+')'; ctx.fillRect(0,0,LW,LH);
-    var vb=ctx.createRadialGradient(LW/2,LH/2,LH*0.35,LW/2,LH/2,LH*0.95); vb.addColorStop(0,'rgba(0,0,0,0)'); vb.addColorStop(1,'rgba(0,0,0,0.55)'); ctx.fillStyle=vb; ctx.fillRect(0,0,LW,LH);
-    ctx.fillStyle='#000'; ctx.fillRect(0,0,LW,70); ctx.fillRect(0,LH-70,LW,70);   // the documentary letterbox
-    txt('B-ROLL · A DRAMATIZED RECONSTRUCTION' /* DRAFT */,40,36,Math.round(14*K),'#a89a7c','left','bold',fa*0.8);
-    txt((F.place||'')+'  ·  '+(F.latin||''),40,LH-104,Math.round(19*K),'#efe3c4','left','bold',fa*clamp((ldT-0.3)/0.5,0,1));
-    var sa=fa*clamp((ldT-0.7)/0.6,0,1), sl=wrapLines(L.s||F.title,1300,Math.round(48*K),'bold'), sy=LH*0.40-(sl.length-1)*30*K;
-    txt('NARRATOR',LW/2,sy-62*K,Math.round(16*K),GOLD,'center','bold',sa*0.85);
-    for(var i=0;i<sl.length;i++) txt(sl[i],LW/2,sy+i*60*K,Math.round(48*K),'#fff6dc','center','bold',sa);
-  }
-  if(bk==='rules'){ ctx.fillStyle='rgba(0,0,0,'+(0.62+0.38*(1-fa))+')'; ctx.fillRect(0,0,LW,LH);
-    txt('THE RULES OF THE FRONT' /* DRAFT */,LW/2,62,Math.round(18*K),'#c9b27a','center','bold',fa);
-    txt(F.title,LW/2,116,Math.round((ph?54:58)),GOLD,'center','bold',fa);
-    var rows=[{lab:'THE JOB',t:F.brief,s:23},{lab:'TO WIN',t:ruleWin(),s:23,c:CYAN},{lab:'YOU LOSE',t:ruleLose(),s:22,c:'#ffb59a'},
-              {lab:'THE CLOCK',t:ruleClock(),s:22},{lab:'THE SPECIAL',t:L.rule||F.newThing,s:23,c:'#ffcf9a',gap:0}];
-    var lay=layRows(rows,LW/2-560+36,1120-72,190,LH-110,K,190);
-    panel(LW/2-560,166,1120,lay.bottom-166+18,0.72*fa); drawRows(lay,fa);
-  }
-  loadChrome(fa,bk);
+  if(ldK>=SEQ.length){ drawWorld(dt,null); drawObjectives(clamp(ldT/0.5,0,1)); return; }
+  var S=SEQ[ldK], P=ldK>0?SEQ[ldK-1]:null, u=clamp(ldT/POD_TR_IN,0,1);
+  if(ldT<POD_TR_IN) podTrans(S.tr, u, P, S, dt); else drawShot(S, ldT, dt);
+  loadChrome(1, S.k==='stinger'?'broll':S.k);
 }
+function drawShot(S,t,dt){ if(!S){ ctx.fillStyle='#000'; ctx.fillRect(0,0,LW,LH); return; }
+  var k=S.k; if(k==='talk') shotTalk(S,t); else if(k==='bust') shotBust(S,t); else if(k==='vo') shotVO(S,t,dt); else if(k==='stinger') shotStinger(S,t,dt);
+  else if(k==='comic') shotComic(S,t); else if(k==='react') shotReact(S,t); else if(k==='rules') shotRules(S,t,dt); }
+// ---- the TRANSITIONS (the first POD_TR_IN s of every shot: the outgoing shot frozen on its last frame, the new one revealed) ----
+function clipDraw(path, S, t, dt){ ctx.save(); ctx.beginPath(); path(); ctx.clip(); drawShot(S,t,dt); ctx.restore(); }
+function podTrans(tr,u,P,S,dt){ var e=ease(u), t=ldT, pt=P?P.d:0;
+  if(tr==='dip'||!P){ if(u<0.5 && P){ drawShot(P,pt,0); ctx.fillStyle='rgba(0,0,0,'+(u*2)+')'; ctx.fillRect(0,0,LW,LH); }
+    else { drawShot(S,t,dt); ctx.fillStyle='rgba(0,0,0,'+(P?1-(u-0.5)*2:1-u)+')'; ctx.fillRect(0,0,LW,LH); } return; }
+  if(tr==='invert'||tr==='duotone'){ drawShot(S,t,dt);   // a negative flicker / a cheap two-colour swap, settling into the shot
+    if(tr==='invert'){ if(u<0.7 && ((u*12)|0)%2===0){ ctx.save(); ctx.globalCompositeOperation='difference'; ctx.fillStyle='#fff'; ctx.fillRect(0,0,LW,LH); ctx.restore(); } }
+    else { ctx.save(); ctx.globalAlpha=1-e; ctx.globalCompositeOperation='multiply'; ctx.fillStyle='#ff2d78'; ctx.fillRect(0,0,LW,LH);
+      ctx.globalCompositeOperation='screen'; ctx.fillStyle='#1fd6ff'; ctx.globalAlpha=(1-e)*0.55; ctx.fillRect(0,0,LW,LH); ctx.restore(); }
+    return; }
+  drawShot(P,pt,0);
+  if(tr==='thopter'){ var x=lerp(-260,LW+260,e); clipDraw(function(){ ctx.rect(0,0,x,LH); },S,t,dt);
+    ctx.fillStyle='rgba(255,246,220,0.5)'; for(var i=0;i<5;i++) ctx.fillRect(x-420-i*60,LH*0.30+i*34,300,4);   // speed streaks
+    sprC('thopter',x-120,LH*0.42,980,{rot:-0.08}); if(u<0.1 && !S._sw){ S._sw=1; sfx('swoop'); } return; }
+  if(tr==='swarm'){ var x=lerp(-200,LW+200,e); clipDraw(function(){ ctx.moveTo(0,0); for(var y=0;y<=LH;y+=60) ctx.lineTo(x+((y/60)%2?-50:30),y); ctx.lineTo(0,LH); ctx.closePath(); },S,t,dt);
+    for(var i=0;i<12;i++) spr(GN()?'legionary_a':(i%2?'gnome_charge':'gnome_spear'),x-40-(i%3)*70,90+i*78,230,{flip:false}); return; }
+  if(tr==='iris'||tr==='star'){ var r=e*1150;
+    clipDraw(function(){ if(tr==='iris'){ ctx.arc(LW/2,LH/2,Math.max(1,r),0,6.283); } else { for(var i=0;i<10;i++){ var a=-Math.PI/2+i*Math.PI/5, rr_=i%2?r*0.45:r; ctx.lineTo(LW/2+Math.cos(a+u*2)*rr_,LH/2+Math.sin(a+u*2)*rr_); } ctx.closePath(); } },S,t,dt);
+    if(tr==='iris') sprC('screw_rotor',LW/2,LH/2,Math.max(40,r*0.5),{rot:u*14,a:1-e});
+    else { ctx.save(); ctx.strokeStyle='#ffe14a'; ctx.lineWidth=10; ctx.beginPath(); for(var i=0;i<10;i++){ var a=-Math.PI/2+i*Math.PI/5, rr_=i%2?r*0.45:r; ctx.lineTo(LW/2+Math.cos(a+u*2)*rr_,LH/2+Math.sin(a+u*2)*rr_); } ctx.closePath(); ctx.stroke(); ctx.restore(); }
+    return; }
+  if(tr==='smash'){ if(u<0.45){ var g=u/0.45; sprC(GN()?'testudo':'gnome_heavy',LW/2,LH/2,200+g*g*2600,{rot:g*0.6}); return; }
+    if(u<0.58){ ctx.fillStyle='#fff6dc'; ctx.fillRect(0,0,LW,LH); if(!S._sm){ S._sm=1; sfx('clank'); } return; }
+    ctx.save(); ctx.translate(Math.sin(t*90)*10*(1-u),0); drawShot(S,t,dt); ctx.restore(); return; }
+  drawShot(S,t,dt); }
+// ---- the CHEAP TV layer: self-bloom ("vaseline"), chroma ghost, a tracking band, scanlines, a warm cast ----
+var SCANPAT=null;
+function scanPattern(){ if(SCANPAT||NODE) return SCANPAT; try{ var c=document.createElement('canvas'); c.width=4; c.height=4; var x=c.getContext('2d'); x.fillStyle='rgba(0,0,0,0.55)'; x.fillRect(0,0,4,1); x.fillRect(0,2,4,1); SCANPAT=ctx.createPattern(c,'repeat'); }catch(e){} return SCANPAT; }
+function cheapTV(t,k){ if(NODE) return; var W=cv.width, H=cv.height;
+  ctx.save(); ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalCompositeOperation='screen'; ctx.globalAlpha=0.20*k; ctx.drawImage(cv,-W*0.012,-H*0.012,W*1.024,H*1.024);   // vaseline bloom
+  ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=0.07*k; ctx.drawImage(cv,6*SC,0);                           // chroma ghost
+  var ph=(t*0.9)%2.6; if(ph<0.22){ var by=OY+((Math.sin(t*3.1)*0.5+0.5)*0.8+0.1)*LH*SC, bh=LH*SC*0.045;                // a tracking band
+    ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1; ctx.drawImage(cv,0,by,W,bh,Math.sin(t*53)*14*SC,by,W,bh);
+    ctx.fillStyle='rgba(255,255,255,0.22)'; ctx.fillRect(0,by+bh*0.5,W,2*SC); }
+  ctx.restore();
+  var sp=scanPattern(); ctx.save(); if(sp){ ctx.globalAlpha=0.28*k; ctx.fillStyle=sp; ctx.fillRect(0,0,LW,LH); }
+  ctx.globalAlpha=0.10*k; ctx.fillStyle='#ff9a3a'; ctx.globalCompositeOperation='overlay'; ctx.fillRect(0,0,LW,LH); ctx.restore();
+  var vg=ctx.createRadialGradient(LW/2,LH/2,LH*0.38,LW/2,LH/2,LH*1.02); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.62)'); ctx.fillStyle=vg; ctx.fillRect(0,0,LW,LH); }
+function tjBugCheap(tag,t){ panel(24,22,250,40,0.6); txt('TRUTHJUNKET TV',40,42,17,'#ffd25a','left','bold');
+  if(tag){ var on=((t*1.6)|0)%4!==3, K=phoneView()?1.25:1; ctx.save(); ctx.fillStyle='#ffe14a'; ctx.globalAlpha=on?0.9:0.35; ctx.fillRect(24,70,Math.round(tag.length*11*K)+24,30*K); ctx.restore();
+    txt(tag,36,70+15*K,Math.round(17*K),'#1a1206','left','bold'); } }
+function cheapL3(name,role){ var K=phoneView()?1.2:1; ctx.save(); ctx.translate(58,LH-156); ctx.rotate(-0.014);   // the crooked lower third (on purpose)
+  ctx.fillStyle='rgba(150,14,14,0.92)'; ctx.fillRect(0,0,600*K,46*K); ctx.fillStyle='rgba(10,8,6,0.88)'; ctx.fillRect(16,46*K,560*K,30*K); ctx.restore();
+  txt(name,82,LH-133+3,Math.round(25*K),'#fff','left','bold'); txt(role,86,LH-94+4*K,Math.round(14*K),'#e8c66a','left','bold'); }
+function voBox(who,s,a){ var K=phoneView()?1.25:1, sz=Math.round(27*K), ls=wrapLines(s,1180,sz,'italic bold'), lh=sz*1.3, h=ls.length*lh+40*K, y=LH-60-h;
+  panel(LW/2-640,y,1280,h,0.7*a); txt(who,LW/2-616,y+16*K,Math.round(14*K),GOLD,'left','bold',a);
+  for(var i=0;i<ls.length;i++) txt(ls[i],LW/2,y+30*K+lh*(i+0.5),sz,'#fff6dc','center','italic bold',a); }
+// ---- the SHOTS ----
+function shotTalk(S,t){ var wo=S.who==='w', u=clamp(t/S.d,0,1);   // over-cranked Ken Burns: it never stops pushing in
+  if(wo) coverDraw(S.p,lerp(1.0,1.2,u),lerp(0.5,0.55,u),lerp(0.36,0.3,u),1); else coverDraw(S.p,lerp(1.24,1.42,u),lerp(0.56,0.6,u),0.46,1);
+  cheapTV(t,1); tjBugCheap(null,t);
+  cheapL3(wo?wolfeName():'DAVIUS DAVUS OF EBORACUM', wo?'OCCULT ROMAN HISTORY · PETER UNIVERSITY':'RET. AERIAL-SCREW DESIGNER · FRONTIER GOATHERD');
+  quoteBox(S.t, clamp((t-0.35)/0.3,0,1), phoneView()?1.25:1); }
+function shotBust(S,t){ var cz=t<0.5?lerp(1.7,1.12,ease(t/0.5)):lerp(1.12,1.3,clamp((t-0.5)/(S.d-0.5),0,1));   // the crash zoom, then the slow push
+  coverDraw(S.p,cz,0.47,0.4,1); cheapTV(t,1.2); tjBugCheap('THE EMPEROR HADRIAN · ACTUAL BUST*' /* DRAFT */,t);
+  txt('*NOT ACTUAL BUST' /* DRAFT */,LW-40,LH-24,13,'#bba98a','right','bold',0.7);
+  voBox(wolfeName()+' (V.O.)',S.t,clamp((t-0.4)/0.3,0,1)); }
+function shotVO(S,t,dt){ var u=clamp(t/S.d,0,1);
+  var rf=RE_FOCUS[S.p]||[0.5,0.5,1.0];   // the over-cranked push onto a still: posters are cropped down to their picture
+  if(S.p==='world') drawWorld(dt,u); else coverDraw(S.p,lerp(rf[2],rf[2]*1.3,u),lerp(rf[0]-0.06,rf[0]+0.06,u),rf[1],1);
+  if(S.act && ok(S.act)){ var x=lerp(LW*0.14,LW*0.86,F.mir?1-u:u), big=S.act==='airship_long'; spr(S.act,x,big?LH*0.42:LH-150+Math.abs(Math.sin(t*5))*-8,big?240:380,{flip:F.mir});   // the "actor": stiff, sliding, one pose
+    txt('ACTOR PORTRAYAL' /* DRAFT */,x,big?LH*0.42+24:LH-130,14,'#fff6dc','center','bold',0.75); }
+  cheapTV(t,1.1); tjBugCheap(S.p==='world'?'ARTIST\'S CONCEPTION':'DRAMATIZATION',t);
+  voBox(wolfeName()+' (V.O.)',S.t,clamp((t-0.35)/0.3,0,1)); }
+function shotStinger(S,t,dt){ var u=clamp(t/S.d,0,1), K=phoneView()?1.25:1; drawWorld(dt,u); cheapTV(t,0.7);
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,LW,70); ctx.fillRect(0,LH-70,LW,70);
+  txt('B-ROLL · A DRAMATIZED RECONSTRUCTION' /* DRAFT */,300,36,Math.round(14*K),'#a89a7c','left','bold',0.8);
+  txt((F.place||'')+'  ·  '+(F.latin||''),40,LH-104,Math.round(19*K),'#efe3c4','left','bold',clamp((t-0.3)/0.5,0,1));
+  var sa=clamp((t-0.5)/0.5,0,1), sl=wrapLines(S.t,1300,Math.round(48*K),'bold'), sy=LH*0.40-(sl.length-1)*30*K;
+  txt('NARRATOR',LW/2,sy-62*K,Math.round(16*K),GOLD,'center','bold',sa*0.85);
+  for(var i=0;i<sl.length;i++) txt(sl[i],LW/2,sy+i*60*K,Math.round(48*K),'#fff6dc','center','bold',sa); }
+function shotRules(S,t,dt){ var K=phoneView()?1.25:1, ph=phoneView(), L=LOAD[F.key]||{}; drawWorld(dt,null);
+  ctx.fillStyle='rgba(0,0,0,0.64)'; ctx.fillRect(0,0,LW,LH);
+  txt('THE RULES OF THE FRONT' /* DRAFT */,LW/2,62,Math.round(18*K),'#c9b27a','center','bold');
+  txt(F.title,LW/2,116,ph?54:58,GOLD,'center','bold');
+  var rows=[{lab:'THE JOB',t:F.brief,s:23},{lab:'TO WIN',t:ruleWin(),s:23,c:CYAN},{lab:'YOU LOSE',t:ruleLose(),s:22,c:'#ffb59a'},
+            {lab:'THE CLOCK',t:ruleClock(),s:22},{lab:'THE SPECIAL',t:L.rule||F.newThing,s:23,c:'#ffcf9a',gap:0}];
+  var lay=layRows(rows,LW/2-560+36,1120-72,190,LH-110,K,190);
+  panel(LW/2-560,166,1120,lay.bottom-166+18,0.72); drawRows(lay,1); }
+// ---- the COMIC: flat-colour frames (comic_*, baked by build_web_art.py comicize()), black panel borders, gutters, captions, balloons, SFX ----
+var COMIC_LAY={ A:[[40,40,1520,404],[40,462,744,398],[802,462,758,398]], B:[[40,40,744,820],[802,40,758,820]], C:[[40,40,492,820],[550,40,492,820],[1060,40,500,820]] };
+var PAPERPAT=null;
+function paper(){ ctx.fillStyle='#f1e4c2'; ctx.fillRect(0,0,LW,LH); if(NODE) return;
+  if(!PAPERPAT){ try{ var c=document.createElement('canvas'); c.width=c.height=12; var x=c.getContext('2d'); x.fillStyle='rgba(214,84,60,0.35)'; x.beginPath(); x.arc(3,3,2,0,6.283); x.arc(9,9,2,0,6.283); x.fill(); PAPERPAT=ctx.createPattern(c,'repeat'); }catch(e){} }
+  if(PAPERPAT){ ctx.fillStyle=PAPERPAT; ctx.fillRect(0,0,LW,LH); } }
+function comicCrop(n,mode,pw,ph){ var im=IMG[n], f=FACE[n]||[0.5,0.4,0.2]; if(!ok(n)) return null; var iw=im.naturalWidth, ih=im.naturalHeight;
+  var k={eyes:3.8,ecu:3.0,cu:3.6,mid:5.6}[mode]||3, sw=Math.min(iw,f[2]*iw*k), sh=sw*ph/pw; if(sh>ih){ sh=ih; sw=sh*pw/ph; }
+  var cy=f[1]*ih+(mode==='eyes'?sh*0.05:mode==='ecu'?sh*0.12:mode==='cu'?sh*0.14:sh*0.26); return [clamp(f[0]*iw-sw/2,0,iw-sw), clamp(cy-sh/2,0,ih-sh), sw, sh]; }
+function comicPanel(p,R,t,big){ var x=R[0],y=R[1],w=R[2],h=R[3], pop=ease(clamp(t/0.22,0,1)); if(t<0) return;
+  ctx.save(); ctx.translate(x+w/2,y+h/2); var s=0.86+0.14*pop; ctx.scale(s,s); ctx.translate(-(x+w/2),-(y+h/2)); ctx.globalAlpha=Math.min(1,pop*1.5);
+  ctx.fillStyle='#0c0a0a'; ctx.fillRect(x-6,y-6,w+12,h+12);
+  ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip(); var c=comicCrop(p.img,p.crop,w,h);
+  if(c){ if(p.prof){ ctx.translate(x*2+w,0); ctx.scale(-1,1); } ctx.drawImage(IMG[p.img],c[0],c[1],c[2],c[3],x,y,w,h); } else { ctx.fillStyle='#c8553d'; ctx.fillRect(x,y,w,h); }
+  ctx.restore();
+  if(p.inv){ ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip(); ctx.globalCompositeOperation='difference'; ctx.fillStyle='#fff'; ctx.fillRect(x,y,w,h); ctx.restore(); }
+  ctx.restore();
+  var K=phoneView()?1.25:1, a=pop;
+  if(p.cap){ var cs=Math.round(22*K), cl=wrapLines(p.cap.toUpperCase(),Math.min(w-60,620),cs,'bold'), cw_=0; ctx.font='bold '+cs+'px Georgia,serif';
+    cl.forEach(function(l){ cw_=Math.max(cw_,NODE?l.length*cs*0.6:ctx.measureText(l).width); });
+    ctx.save(); ctx.globalAlpha=a; ctx.fillStyle='#ffe14a'; ctx.strokeStyle='#0c0a0a'; ctx.lineWidth=4; ctx.fillRect(x+14,y+14,cw_+28,cl.length*cs*1.3+18); ctx.strokeRect(x+14,y+14,cw_+28,cl.length*cs*1.3+18); ctx.restore();
+    cl.forEach(function(l,i){ txt(l,x+28,y+23+cs*1.3*(i+0.5),cs,'#1a1206','left','bold',a); }); }
+  if(p.bal) balloon(p.bal,x,y,w,h,clamp((t-0.3)/0.25,0,1),K);
+  if(p.sfx) sfxBurst(p.sfx,big?x+w*0.87:x+w*(p.bal?0.76:0.62),big?y+h*0.30:y+h*(p.bal?0.24:0.62),clamp((t-0.1)/0.18,0,1),K*(big?1.15:1)); }   // never on the face, never on the balloon
+var BAL_FONT='"Comic Sans MS","Chalkboard SE","Comic Neue","Marker Felt",sans-serif';   // cheap TV, cheap lettering (system fonts only — nothing off-box)
+function balloon(s,x,y,w,h,a,K){ if(a<=0) return; var sz=Math.round(27*K), mw=Math.min(w-80,540), ls=[], words=String(s).split(' '), line='';
+  ctx.font='bold '+sz+'px '+BAL_FONT; var mt=function(q){ return NODE?q.length*sz*0.55:ctx.measureText(q).width; };
+  for(var i=0;i<words.length;i++){ var q=line?line+' '+words[i]:words[i]; if(mt(q)>mw&&line){ ls.push(line); line=words[i]; } else line=q; } if(line) ls.push(line);
+  var bw=0; ls.forEach(function(l){ bw=Math.max(bw,mt(l)); }); bw+=56; var bh=ls.length*sz*1.25+36, bx=Math.min(x+w-bw-16,x+w*0.06+20), by=y+h-bh-30;
+  ctx.save(); ctx.globalAlpha=a; ctx.fillStyle='#fffdf4'; ctx.strokeStyle='#0c0a0a'; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.ellipse(bx+bw/2,by+bh/2,bw/2+10,bh/2+6,0,0,6.283); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bx+bw*0.62,by+6); ctx.lineTo(bx+bw*0.80,by-46); ctx.lineTo(bx+bw*0.74,by+8); ctx.closePath(); ctx.fill(); ctx.stroke();   // the tail, up to the face
+  ctx.fillStyle='#fffdf4'; ctx.fillRect(bx+bw*0.62+3,by+4,bw*0.12-4,12);
+  ctx.fillStyle='#0c0a0a'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(var i=0;i<ls.length;i++) ctx.fillText(ls[i],bx+bw/2,by+18+sz*1.25*(i+0.5));
+  ctx.restore(); }
+function sfxBurst(s,cx,cy,a,K){ if(a<=0) return; var sz=Math.round(64*K*(0.7+0.3*Math.min(1,a*1.4)));
+  ctx.save(); ctx.globalAlpha=Math.min(1,a*1.3); ctx.translate(cx,cy); ctx.rotate(-0.16);
+  ctx.beginPath(); for(var i=0;i<22;i++){ var r=(i%2?0.55:1)*sz*2.1, an=i*Math.PI/11; ctx.lineTo(Math.cos(an)*r*1.35,Math.sin(an)*r*0.8); } ctx.closePath();
+  ctx.fillStyle='#ffe14a'; ctx.fill(); ctx.lineWidth=5; ctx.strokeStyle='#0c0a0a'; ctx.stroke();
+  ctx.font='900 '+sz+'px Impact,"Arial Black","Helvetica Neue",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.lineWidth=10; ctx.strokeStyle='#0c0a0a'; ctx.lineJoin='round'; ctx.strokeText(s,0,4); ctx.fillStyle='#e8322a'; ctx.fillText(s,0,4); ctx.restore(); }
+function shotComic(S,t){ paper(); var R=COMIC_LAY[S.lay]||COMIC_LAY.A;
+  for(var i=0;i<S.panels.length;i++) comicPanel(S.panels[i],R[i%R.length],t-0.15-i*0.85,false); }
+function shotReact(S,t){ var sh=t<0.25?Math.sin(t*120)*12:0; paper(); ctx.save(); ctx.translate(sh,0);   // the comic EYES strip: one wide panel across the page
+  comicPanel({img:S.img,crop:S.crop,inv:S.inv,sfx:S.sfx},[40,LH*0.22,LW-80,LH*0.5],t+0.3,true); ctx.restore(); }
 // a quote in a panel above the lower third; wraps, and grows UP from its bottom edge
 function quoteBox(s,a,K){ if(a<=0) return; var sz=Math.round(26*K), ls=wrapLines(s,1100,sz,'italic bold'), lh=sz*1.32, h=ls.length*lh+26, yb=LH-172;
   panel(LW/2-600,yb-h,1200,h,0.66*a); for(var i=0;i<ls.length;i++) txt(ls[i],LW/2,yb-h+13+lh*(i+0.5),sz,'#fff6dc','center','italic bold',a); }
@@ -4037,7 +4225,7 @@ function selfTest(){
   okk('[loading] every front has its loading copy: Wolfe lines + frame, a Davius line + frame, a stinger, the special', FRONTS.every(function(f){ var L=LOAD[f.key]; return L && L.w && L.w.length && IMG[L.wp] && IMG[L.dp] && L.d && L.s && L.rule; }), FRONTS.filter(function(f){ return !LOAD[f.key]; }).map(function(f){ return f.key; }).join(','));
   startFront(VA); var ld0=state==='brief' && ldK===0 && ldWolfe.length>=2 && ldWolfe[0]===FRONTS[VA].wolfe;
   ldAll=0; onPress(' '); var held=state==='brief' && ldK===0;                       // still processing: a press does nothing
-  ldAll=LOAD_MIN; onPress('ArrowLeft'); var toObj=state==='brief' && ldK===LOAD_NAMES.length;   // ready: ANY press -> OBJECTIVES
+  ldAll=LOAD_MAXWAIT; onPress('ArrowLeft'); var toObj=state==='brief' && ldK===SEQ.length;   // ready: ANY press -> OBJECTIVES
   ldT=0.1; onPress(' '); var noDouble=state==='brief'; ldT=1; onPress(' '); var flew=state==='play';
   okk('[loading] a front opens on the sequence; presses wait for READY, then skip straight to OBJECTIVES, then the next press flies', ld0 && held && toObj && noDouble && flew, [ld0,held,toObj,noDouble,flew].join(' '));
   startFront(VA,{go:true}); var goOk=state==='play'; retryFront(); var rtOk=state==='play';
@@ -4051,6 +4239,32 @@ function selfTest(){
   okk('[loading] OBJECTIVES + CONTROLS lists every input each front uses (rope, ray, screw + ladder / escort / bolts where present)', hw===FRONTS.length, hw+'/'+FRONTS.length);
   SIDE='gnome'; var gl=[]; for(var i=0;i<FRONTS.length;i++){ startFront(i); try{ gl.push(ruleWin().length>0 && ruleLose().length>0 && howRows().length>=3); }catch(e){ gl.push(false); } } SIDE='rome';
   okk('[loading] ...and the gnome side reads its own rules on every front', gl.every(Boolean), gl.filter(function(x){ return !x; }).length+' bad');
+  // ---- 1117b: THE POD (comic interstitials + cheap reenactment), the transitions, THE BUST, and no GRAPPLE/JINK on screen ----
+  var KINDS={talk:1,bust:1,vo:1,comic:1,react:1,stinger:1,rules:1}, TRS=POD_TR.concat(['dip']), badSeq=[], orders={}, trUsed={}, bustOk=true, comicN=0, voN=0, bustN=0;
+  var imgsOf=function(sh){ return [sh.p,sh.img,sh.act].concat((sh.panels||[]).map(function(q){ return q.img; })).filter(function(n){ return n && n!=='world'; }); };
+  for(var i=0;i<FRONTS.length;i++){ startFront(i); var sq=SEQ, kk=sq.map(function(x){ return x.k; });
+    var good=sq.length>=5 && kk[kk.length-1]==='rules' && kk.indexOf('rules')===kk.length-1 && sq.every(function(x){ return KINDS[x.k] && TRS.indexOf(x.tr)>=0 && x.d>0 && imgsOf(x).every(function(n){ return !!ART[n]; }); })
+      && kk.some(function(k){ return k==='comic'||k==='react'; }) && kk.some(function(k){ return k==='vo'||k==='bust'; }) && kk.indexOf('talk')>=0;
+    if(!good) badSeq.push(FRONTS[i].key+':'+kk.join('/'));
+    orders[kk.slice(0,-1).join('/')]=1; sq.forEach(function(x){ trUsed[x.tr]=1; if(x.k==='comic') comicN++; if(x.k==='vo') voN++; if(x.k==='bust') bustN++;
+      if((x.k==='talk'&&x.who==='w'&&EMP_RX.test(x.t)) || (x.k==='bust'&&!EMP_RX.test(x.t))) bustOk=false; }); }
+  okk('[pod] every front builds a valid pod: talk + comic/react + Wolfe V.O. (or THE BUST), varied order, every image in ART, THE RULES last', !badSeq.length, badSeq.join(' ; ')||(Object.keys(orders).length+' running orders'));
+  okk('[pod] not rigid: at least 5 different running orders across the 17 fronts; comics, V.O. and bust shots all used', Object.keys(orders).length>=5 && comicN>=10 && voN>=8 && bustN>=3, Object.keys(orders).length+' orders · '+comicN+' comics · '+voN+' V.O. · '+bustN+' bust');
+  okk('[pod] any Wolfe line naming Hadrian / Caesar / the Emperor cuts to THE BUST (TruthJunket kit render), and the bust is the bark portrait too', bustOk && HADRIAN_BUST==='hadrian_bust' && !!ART.hadrian_bust && !!ART.comic_bust);
+  okk('[pod] the transitions vary: '+Object.keys(trUsed).sort().join(', '), POD_TR.every(function(tr){ return trUsed[tr]; }), Object.keys(trUsed).length+' used');
+  var gStub=NODE && !ctx.createLinearGradient(0,0,1,1), gFake=function(){ return { addColorStop:function(){} }; };   // the node ctx stub has no gradients; a browser does
+  if(gStub){ ctx.createLinearGradient=ctx.createRadialGradient=gFake; ctx.measureText=function(q){ return { width:String(q).length*14 }; }; }
+  var thrown=[];   // draw EVERY shot of every front at several times, and EVERY transition between every pair (ctx is a stub under node)
+  for(var i=0;i<FRONTS.length;i++){ startFront(i); for(var k=0;k<=SEQ.length;k++){ [0.05,0.3,0.5,1.2,3].forEach(function(tt){ try{ ldK=k; ldT=tt; ldAll=0; drawBrief(0); }catch(e){ thrown.push(FRONTS[i].key+'#'+k+'@'+tt+': '+e.message); } }); } }
+  startFront(0); for(var j=0;j<TRS.length;j++){ for(var uu=0;uu<=1.0001;uu+=0.1){ try{ podTrans(TRS[j],uu,SEQ[0],SEQ[1],0.016); }catch(e){ thrown.push(TRS[j]+'@'+uu.toFixed(1)+': '+e.message); } } }
+  if(gStub){ delete ctx.createLinearGradient; delete ctx.createRadialGradient; delete ctx.measureText; }
+  okk('[pod] every shot + every transition draws without throwing', !thrown.length, thrown.slice(0,3).join(' | '));
+  startFront(VA); ldK=2; ldT=0.7; ldAll=LOAD_MAXWAIT; onPress(' '); var mid=state==='brief' && ldK===SEQ.length; ldT=1; onPress(' ');
+  okk('[pod] a press MID-pod (once ready) still jumps straight to OBJECTIVES, the next press flies', mid && state==='play');
+  startFront(VA); var vk=SEQ.map(function(x){ return x.k; });
+  okk('[pod] Uffington cold-opens on the Wolfe V.O.; the traitor stays UNNAMED', vk[0]==='vo' && !/traitor is|betrayed by [A-Z]/i.test(JSON.stringify(LOAD.vale)), vk.join('/'));
+  var onScr=''; [FRONTS,PHASES,LOAD].forEach(function(o){ try{ var seen=[]; onScr+=JSON.stringify(o,function(k,v){ if(v&&typeof v==='object'){ if(seen.indexOf(v)>=0) return; seen.push(v); } return v; }); }catch(e){ onScr+='!ERR'; } });
+  okk('[copy] no on-screen GRAPPLE or JINK (the web verbs are THE RAY / THE ROPE)', onScr.length>1000 && !/GRAPPL|JINK/i.test(onScr), (onScr.match(/.{30}(GRAPPL|JINK).{30}/i)||[''])[0]);
   campaign=false; state='title';
 
   var pass=R.every(function(r){return r.ok;});

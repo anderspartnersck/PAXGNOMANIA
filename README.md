@@ -64,8 +64,8 @@ Bring out enough before the horn and the front is held.
 
 On the front map, **1** to **9** jump straight to the first nine fronts, in march order.
 
-Every front opens on its loading screens while it loads: H. Wolfe on what happened there, a word
-from Davius, a moment of b-roll, and the rules. Once the front is ready, press anything (a key, a
+Every front opens on its loading screens while it loads: a cheap late-night TruthJunket segment
+(H. Wolfe, Davius, comic-strip panels, a "dramatization" or two, the Emperor's bust), then the rules. Once the front is ready, press anything (a key, a
 click, a tap or a pad button) to skip straight to the objectives and controls; press again to fly.
 **ESC** during a front opens the pause menu: resume, how to fly, sound, retry the front, or quit to the title.
 
