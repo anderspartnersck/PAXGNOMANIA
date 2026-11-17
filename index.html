@@ -3122,17 +3122,17 @@ function drawWar(){
   }
 }
 function drawWarBar(){
-  if(!war) return; var x0=LW/2-200, y=110, w=400;
-  panel(x0-12,y-6,w+24,30,0.5);
-  if(F.wall && !GN()){ txt('THE WALL',x0,y+9,11,GOLD,'left','bold'); ctx.fillStyle='#1a1416'; ctx.fillRect(x0+76,y+3,w-76,12); ctx.fillStyle=war.breach>0.6?'#ff4a2a':'#c0802a'; ctx.fillRect(x0+76,y+3,(w-76)*war.breach,12);
+  if(!war) return; var x0=LW/2-200, y=114, w=400;
+  panel(x0-12,y-10,w+24,38,0.5);   // (HUD 1117) the panel holds the ▼ marker (it poked 2 px over the top border); the 12 px bar sits centred, 13 px over / 13 px under (was 104..134, marker top at 102)
+  if(F.wall && !GN()){ txt('THE WALL',x0,y+9,11,GOLD,'left','bold'); ctx.fillStyle='#1a1416'; ctx.fillRect(x0+76,y+3,w-152,12); ctx.fillStyle=war.breach>0.6?'#ff4a2a':'#c0802a'; ctx.fillRect(x0+76,y+3,(w-152)*war.breach,12);   // (HUD 1117) 76 px each side: the bar no longer runs under the BREACH label
     txt(war.breach>0.6?'BREACH!':'BREACH',x0+w,y+9,11,war.breach>0.6?'#ff8a6a':'#d8c49a','right','bold'); return; }
-  var rr_=warRomeRight(), u=war.rome, bx=x0+52, bw=w-104, sx = rr_ ? bx+bw*(1-u) : bx+bw*u;
+  var rr_=warRomeRight(), u=war.rome, bx=x0+66, bw=w-132, sx = rr_ ? bx+bw*(1-u) : bx+bw*u;   // (HUD 1117) 66 px each side: the GNOMES label ran into the bar at 52
   ctx.fillStyle='#7a1c14'; ctx.fillRect(bx,y+3,bw,12); ctx.fillStyle='#c9a24a'; if(rr_) ctx.fillRect(sx,y+3,bx+bw-sx,12); else ctx.fillRect(bx,y+3,sx-bx,12);
   var bka=GN()?1-war.W.breakAt:war.W.breakAt, bk = rr_ ? bx+bw*(1-bka) : bx+bw*bka; ctx.fillStyle='#ffffff'; ctx.fillRect(bk-1,y,2,18);
   if(PK()==='push'){ var pt=GN()?1-pushTo:pushTo, px_=rr_?bx+bw*(1-pt):bx+bw*pt; ctx.fillStyle='#9fe08a'; ctx.fillRect(px_-2,y-3,4,22); }   // THE MISSIONS: the push target
   ctx.fillStyle='#fff3c4'; ctx.beginPath(); ctx.moveTo(sx,y-1); ctx.lineTo(sx-6,y-8); ctx.lineTo(sx+6,y-8); ctx.closePath(); ctx.fill();
   txt(rr_?'GNOMES':'ROME',x0,y+9,11,rr_?'#ff9a7a':GOLD,'left','bold'); txt(rr_?'ROME':'GNOMES',x0+w,y+9,11,rr_?GOLD:'#ff9a7a','right','bold');
-  var danger=usR()<war.W.breakAt+0.1; if(danger) txt('THE LINE IS BREAKING',LW/2,y+34,13,Math.floor(rt*5)%2?'#ff6a4a':'#ffd0b0','center','bold');
+  var danger=usR()<war.W.breakAt+0.1; if(danger) txt('THE LINE IS BREAKING',LW/2,y+40,13,Math.floor(rt*5)%2?'#ff6a4a':'#ffd0b0','center','bold');
 }
 
 function drawScene(dt){
@@ -3225,8 +3225,8 @@ function drawHUD(){
   panel(16,14,300,74); txt('SCORE',32,34,13,GOLD,'left','bold'); txt(''+score,32,62,30,PARCH,'left','bold',1,'ui-monospace,Menlo,monospace');
   // hull
   panel(LW-316,14,300,74); txt('HULL',LW-300,34,13,GOLD,'left','bold');
-  ctx.fillStyle='#1a0c0a'; roundRect(LW-300,50,268,18,9); ctx.fill(); ctx.save(); roundRect(LW-300,50,268,18,9); ctx.clip();
-  ctx.fillStyle=hp>60?'#7ccf5c':hp>30?'#f0c94a':'#ff5a3a'; ctx.fillRect(LW-300,50,268*hp/HULL,18); ctx.restore();
+  ctx.fillStyle='#1a0c0a'; roundRect(LW-300,54,268,18,9); ctx.fill(); ctx.save(); roundRect(LW-300,54,268,18,9); ctx.clip();   // (HUD 1117) y 54: 15.5 / 15.5 / 16 px (panel top › HULL › bar › panel bottom), centred on the SCORE digits (was y 50: 20 px under the bar)
+  ctx.fillStyle=hp>60?'#7ccf5c':hp>30?'#f0c94a':'#ff5a3a'; ctx.fillRect(LW-300,54,268*hp/HULL,18); ctx.restore();
   txt(spinning()?'THE SCREW':(simT<P.spinCd?'screw cooling':'F  SCREW READY'),LW-32,34,12,spinning()?GOLD:simT<P.spinCd?'#8a7a5a':'#bfe7a8','right','bold');
   // centre: front + clock
   panel(LW/2-240,10,480,92,0.5);
