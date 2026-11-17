@@ -63,6 +63,10 @@ Bring out enough before the horn and the front is held.
 | Sound on/off | **M** | |
 
 On the front map, **1** to **9** jump straight to the first nine fronts, in march order.
+
+Every front opens on its loading screens while it loads: H. Wolfe on what happened there, a word
+from Davius, a moment of b-roll, and the rules. Once the front is ready, press anything (a key, a
+click, a tap or a pad button) to skip straight to the objectives and controls; press again to fly.
 **ESC** during a front opens the pause menu: resume, how to fly, sound, retry the front, or quit to the title.
 
 The game is laid out for a computer screen, 16:9.
@@ -81,8 +85,8 @@ fly it for Rome or, from the far side, for the gnomes.
 3. **LONDON CALLING**: night on the Thames bridge, choked with civilians, while
    the press of the crowd pushes anyone it reaches into the river.
 4. **LONDON PROPER**: the forum burning, people waiting on the roofs.
-5. **THE WHITE HORSE VALE**: the host catches the Legion in the open under the
-   chalk horse, half-way through pitching camp.
+5. **THE TREASON OF UFFINGTON**: the host catches the Legion in the open under the
+   chalk horse at Uffington, half-way through pitching camp. Somebody told them where to find it.
 6. **THE WELSH WASH**: the dam is broken, the water is rising, and the sun is
    blood-red.
 7. **LIVERPOOL**: troops off the boats and into the line.
@@ -126,10 +130,10 @@ fly it for Rome or, from the far side, for the gnomes.
 - [TITLE][title]: straight to the menu.
 - [THE CAMPAIGN][campaign]: the march from Dover.
 - [DOVER][f1] · [NOTTINGHAM][f2] · [WELSH WASH][f3] · [WALLSEND][f4] ·
-  [THE WHITE HORSE VALE][f5] · [LONDON CALLING][f6] · [DERE STREET][f11] ·
+  [THE TREASON OF UFFINGTON][f5] · [LONDON CALLING][f6] · [DERE STREET][f11] ·
   [CORIA][f12] · [THE TYNE BRIDGE][f13] · [THE CRAGS][f14] ·
   [THE TURF WALL][f15] · [WINSHIELDS][f16] · [THE ANTONINE WALL][f17]: one front on its own, starting
-  from its briefing card.
+  from its loading screens.
 - [CHOOSE A FRONT][select]: the map of the whole march.
 - [HOW TO FLY][howto]: the controls card.
 - [WATCH IT PLAY][demo]: the autopilot flies Dover.
