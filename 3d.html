@@ -134,6 +134,12 @@ var ART={
   comic_wolfe_1:'art/plates/comic_wolfe_1.jpg', comic_wolfe_2:'art/plates/comic_wolfe_2.jpg', comic_wolfe_3:'art/plates/comic_wolfe_3.jpg', comic_wolfe_4:'art/plates/comic_wolfe_4.jpg',   // 1117b THE COMIC frames (comicize)
   comic_wolfe_5:'art/plates/comic_wolfe_5.jpg', comic_wolfe_6:'art/plates/comic_wolfe_6.jpg', comic_wolfe_7:'art/plates/comic_wolfe_7.jpg',
   comic_davius_1:'art/plates/comic_davius_1.jpg', comic_davius_2:'art/plates/comic_davius_2.jpg', comic_davius_3:'art/plates/comic_davius_3.jpg', comic_davius_4:'art/plates/comic_davius_4.jpg', comic_bust:'art/plates/comic_bust.jpg',
+  comic_face_wolfe_1:'art/plates/comic_face_wolfe_1.jpg', comic_face_wolfe_2:'art/plates/comic_face_wolfe_2.jpg', comic_face_wolfe_3:'art/plates/comic_face_wolfe_3.jpg', comic_face_wolfe_4:'art/plates/comic_face_wolfe_4.jpg',   // 1117c the FACE plates
+  comic_face_wolfe_5:'art/plates/comic_face_wolfe_5.jpg', comic_face_wolfe_6:'art/plates/comic_face_wolfe_6.jpg', comic_face_wolfe_7:'art/plates/comic_face_wolfe_7.jpg', comic_face_bust:'art/plates/comic_face_bust.jpg',
+  comic_face_davius_1:'art/plates/comic_face_davius_1.jpg', comic_face_davius_2:'art/plates/comic_face_davius_2.jpg', comic_face_davius_3:'art/plates/comic_face_davius_3.jpg', comic_face_davius_4:'art/plates/comic_face_davius_4.jpg',
+  comic_eyes_wolfe_1:'art/plates/comic_eyes_wolfe_1.jpg', comic_eyes_wolfe_2:'art/plates/comic_eyes_wolfe_2.jpg', comic_eyes_wolfe_3:'art/plates/comic_eyes_wolfe_3.jpg', comic_eyes_wolfe_4:'art/plates/comic_eyes_wolfe_4.jpg',   // 1117c the EYES strips
+  comic_eyes_wolfe_5:'art/plates/comic_eyes_wolfe_5.jpg', comic_eyes_wolfe_6:'art/plates/comic_eyes_wolfe_6.jpg', comic_eyes_wolfe_7:'art/plates/comic_eyes_wolfe_7.jpg',
+  comic_eyes_davius_1:'art/plates/comic_eyes_davius_1.jpg', comic_eyes_davius_2:'art/plates/comic_eyes_davius_2.jpg', comic_eyes_davius_3:'art/plates/comic_eyes_davius_3.jpg', comic_eyes_davius_4:'art/plates/comic_eyes_davius_4.jpg',
   hadrian_bust:'art/plates/hadrian_bust.jpg', hadrian_bust_c:'art/plates/hadrian_bust_c.jpg', wall_night:'art/plates/wall_night.jpg', screw_detail:'art/plates/screw_detail.jpg',   // 1117b the TruthJunket kit: THE BUST + b-roll
   ident_wall:'art/ident_wall.png', ident_milecastle:'art/ident_milecastle.png'
 };
@@ -1989,8 +1995,9 @@ var FACE={ // eye centre x, y (fractions of the frame) + face width (fraction of
   comic_wolfe_1:[0.47,0.29,0.12], comic_wolfe_2:[0.50,0.24,0.17], comic_wolfe_3:[0.45,0.22,0.15], comic_wolfe_4:[0.60,0.27,0.16],
   comic_wolfe_5:[0.48,0.31,0.25], comic_wolfe_6:[0.58,0.36,0.22], comic_wolfe_7:[0.45,0.35,0.25],
   comic_davius_1:[0.70,0.29,0.14], comic_davius_2:[0.57,0.28,0.14], comic_davius_3:[0.57,0.27,0.14], comic_davius_4:[0.57,0.29,0.15],
-  comic_bust:[0.47,0.37,0.13] };
+  comic_bust:[0.45,0.25,0.13] };
 var RE_FOCUS={ gnomean_legion:[0.62,0.62,1.9], wall_for_them:[0.80,0.36,2.0], wall_night:[0.5,0.55,1.05], screw_detail:[0.45,0.45,1.1] };
+var EYES_DARK={ comic_wolfe_5:1, comic_wolfe_6:1, comic_wolfe_7:1 };   // 1117c: side-lit frames whose eyes sit in shadow — the EYES strip + the wide top panel use his lit frames instead
 var SEQ=[];
 function marchOrder(){ return Math.max(0,MARCH.findIndex(function(m){ return m.f===fi; })); }
 function buildPod(){
@@ -1999,10 +2006,10 @@ function buildPod(){
   var vo=function(t){ return EMP_RX.test(t)?{k:'bust',p:'hadrian_bust',t:t,vo:1}:{k:'vo',p:L.re||'world',act:L.act,t:t}; };
   var cwb=EMP_RX.test(W.join(' ')+V.join(' '))?'comic_bust':cw;
   var T={ S:{k:'stinger',t:L.s||F.title}, D:{k:'talk',who:'d',p:L.dp||'davius_4',t:L.d},
-    CA:{k:'comic',lay:'A',panels:[{img:cw,crop:'mid',cap:L.cap},{img:cd,crop:'ecu',sfx:L.sfx},{img:cd,crop:'cu',prof:1,bal:L.bal}]},
+    CA:{k:'comic',lay:'A',panels:[{img:(EYES_DARK[cw]?'comic_wolfe_3':cw),crop:'cu',cap:L.cap},{img:cd,crop:'ecu',sfx:L.sfx},{img:cd,crop:'cu',prof:1,bal:L.bal}]},
     CB:{k:'comic',lay:'B',panels:[{img:cwb,crop:'cu',cap:L.cap},{img:cd,crop:'cu',bal:L.bal,sfx:L.sfx}]},
     CC:{k:'comic',lay:'C',panels:[{img:cd,crop:'ecu',sfx:L.sfx},{img:cw,crop:'ecu',inv:1},{img:cd,crop:'mid',bal:L.bal,cap:L.cap}]},
-    R:{k:'react',img:cd,crop:'eyes',sfx:L.sfx||'!?',inv:o%2}, RW:{k:'react',img:cw,crop:'eyes',sfx:'?!',inv:(o+1)%2} };
+    R:{k:'react',img:cd,crop:'eyes',sfx:L.sfx||'!?',inv:o%2}, RW:{k:'react',img:(EYES_DARK[cw]?'comic_wolfe_1':cw),crop:'eyes',sfx:'?!',inv:(o+1)%2} };
   var out=[]; (L.tpl||POD_TPL[o%POD_TPL.length]).split(' ').forEach(function(tok){ var s=null, m;
     if((m=/^W(\d)$/.exec(tok))) s=W[+m[1]]?wolfe(W[+m[1]],+m[1]):null; else if((m=/^V(\d)$/.exec(tok))) s=V[+m[1]]?vo(V[+m[1]]):null; else if(T[tok]) s=T[tok];
     if(s && (s.k!=='talk'||s.t)){ var c={}; for(var q in s) c[q]=s[q]; out.push(c); } });
@@ -3545,14 +3552,17 @@ var PAPERPAT=null;
 function paper(){ ctx.fillStyle='#f1e4c2'; ctx.fillRect(0,0,LW,LH); if(NODE) return;
   if(!PAPERPAT){ try{ var c=document.createElement('canvas'); c.width=c.height=12; var x=c.getContext('2d'); x.fillStyle='rgba(214,84,60,0.35)'; x.beginPath(); x.arc(3,3,2,0,6.283); x.arc(9,9,2,0,6.283); x.fill(); PAPERPAT=ctx.createPattern(c,'repeat'); }catch(e){} }
   if(PAPERPAT){ ctx.fillStyle=PAPERPAT; ctx.fillRect(0,0,LW,LH); } }
-function comicCrop(n,mode,pw,ph){ var im=IMG[n], f=FACE[n]||[0.5,0.4,0.2]; if(!ok(n)) return null; var iw=im.naturalWidth, ih=im.naturalHeight;
-  var k={eyes:3.8,ecu:3.0,cu:3.6,mid:5.6}[mode]||3, sw=Math.min(iw,f[2]*iw*k), sh=sw*ph/pw; if(sh>ih){ sh=ih; sw=sh*pw/ph; }
-  var cy=f[1]*ih+(mode==='eyes'?sh*0.05:mode==='ecu'?sh*0.12:mode==='cu'?sh*0.14:sh*0.26); return [clamp(f[0]*iw-sw/2,0,iw-sw), clamp(cy-sh/2,0,ih-sh), sw, sh]; }
+var FACE_F=[0.5,0.36,1/3.6];   // 1117c: the comic_face_* plates (the face box, comicized at full detail) — eyes 36% down, 3.6 face-widths wide
+function comicCrop(n,mode,pw,ph){ var ek='comic_eyes_'+String(n).replace('comic_',''); if(mode==='eyes' && ok(ek)){ var ei=IMG[ek], ew=ei.naturalWidth, eh=Math.min(ei.naturalHeight, ew*ph/pw); return [0,(ei.naturalHeight-eh)/2,ew,eh,ek]; }   // the EYES strip is its own plate
+  var fk='comic_face_'+String(n).replace('comic_',''); if(mode!=='mid' && ok(fk)){ n=fk; }   // close-ups come off the face plate
+  var im=IMG[n], f=n===fk?FACE_F:(FACE[n]||[0.5,0.4,0.2]); if(!ok(n)) return null; var iw=im.naturalWidth, ih=im.naturalHeight;
+  var k={eyes:2.6,ecu:2.8,cu:3.6,mid:5.6}[mode]||3, sw=Math.min(iw,f[2]*iw*k), sh=sw*ph/pw; if(sh>ih){ sh=ih; sw=sh*pw/ph; }
+  var cy=f[1]*ih+(mode==='eyes'?-sh*0.06:mode==='ecu'?sh*0.12:mode==='cu'?sh*0.14:sh*0.26); return [clamp(f[0]*iw-sw/2,0,iw-sw), clamp(cy-sh/2,0,ih-sh), sw, sh, n]; }
 function comicPanel(p,R,t,big){ var x=R[0],y=R[1],w=R[2],h=R[3], pop=ease(clamp(t/0.22,0,1)); if(t<0) return;
   ctx.save(); ctx.translate(x+w/2,y+h/2); var s=0.86+0.14*pop; ctx.scale(s,s); ctx.translate(-(x+w/2),-(y+h/2)); ctx.globalAlpha=Math.min(1,pop*1.5);
   ctx.fillStyle='#0c0a0a'; ctx.fillRect(x-6,y-6,w+12,h+12);
   ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip(); var c=comicCrop(p.img,p.crop,w,h);
-  if(c){ if(p.prof){ ctx.translate(x*2+w,0); ctx.scale(-1,1); } ctx.drawImage(IMG[p.img],c[0],c[1],c[2],c[3],x,y,w,h); } else { ctx.fillStyle='#c8553d'; ctx.fillRect(x,y,w,h); }
+  if(c){ if(p.prof){ ctx.translate(x*2+w,0); ctx.scale(-1,1); } ctx.drawImage(IMG[c[4]],c[0],c[1],c[2],c[3],x,y,w,h); } else { ctx.fillStyle='#c8553d'; ctx.fillRect(x,y,w,h); }
   ctx.restore();
   if(p.inv){ ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip(); ctx.globalCompositeOperation='difference'; ctx.fillStyle='#fff'; ctx.fillRect(x,y,w,h); ctx.restore(); }
   ctx.restore();
@@ -3562,7 +3572,7 @@ function comicPanel(p,R,t,big){ var x=R[0],y=R[1],w=R[2],h=R[3], pop=ease(clamp(
     ctx.save(); ctx.globalAlpha=a; ctx.fillStyle='#ffe14a'; ctx.strokeStyle='#0c0a0a'; ctx.lineWidth=4; ctx.fillRect(x+14,y+14,cw_+28,cl.length*cs*1.3+18); ctx.strokeRect(x+14,y+14,cw_+28,cl.length*cs*1.3+18); ctx.restore();
     cl.forEach(function(l,i){ txt(l,x+28,y+23+cs*1.3*(i+0.5),cs,'#1a1206','left','bold',a); }); }
   if(p.bal) balloon(p.bal,x,y,w,h,clamp((t-0.3)/0.25,0,1),K);
-  if(p.sfx) sfxBurst(p.sfx,big?x+w*0.87:x+w*(p.bal?0.76:0.62),big?y+h*0.30:y+h*(p.bal?0.24:0.62),clamp((t-0.1)/0.18,0,1),K*(big?1.15:1)); }   // never on the face, never on the balloon
+  if(p.sfx) sfxBurst(p.sfx,big?x+w*0.93:x+w*(p.bal?0.76:0.62),big?y+h*0.06:y+h*(p.bal?0.24:0.62),clamp((t-0.1)/0.18,0,1),K*(big?0.85:1)); }   // never on the face, never on the balloon
 var BAL_FONT='"Comic Sans MS","Chalkboard SE","Comic Neue","Marker Felt",sans-serif';   // cheap TV, cheap lettering (system fonts only — nothing off-box)
 function balloon(s,x,y,w,h,a,K){ if(a<=0) return; var sz=Math.round(27*K), mw=Math.min(w-80,540), ls=[], words=String(s).split(' '), line='';
   ctx.font='bold '+sz+'px '+BAL_FONT; var mt=function(q){ return NODE?q.length*sz*0.55:ctx.measureText(q).width; };
@@ -3584,7 +3594,7 @@ function sfxBurst(s,cx,cy,a,K){ if(a<=0) return; var sz=Math.round(64*K*(0.7+0.3
 function shotComic(S,t){ paper(); var R=COMIC_LAY[S.lay]||COMIC_LAY.A;
   for(var i=0;i<S.panels.length;i++) comicPanel(S.panels[i],R[i%R.length],t-0.15-i*0.85,false); }
 function shotReact(S,t){ var sh=t<0.25?Math.sin(t*120)*12:0; paper(); ctx.save(); ctx.translate(sh,0);   // the comic EYES strip: one wide panel across the page
-  comicPanel({img:S.img,crop:S.crop,inv:S.inv,sfx:S.sfx},[40,LH*0.22,LW-80,LH*0.5],t+0.3,true); ctx.restore(); }
+  comicPanel({img:S.img,crop:S.crop,inv:S.inv,sfx:S.sfx},[40,LH*0.31,LW-80,LH*0.34],t+0.3,true); ctx.restore(); }   // round 3: a tighter strip (brow + both eyes), picked off the FACE box
 // a quote in a panel above the lower third; wraps, and grows UP from its bottom edge
 function quoteBox(s,a,K){ if(a<=0) return; var sz=Math.round(26*K), ls=wrapLines(s,1100,sz,'italic bold'), lh=sz*1.32, h=ls.length*lh+26, yb=LH-172;
   panel(LW/2-600,yb-h,1200,h,0.66*a); for(var i=0;i<ls.length;i++) txt(ls[i],LW/2,yb-h+13+lh*(i+0.5),sz,'#fff6dc','center','italic bold',a); }
@@ -4384,6 +4394,9 @@ function selfTest(){
   okk('[pod] every front builds a valid pod: talk + comic/react + Wolfe V.O. (or THE BUST), varied order, every image in ART, THE RULES last', !badSeq.length, badSeq.join(' ; ')||(Object.keys(orders).length+' running orders'));
   okk('[pod] not rigid: at least 5 different running orders across the 17 fronts; comics, V.O. and bust shots all used', Object.keys(orders).length>=5 && comicN>=10 && voN>=8 && bustN>=3, Object.keys(orders).length+' orders · '+comicN+' comics · '+voN+' V.O. · '+bustN+' bust');
   okk('[pod] any Wolfe line naming Hadrian / Caesar / the Emperor cuts to THE BUST (TruthJunket kit render), and the bust is the bark portrait too', bustOk && HADRIAN_BUST==='hadrian_bust' && !!ART.hadrian_bust && !!ART.comic_bust);
+  var noFace=Object.keys(ART).filter(function(k){ return /^comic_(wolfe|davius)_\d$|^comic_bust$/.test(k) && !ART['comic_face_'+k.slice(6)]; });
+  var noEyes=Object.keys(ART).filter(function(k){ return /^comic_(wolfe|davius)_\d$/.test(k) && !ART['comic_eyes_'+k.slice(6)]; });
+  okk('[pod] 1117c: every comic frame has its FACE plate (close-ups + ECUs crop the face box) and every Wolfe/Davius frame its EYES strip (baked at panel size)', !noFace.length && !noEyes.length && Object.keys(ART).filter(function(k){ return /^comic_face_/.test(k); }).length===12, noFace.concat(noEyes).join(','));
   okk('[pod] the transitions vary: '+Object.keys(trUsed).sort().join(', '), POD_TR.every(function(tr){ return trUsed[tr]; }), Object.keys(trUsed).length+' used');
   var gStub=NODE && !ctx.createLinearGradient(0,0,1,1), gFake=function(){ return { addColorStop:function(){} }; };   // the node ctx stub has no gradients; a browser does
   if(gStub){ ctx.createLinearGradient=ctx.createRadialGradient=gFake; ctx.measureText=function(q){ return { width:String(q).length*14 }; }; }
