@@ -25,6 +25,7 @@
     &ff=S         fast-forward S seconds of play under the autopilot (&idle = hands off)
     &shot=win|fail  run the front to its results / failure screen (the screenshot rig)
     ?outro=K&t=S  THE OUTRO (after front 17) from beat K, S seconds in    ?end  the end card
+    ?touch=1|0    force the TOUCH pad on / off (auto: a coarse-pointer phone/tablet)   &hand=left  buttons on the left
 -->
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
@@ -47,12 +48,14 @@ function qp(k){ var m=Q.match(new RegExp('[?&]'+k+'(?:=([^&]*))?(?:&|$)')); retu
    ===================================================================== */
 var LW=1600, LH=900;
 var cv=document.getElementById('c'), ctx=cv.getContext('2d');
-var SC=1, OX=0, OY=0;
+var SC=1, OX=0, OY=0, DPR=1;
+var PADL=0, PADR=0;   // TOUCH (X7 1119): CSS px the phone pad's button column + the notch take off the stage's left / right. 0 = desktop (same letterbox as ever)
 function resize(){
   if(NODE) return;
-  var d=Math.min(2, window.devicePixelRatio||1);
+  var d=Math.min(2, window.devicePixelRatio||1); DPR=d;
   cv.width=Math.round(innerWidth*d); cv.height=Math.round(innerHeight*d);
-  SC=Math.min(cv.width/LW, cv.height/LH); OX=(cv.width-LW*SC)/2; OY=(cv.height-LH*SC)/2;
+  var aw=cv.width-(PADL+PADR)*d;
+  SC=Math.min(aw/LW, cv.height/LH); OX=PADL*d+(aw-LW*SC)/2; OY=(cv.height-LH*SC)/2;
 }
 if(!NODE){ addEventListener('resize',resize); resize(); }
 
@@ -1243,14 +1246,160 @@ if(!NODE){
     if(/^(Arrow| )/.test(e.key)||e.key===' ') e.preventDefault(); });
   addEventListener('keyup',function(e){ var k=e.key.length===1?e.key.toLowerCase():e.key; keys[k]=0; });
   addEventListener('blur',function(){ keys={}; });
-  addEventListener('pointerdown',function(e){ if(e.isTrusted&&wakeEat()) return; if(state==='attract'||state==='brief') onPress('Enter'); });
+  addEventListener('pointerdown',function(e){ if(TUI&&e.pointerType!=='mouse') return; if(e.isTrusted&&wakeEat()) return; if(state==='attract'||state==='brief') onPress('Enter'); });   // TOUCH: the pad's own handlers take touches
 }
 function gatherInput(){
   if(autopilot){ var a=autopilot(); inp.left=a.left|0; inp.right=a.right|0; inp.up=a.up|0; inp.down=a.down|0; inp.ray=a.ray|0; inp.spin=a.spin|0; return; }
   inp.left = keys.ArrowLeft||keys.a||pad.left?1:0; inp.right= keys.ArrowRight||keys.d||pad.right?1:0;
   inp.up   = keys.ArrowUp||keys.w||pad.up?1:0;     inp.down = keys.ArrowDown||keys.s||pad.down?1:0;
   inp.ray  = keys[' ']||keys.z||pad.ray?1:0;        inp.spin = keys.f||keys.x||keys.Shift||pad.spin?1:0;
+  if(TUI){ inp.left|=tch.left; inp.right|=tch.right; inp.up|=tch.up; inp.down|=tch.down; inp.ray|=tch.ray; if(tch.spin||tch.spinTap){ inp.spin=1; tch.spinTap=0; } }   // TOUCH: the third front-end writes the same intents
 }
+/* =====================================================================
+   TOUCH — the THIRD front-end (X7, 1119). KB+mouse and the pad are untouched; touch only writes the same intents
+   (tch -> gatherInput) and calls onPress() like a key. The sim never sees where an intent came from.
+     ON:  a coarse-pointer touch device (auto), or ?touch / ?touch=1.  OFF: ?touch=0 (or any desktop).
+     FLY  = drag anywhere on the game: a THUMB STICK appears under your thumb (floating origin, 8-way, the same
+            held arrows the keyboard sends — the step/repeat flight and its glide are the sim's own).
+     RAY (hold) + SCREW (tap) = one button column, BUTTONS ON THE RIGHT by default (HIGH TABLE's STICK-mode layout:
+            the stick thumb left, the buttons thumb right). ⇄ (off-play) or ?hand=left flops it. Session-only, no storage.
+     ❚❚ in play = the pause menu. ‹ BACK off-play = Escape. ↻ on the results / failed cards = R (or T: the whole front).
+     Menus: TAP a line = choose + go (CHOOSE A FRONT: tap to pick, tap again to fly); a SWIPE = an arrow key; any other
+            tap = SPACE. Portrait = TURN YOUR PHONE (and a live front pauses).
+   ===================================================================== */
+var TUI=false, tch={left:0,right:0,up:0,down:0,ray:0,spin:0,spinTap:0};
+(function(){
+  if(NODE) return;
+  var tq=qp('touch');
+  try{ TUI = tq==='0' ? false : tq!==null ? true : ((('ontouchstart' in window)||navigator.maxTouchPoints>0) && matchMedia('(pointer: coarse)').matches); }catch(e){ TUI=false; }
+  if(!TUI) return;
+  var HAND=/^l/i.test(qp('hand')||'')?'L':'R';   // the BUTTON column's side
+  var st=document.createElement('style');
+  st.textContent=
+    '#c{touch-action:none}'+
+    '.tp{position:fixed;z-index:20;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}'+
+    '#tcol{top:0;bottom:0;display:none;flex-direction:column;align-items:center;justify-content:flex-end;pointer-events:none;'+
+      'background:radial-gradient(120% 80% at 50% 100%,#1a1208,#050302)}'+
+    '#tcol.L{left:0;padding-left:env(safe-area-inset-left);box-shadow:inset -3px 0 0 #8a6a2a,inset -5px 0 0 #000}'+
+    '#tcol.R{right:0;padding-right:env(safe-area-inset-right);box-shadow:inset 3px 0 0 #8a6a2a,inset 5px 0 0 #000}'+
+    '.tb{pointer-events:auto;position:relative;width:var(--btn,110px);height:var(--btn,110px);border-radius:50%;'+
+      'background:radial-gradient(circle at 50% 40%,rgba(255,240,200,.16),rgba(30,20,8,.55) 62%,rgba(0,0,0,.65));'+
+      'border:2px solid var(--c);box-shadow:0 0 12px rgba(232,198,106,.25),inset 0 0 12px rgba(0,0,0,.6);transition:transform .08s,box-shadow .15s}'+
+    '.tb.down{transform:scale(.94);box-shadow:0 0 26px var(--c),inset 0 0 18px rgba(0,0,0,.5)}'+
+    '.tb .ring{position:absolute;inset:-6px;border-radius:50%;pointer-events:none;background:conic-gradient(var(--c) calc(var(--p,1)*360deg),rgba(255,255,255,.07) 0);'+
+      '-webkit-mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 4px));mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 4px))}'+
+    '.tb img{position:absolute;left:50%;top:50%;width:64%;height:64%;object-fit:contain;transform:translate(-50%,-50%);pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.7))}'+
+    '.tb .cone{position:absolute;left:50%;top:18%;width:46%;height:64%;transform:translateX(-50%);pointer-events:none;'+
+      'clip-path:polygon(38% 0,62% 0,100% 100%,0 100%);background:linear-gradient(#fff6d0,rgba(232,198,106,.85) 55%,rgba(232,198,106,.15))}'+
+    '.tb .lb{position:absolute;left:50%;bottom:-2px;transform:translate(-50%,100%);font:bold calc(var(--btn,110px)*.15)/1.3 Georgia,serif;letter-spacing:.06em;'+
+      'color:var(--c);text-shadow:0 1px 3px #000;white-space:nowrap;pointer-events:none}'+
+    '#tray{--c:#e8c66a} #tscrew{--c:#7fd8e8} #tscrew.cd img{opacity:.4;filter:grayscale(.7)}'+
+    '.tchip{top:max(10px,env(safe-area-inset-top));height:34px;padding:0 14px;border-radius:17px;display:none;border:1px solid rgba(232,198,106,.55);'+
+      'background:rgba(10,7,3,.72);color:#e8c66a;font:bold 13px/32px Georgia,serif;letter-spacing:.08em;white-space:nowrap}'+
+    '#tstk{position:fixed;z-index:19;pointer-events:none;display:none;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;'+
+      'border:2px solid rgba(239,227,196,.45);background:radial-gradient(circle,rgba(239,227,196,.08),rgba(0,0,0,.18))}'+
+    '#tstk i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;'+
+      'background:radial-gradient(circle at 40% 35%,#fff3c4,#c9a24a 60%,#5a4318);box-shadow:0 2px 8px rgba(0,0,0,.6)}'+
+    '#trot{position:fixed;inset:0;z-index:60;display:none;background:#070503;color:#e8c66a;flex-direction:column;align-items:center;justify-content:center;gap:16px;'+
+      'font:bold 22px/1.25 Georgia,serif;letter-spacing:.06em;text-align:center;padding:env(safe-area-inset-top) 24px env(safe-area-inset-bottom)}'+
+    '#trot .ph{width:46px;height:78px;border:3px solid #e8c66a;border-radius:9px;animation:tRot 1.6s ease-in-out infinite}'+
+    '@keyframes tRot{40%,100%{transform:rotate(-90deg)}}';
+  document.head.appendChild(st);
+  function el(tag,id,cls,html){ var e=document.createElement(tag); if(id) e.id=id; if(cls) e.className=cls; if(html) e.innerHTML=html; document.body.appendChild(e); return e; }
+  var col=el('div','tcol','tp'),
+      bS=el('div','tscrew','tb','<div class="ring"></div><img src="art/screw_rotor.png" alt=""><span class="lb">SCREW</span>'),
+      bR=el('div','tray','tb','<div class="ring"></div><div class="cone"></div><span class="lb">RAY</span>'),
+      cPause=el('div','tpause','tp tchip','❚❚ PAUSE'), cBack=el('div','tback','tp tchip','‹ BACK'), cRetry=el('div','tretry','tp tchip','↻ AGAIN'),
+      cHand=el('div','thand','tp tchip','⇄'), stk=el('div','tstk','','<i></i>'), knob=stk.firstChild,
+      rot=el('div','trot','','<div class="ph"></div>TURN YOUR PHONE<span style="font-size:14px;color:#cdbf9e">the Corps flies sideways</span>');
+  col.appendChild(bS); col.appendChild(bR);   // top->bottom SCREW · RAY (RAY = the resting thumb)
+  var gap=8;
+  col.style.gap='calc(var(--btn,110px)*0.3)';
+  function inset(side){ var d=document.createElement('div'); d.style.cssText='position:fixed;visibility:hidden;pointer-events:none;padding-left:env(safe-area-inset-'+side+')';
+    document.body.appendChild(d); var v=parseFloat(getComputedStyle(d).paddingLeft)||0; d.remove(); return v; }
+  var PORT=false, colW=0;
+  function layout(){
+    PORT=innerHeight>innerWidth; rot.style.display=PORT?'flex':'none';
+    var iL=inset('left'), iR=inset('right'), btn=Math.round(Math.max(64,Math.min((innerHeight-60)/2.7,120)));
+    colW=PORT?0:Math.round(btn*1.3);
+    var r=document.documentElement.style; r.setProperty('--btn',btn+'px');
+    col.className='tp '+HAND; col.style.display=PORT?'none':'flex'; col.style.width=(colW+(HAND==='L'?iL:iR))+'px';
+    col.style.paddingBottom=Math.max(18,Math.round(btn*0.3))+'px';
+    PADL=PORT?0:(HAND==='L'?colW+iL:iL); PADR=PORT?0:(HAND==='R'?colW+iR:iR);   // the stage also clears the notch on the free side
+    var sideFree=HAND==='R'?'left':'right', freeIn=HAND==='R'?iL:iR, colSide=HAND==='R'?'right':'left';
+    // chips: PAUSE / BACK ride the top of the button column; ⇄ and ↻ sit in the free side's top corner
+    [cPause,cBack].forEach(function(c){ c.style[colSide]=Math.round((HAND==='L'?iL:iR)+colW/2)+'px'; c.style[sideFree]=''; c.style.transform=HAND==='R'?'translateX(50%)':'translateX(-50%)'; });
+    cHand.style[sideFree]=(freeIn+10)+'px'; cHand.style[colSide]='';
+    cRetry.style[sideFree]=(freeIn+64)+'px'; cRetry.style[colSide]='';
+    resize();
+    if(PORT && state==='play' && !demo) onPress('p');   // the phone turned upright mid-front: hold the sim in the pause menu
+  }
+  addEventListener('resize',function(){ layout(); }); addEventListener('orientationchange',function(){ setTimeout(layout,150); }); layout();
+  window.setPaxHand=function(h){ HAND=h==='L'?'L':'R'; layout(); };
+  function buzz(ms){ try{ navigator.vibrate&&navigator.vibrate(ms||10); }catch(e){} }
+  function hold(b,down,up){
+    b.addEventListener('pointerdown',function(e){ e.preventDefault(); e.stopPropagation(); if(e.isTrusted) wakeEat(); try{ b.setPointerCapture(e.pointerId); }catch(_){} b.classList.add('down'); buzz(); idleT=0; down(); });
+    var lift=function(){ if(!b.classList.contains('down')) return; b.classList.remove('down'); up&&up(); };
+    b.addEventListener('pointerup',lift); b.addEventListener('pointercancel',lift); b.addEventListener('lostpointercapture',lift);
+    b.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+  }
+  // RAY: held. Off-play it is the go button (SPACE), like the keyboard's.
+  hold(bR,function(){ if(state==='play'){ tch.ray=1; } else onPress(' '); },function(){ tch.ray=0; });
+  // SCREW: a tap is latched so a quick one is never lost between two sim ticks. Off-play = Escape (back), like a pad's B.
+  hold(bS,function(){ if(state==='play'){ tch.spin=1; tch.spinTap=1; } else onPress('Escape'); },function(){ tch.spin=0; });
+  function chip(c,fn){ c.addEventListener('pointerdown',function(e){ e.preventDefault(); e.stopPropagation(); if(e.isTrusted) wakeEat(); buzz(); fn(); }); }
+  chip(cPause,function(){ onPress('p'); });
+  chip(cBack,function(){ onPress('Escape'); });
+  chip(cRetry,function(){ onPress(state==='failed'&&lastResult&&lastResult.ck>0&&CK?'t':'r'); });
+  chip(cHand,function(){ setPaxHand(HAND==='R'?'L':'R'); });
+  // ---- the free thumb: the floating stick (play) / tap + swipe (everywhere else) ----
+  var sid=null, o=null, DEAD=14, R8=0.42;
+  function toL(cx,cy){ return [(cx*DPR-OX)/SC,(cy*DPR-OY)/SC]; }   // client px -> the logical 1600x900 stage
+  function stickClear(){ tch.left=tch.right=tch.up=tch.down=0; stk.style.display='none'; }
+  cv.addEventListener('pointerdown',function(e){ if(e.pointerType==='mouse') return;
+    e.preventDefault(); e.stopPropagation();
+    if(sid!==null) return; sid=e.pointerId; try{ cv.setPointerCapture(sid); }catch(_){}
+    var eat=e.isTrusted&&wakeEat();
+    o={play:state==='play'&&!demo, x0:e.clientX, y0:e.clientY, cx:e.clientX, cy:e.clientY, sw:0, eat:eat};
+    if(o.play){ stk.style.left=e.clientX+'px'; stk.style.top=e.clientY+'px'; knob.style.transform=''; stk.style.display='block'; } });
+  cv.addEventListener('pointermove',function(e){ if(e.pointerId!==sid||!o) return;
+    if(o.play){ var dx=e.clientX-o.x0, dy=e.clientY-o.y0, m=Math.hypot(dx,dy), R=48;
+      if(m>R){ o.x0+=dx*(1-R/m); o.y0+=dy*(1-R/m); dx=e.clientX-o.x0; dy=e.clientY-o.y0; m=R; stk.style.left=o.x0+'px'; stk.style.top=o.y0+'px'; }   // the origin follows a thumb that runs past the rim
+      knob.style.transform='translate('+dx+'px,'+dy+'px)';
+      if(m<DEAD){ tch.left=tch.right=tch.up=tch.down=0; return; }
+      var ux=dx/m, uy=dy/m;   // 8-way: a component past sin(~25deg) counts
+      tch.left=ux<-R8?1:0; tch.right=ux>R8?1:0; tch.up=uy<-R8?1:0; tch.down=uy>R8?1:0; return; }
+    var sx=e.clientX-o.cx, sy=e.clientY-o.cy;
+    if(Math.hypot(sx,sy)>34){ var k=Math.abs(sx)>Math.abs(sy)?(sx>0?'ArrowRight':'ArrowLeft'):(sy>0?'ArrowDown':'ArrowUp');
+      onPress(k); buzz(6); o.sw++; o.cx=e.clientX; o.cy=e.clientY; } });
+  function up(e){ if(e.pointerId!==sid) return; sid=null; var t=o; o=null; stickClear();
+    if(!t||t.play||t.sw||t.eat) return;
+    tap(toL(e.clientX,e.clientY)); }
+  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',function(e){ if(e.pointerId===sid){ sid=null; o=null; stickClear(); } });
+  addEventListener('blur',function(){ stickClear(); tch.ray=0; tch.spin=0; });
+  // a tap off-play: the line under it (title / pause / CHOOSE A FRONT), else SPACE
+  function tap(L){ var x=L[0], y=L[1]; buzz(10);
+    if(state==='title'){ for(var i=0;i<MENU.length;i++){ var ry=540+i*54; if(Math.abs(y-ry)<=27 && Math.abs(x-LW/2)<=300){ menuI=i; onPress('Enter'); return; } } return; }
+    if(state==='paused' && !pauseHow){ var n=PAUSE.length, y0=n>6?340:360, sp=n>6?50:58;
+      for(var j=0;j<n;j++){ if(Math.abs(y-(y0+j*sp))<=sp/2 && Math.abs(x-LW/2)<=290){ pauseI=j; onPress('Enter'); return; } } return; }
+    if(state==='select'){ if(y>=90&&y<=140&&Math.abs(x-LW/2)<=260){ onPress('ArrowRight'); return; }   // FLY FOR <side>: swap
+      var built=MARCH.filter(function(m){return m.f!=null;}), sp2=Math.min(48,680/MARCH.length);
+      for(var k=0;k<MARCH.length;k++){ var m=MARCH[k]; if(m.f==null) continue; var yy=166+k*sp2;
+        if(Math.abs(y-yy)<=sp2/2 && Math.abs(x-LW/2)<=480){ var bi=built.indexOf(m); if(bi===selI) onPress('Enter'); else { selI=bi; sfx('menu_move'); } return; } }
+      return; }
+    onPress(' '); }
+  // ---- live state: which chips show, the SCREW cooldown ring ----
+  (function tick(){ requestAnimationFrame(tick);
+    var play=state==='play'&&!demo, rs=(state==='results'||state==='failed')&&rt>=0.9;
+    cPause.style.display=(!PORT&&play)?'block':'none';
+    cBack.style.display=(!PORT&&!play&&state!=='attract')?'block':'none';
+    cHand.style.display=(!PORT&&!play&&state!=='paused')?'block':'none';
+    cRetry.style.display=(!PORT&&rs)?'block':'none';
+    if(cRetry.style.display==='block') cRetry.textContent=(state==='failed'&&lastResult&&lastResult.ck>0&&CK)?'↻ WHOLE FRONT':'↻ AGAIN';
+    var cd=(play&&P)?Math.max(0,(P.spinCd||0)-simT):0; bS.classList.toggle('cd',cd>0); bS.style.setProperty('--p',cd>0?String(1-Math.min(1,cd/SPIN_CD)):'1');
+    if(!play && (tch.left||tch.right||tch.up||tch.down)) stickClear(); })();
+  if(qp('qa')!==null) window.__paxTouch={ tch:tch, st:function(){ return {state:state, atk:atk, menuI:menuI, selI:selI, pauseI:pauseI, side:SIDE, x:P&&P.x, y:P&&P.y, tx:P&&P.tx, ty:P&&P.ty, raying:P&&P.raying, spinCd:P&&P.spinCd, simT:simT, PADL:PADL, PADR:PADR, OX:OX, SC:SC}; }, hand:function(){ return HAND; } };
+})();
 
 /* ---------- menus ---------- */
 var menuI=0, selI=0, idleT=0;
@@ -2034,7 +2183,9 @@ function artSettled(){ var n=0, d=0; for(var k in IMG){ n++; if(IMG[k].ok||IMG[k
 function loadReady(){ if(ldAll<LOAD_MIN) return false; if(NODE||ldAll>=LOAD_MAXWAIT) return true; return artSettled()>=1 && ldMusOk; }
 function loadSkip(){ ldK=SEQ.length; ldT=0; }
 function phoneView(){ return !NODE && Math.min(innerWidth,innerHeight)<520; }
-function touchOnly(){ try{ return !NODE && matchMedia('(pointer: coarse)').matches; }catch(e){ return false; } }
+function touchOnly(){ return TUI; }
+// the prompt words on touch (render-only): SPACE = a tap, ESC = the ‹ BACK chip, R / T = the ↻ chip
+function tw(t){ if(!TUI) return t; return t.replace(/R \/ SPACE/g,'TAP').replace(/SPACE/g,'TAP').replace(/\bESC\b/g,'‹ BACK').replace(/\b[RT] — /g,'↻ — '); }   // TOUCH (X7): was the bare coarse-pointer test; now the touch front-end's own switch (auto-detect, ?touch=0/1)
 function padOn(){ if(NODE||!navigator.getGamepads) return false; var g=navigator.getGamepads(); for(var i=0;i<g.length;i++) if(g[i]&&g[i].connected) return true; return false; }
 // what wins, what loses, the clock — read off the front as it is built (so the card can never disagree with the sim)
 function ruleWin(){ if(MPH.length<2) return 'Bring out '+F.need+' of '+F.friends.length+' before the horn.';
@@ -3227,7 +3378,7 @@ function drawHUD(){
   panel(LW-316,14,300,74); txt('HULL',LW-300,34,13,GOLD,'left','bold');
   ctx.fillStyle='#1a0c0a'; roundRect(LW-300,54,268,18,9); ctx.fill(); ctx.save(); roundRect(LW-300,54,268,18,9); ctx.clip();   // (HUD 1117) y 54: 15.5 / 15.5 / 16 px (panel top › HULL › bar › panel bottom), centred on the SCORE digits (was y 50: 20 px under the bar)
   ctx.fillStyle=hp>60?'#7ccf5c':hp>30?'#f0c94a':'#ff5a3a'; ctx.fillRect(LW-300,54,268*hp/HULL,18); ctx.restore();
-  txt(spinning()?'THE SCREW':(simT<P.spinCd?'screw cooling':'F  SCREW READY'),LW-32,34,12,spinning()?GOLD:simT<P.spinCd?'#8a7a5a':'#bfe7a8','right','bold');
+  txt(spinning()?'THE SCREW':(simT<P.spinCd?'screw cooling':(TUI?'SCREW READY':'F  SCREW READY')),LW-32,34,12,spinning()?GOLD:simT<P.spinCd?'#8a7a5a':'#bfe7a8','right','bold');
   // centre: front + clock
   panel(LW/2-240,10,480,92,0.5);
   txt(F.title,LW/2,30,17,GOLD,'center','bold'); var c=Math.max(0,Math.ceil(Math.min(stageClock,F.clock))), K=PK();
@@ -3388,13 +3539,14 @@ function drawAttract(dt){
 }
 function lowerThird(a,b,al){ ctx.save(); ctx.globalAlpha=al; ctx.fillStyle='rgba(120,12,12,0.88)'; ctx.fillRect(60,LH-150,640,46); ctx.fillStyle='rgba(10,8,6,0.85)'; ctx.fillRect(60,LH-104,640,32); ctx.restore();
   txt(a,80,LH-127,24,'#fff','left','bold',al); txt(b,80,LH-88,14,'#e8c66a','left','bold',al); }
-function pressAny(){ var a=0.5+0.5*Math.sin(rt*4); txt('PRESS ANY KEY',LW/2,LH-40,22,GOLD,'center','bold',a); if(AU.blocked) txt('♪ sound starts with your first key',LW/2,LH-14,13,'#bba','center','',0.7); }
+function pressAny(){ var a=0.5+0.5*Math.sin(rt*4); txt(TUI?'TAP TO START':'PRESS ANY KEY',LW/2,LH-40,TUI?28:22,GOLD,'center','bold',a); if(AU.blocked) txt(TUI?'♪ sound starts with your first tap':'♪ sound starts with your first key',LW/2,LH-14,13,'#bba','center','',0.7); }
 function howtoCard(a){
   panel(LW/2-520,120,1040,620,0.82*a); txt('HOW TO FLY',LW/2,170,38,GOLD,'center','bold',a);
   var L=[['ARROWS / WASD','fly the ornithopter (it glides — lead your turns)'],['FLY LOW','the rope\'s end reaches the stranded — they grab on and hang'],
          ['CARRY THEM','to the SAFE drop-off and set them down LOW. The rope holds ONE.'],['SPACE (hold)','THE RAY — lifts a red hat out of the fight (you hover while it works)'],
          ['F  (or X / SHIFT)','THE SCREW — fold into the bronze screw: fire passes through, bolts bounce off'],['LADDER CRATE','carries three; they climb while you HOVER. Goats ride the rope only.'],
          ['A HIT','costs hull — and whoever is on the rope lets go. A long fall is lost.'],['R · ESC · M','retry the front · pause menu · sound']];
+  if(TUI){ L[0][0]='DRAG ANYWHERE'; L[0][1]='a thumb stick appears under your thumb: fly the ornithopter (it glides — lead your turns)'; L[3][0]='RAY (hold)'; L[4][0]='SCREW (tap)'; L[7]=['❚❚','the pause menu: retry the front · sound · glide']; }   // TOUCH (X7)
   for(var i=0;i<L.length;i++){ txt(L[i][0],LW/2-470,240+i*58,20,PARCH,'left','bold',a); txt(L[i][1],LW/2-170,240+i*58,18,'#d8ccb0','left','',a); }
   txt('Every danger warns you first: a dotted line turns RED · a red lane flashes · a ring marks where the stone lands.',LW/2,720,15,'#bfa77a','center','italic',a);
 }
@@ -3407,19 +3559,19 @@ function drawTitle(dt){
   txt('PAX GNOMANIA',LW/2,370,110,GOLD,'center','bold'); txt('HADRIAN\'S ORNITHOPTER CORPS  ·  BRITANNIA, AD 122',LW/2,450,22,PARCH,'center','bold');
   for(var i=0;i<MENU.length;i++){ var sel=i===menuI, y=540+i*54; if(sel){ panel(LW/2-260,y-24,520,48,0.65); }
     txt((sel?'▶  ':'')+MENU[i],LW/2,y,sel?28:24,sel?'#fff3c4':'#cdbf9e','center','bold'); }
-  txt('↑ ↓  choose   ·   SPACE / ENTER  go   ·   ESC  the special',LW/2,LH-40,15,'#bba98a','center','bold',0.85);
+  txt(TUI?'TAP A LINE TO GO   ·   ‹ BACK  the special':'↑ ↓  choose   ·   SPACE / ENTER  go   ·   ESC  the special',LW/2,LH-40,TUI?20:15,'#bba98a','center','bold',0.85);
   txt('A CASTLE KILLSCREEN GAME · ANDERS & PARTNERS',LW/2,LH-16,12,'#8a7a5a','center','bold',0.7);
 }
 function drawPause(){ // UI-AUDIT 1110
   ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,LW,LH);
-  if(pauseHow){ howtoCard(1); txt('SPACE / ESC — BACK',LW/2,LH-60,20,GOLD,'center','bold'); return; }
+  if(pauseHow){ howtoCard(1); txt(TUI?'TAP — BACK':'SPACE / ESC — BACK',LW/2,LH-60,20,GOLD,'center','bold'); return; }
   panel(LW/2-300,170,600,560,0.85); txt('PAUSED',LW/2,240,56,GOLD,'center','bold');
   txt('THE LEGION HOLDS ITS BREATH',LW/2,290,16,'#bba98a','center','bold');
   for(var i=0;i<PAUSE.length;i++){ var sel=i===pauseI, y=(PAUSE.length>6?340:360)+i*(PAUSE.length>6?50:58), lab=PAUSE[i];
     if(lab==='SOUND') lab='SOUND:  '+(AU.muted?'OFF':'ON'); else if(lab==='GLIDE') lab='GLIDE:  '+(GLIDE?'ON':'OFF');
     if(sel) panel(LW/2-250,y-24,500,48,0.65);
     txt((sel?'▶  ':'')+lab,LW/2,y,sel?28:24,sel?'#fff3c4':'#cdbf9e','center','bold'); }
-  txt('↑ ↓  choose   ·   SPACE / ENTER  go   ·   ESC  resume',LW/2,706,15,'#bba98a','center','bold',0.85);
+  txt(TUI?'TAP A LINE   ·   ‹ BACK  resume':'↑ ↓  choose   ·   SPACE / ENTER  go   ·   ESC  resume',LW/2,706,TUI?19:15,'#bba98a','center','bold',0.85);
 }
 function drawSelect(){
   backdrop(3,0.016); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,LW,LH);
@@ -3435,7 +3587,7 @@ function drawSelect(){
     var mw_=function(t,sz){ ctx.font='bold '+sz+'px Georgia,serif'; return NODE?t.length*sz*0.6:ctx.measureText(t).width; }, room=880-mw_(nm,nfs)-28;   // 1116: the right-hand tag never runs into a long name
     var tag=isB?((mw_(Fm.place,14)>room*0.5 && room<520 ? '' : Fm.place+' · ')+(Fm.escort&&Fm.escort.main?'ESCORT':Fm.high?'HIGH GROUND':(Fm.depot&&Fm.depot.kind==='cradle'?'CRADLE':'PEN'))+(Fm.muster?' · TROOPS':'')+((Fm.ww||LW)>LW?' · WIDE':'')+(bst?'  ·  BEST '+bst.grade:'')):('SEALED · '+m.note);
     txt(tag, LW/2+440, y, 14, isB?(bst?'#9fe08a':'#c9b27a'):'#5f584a','right', isB?'bold':'italic'); }
-  txt('↑ ↓ or 1–9  ·  ← → SIDE  ·  SPACE fly it  ·  ESC back',LW/2,LH-24,15,'#bba98a','center','bold');
+  txt(TUI?'TAP A FRONT, TAP IT AGAIN TO FLY  ·  TAP THE SIDE TO SWAP  ·  SWIPE TO SCROLL':'↑ ↓ or 1–9  ·  ← → SIDE  ·  SPACE fly it  ·  ESC back',LW/2,LH-24,TUI?19:15,'#bba98a','center','bold');
 }
 // THE LOADING SEQUENCE + OBJECTIVES (Joe 1117; the data + the rules readers sit with LOAD above). state stays 'brief' throughout.
 // THE LOADING SEQUENCE (Joe 1117 + 1117b): the POD shots (SEQ, built by buildPod) › THE RULES › OBJECTIVES (holds). state stays 'brief'.
@@ -3621,11 +3773,11 @@ function drawObjectives(a){
   var l1=layRows(R1,X1+24,W1-48,top+18,bot-14,K,120);
   // CONTROLS (right) — every input this front uses; the pad column lights when a pad is connected
   var X2=830, W2=730, kc=pad?'#c9b27a':'#fff3c4', pc=pad?'#fff3c4':'#c9b27a', R2=[{t:'CONTROLS',s:20,c:GOLD,gap:4}];
-  if(pad) R2.push({t:'PAD CONNECTED',s:ph?19:15,c:CYAN,gap:6}); else if(touch) R2.push({t:'TAP TO SKIP AND TO START. FLYING NEEDS A PAD OR A KEYBOARD.' /* DRAFT: Q1174 — the web build has no touch flight yet */,s:ph?20:15,c:'#ff9a7a',gap:6});
-  var C=[['FLY','ARROWS / WASD','STICK / D-PAD'],['THE RAY  (hold)','SPACE / Z','A  /  RT'],['THE SCREW','F / X / SHIFT','B / X  /  LT'],['PAUSE','ESC / P','START']];
-  if(ph){ var pi=pad||touch?2:1; R2.push({cols:[['',0],[pi===2?'PAD':'KEYBOARD',300,'#a89a7c']],s:17,gap:2});   // phone: ONE input column, big
+  if(pad) R2.push({t:'PAD CONNECTED',s:ph?19:15,c:CYAN,gap:6});
+  var C=[['FLY','ARROWS / WASD','STICK / D-PAD','DRAG — THUMB STICK'],['THE RAY  (hold)','SPACE / Z','A  /  RT','HOLD  RAY'],['THE SCREW','F / X / SHIFT','B / X  /  LT','TAP  SCREW'],['PAUSE','ESC / P','START','❚❚']];   // [3] = TOUCH (X7 1119)
+  if(ph||(touch&&!pad)){ var pi=pad?2:touch?3:1; R2.push({cols:[['',0],[['','KEYBOARD','PAD','TOUCH'][pi],300,'#a89a7c']],s:17,gap:2});   // phone (or a tablet on touch): ONE input column, big
     C.forEach(function(c){ R2.push({cols:[[c[0],0,PARCH],[c[pi],300,'#fff3c4']],s:24}); }); }
-  else { R2.push({cols:[['',0],['KEYBOARD',250,'#a89a7c'],['PAD',480,'#a89a7c']],s:14,gap:2});
+  if(!(ph||(touch&&!pad))){ R2.push({cols:[['',0],['KEYBOARD',250,'#a89a7c'],['PAD',480,'#a89a7c']],s:14,gap:2});
     C.forEach(function(c){ R2.push({cols:[[c[0],0,PARCH],[c[1],250,kc],[c[2],480,pc]],s:19}); });
     R2.push({cols:[['RETRY · SOUND · GLIDE',0,PARCH],['R · M · G',250,kc],['(pause menu)',480,pc]],s:17}); }
   R2[R2.length-1].gap=10;
@@ -3672,7 +3824,7 @@ function drawResults(dt){
   if(endQuote) wrap(endQuote[1]+'  — '+SPK[endQuote[0]].name,LW/2,660,1100,19,'#d8ccb0',clamp((rt-2.8)/0.5,0,1),'italic');
   var al2=clamp((rt-2.4)/0.4,0,1);
   txt('GRADE  '+R.grade,LW/2-380,600,26,'#fff3c4','left','bold',al2); txt(GRADE_WORD[R.grade]||'',LW/2-380,624,13,'#c9b27a','left','bold',al2); txt('SCORE  '+score,LW/2+380,600,26,GOLD,'right','bold',al2,'ui-monospace,Menlo,monospace');
-  txt(campaign?'SPACE — MARCH ON   ·   R — FLY IT AGAIN':'SPACE — CHOOSE A FRONT   ·   R — FLY IT AGAIN',LW/2,LH-60,22,GOLD,'center','bold',al2*(0.6+0.4*Math.sin(rt*4)));
+  txt(tw(campaign?'SPACE — MARCH ON   ·   R — FLY IT AGAIN':'SPACE — CHOOSE A FRONT   ·   R — FLY IT AGAIN'),LW/2,LH-60,22,GOLD,'center','bold',al2*(0.6+0.4*Math.sin(rt*4)));
 }
 // THE MISSIONS results card: one row per phase (what it asked, what you did, the line, the grade), then the totals
 function drawMissionResults(R,a){
@@ -3695,7 +3847,7 @@ function drawMissionResults(R,a){
   txt('GRADE  '+R.grade,X0+24,gy,28,GRADE_COL[R.grade]||'#fff3c4','left','bold',al2); txt(GRADE_WORD[R.grade]||'',X0+24,gy+24,13,'#c9b27a','left','bold',al2); txt(Math.floor(R.t/60)+':'+('0'+Math.floor(R.t%60)).slice(-2)+' IN THE AIR',LW/2,gy,20,'#e9dfc8','center','bold',al2);
   txt('SCORE  '+score,X0+1096,gy,28,GOLD,'right','bold',al2,'ui-monospace,Menlo,monospace');
   if(endQuote) wrap(endQuote[1]+'  — '+SPK[endQuote[0]].name,LW/2,gy+48,1100,18,'#d8ccb0',al2,'italic');
-  txt(campaign?'SPACE — MARCH ON   ·   R — FLY IT AGAIN':'SPACE — CHOOSE A FRONT   ·   R — FLY IT AGAIN',LW/2,LH-34,22,GOLD,'center','bold',al2*(0.6+0.4*Math.sin(rt*4)));
+  txt(tw(campaign?'SPACE — MARCH ON   ·   R — FLY IT AGAIN':'SPACE — CHOOSE A FRONT   ·   R — FLY IT AGAIN'),LW/2,LH-34,22,GOLD,'center','bold',al2*(0.6+0.4*Math.sin(rt*4)));
 }
 function drawFailed(dt){
   drawScene(dt*0.3); ctx.fillStyle='rgba(30,0,0,0.6)'; ctx.fillRect(0,0,LW,LH);
@@ -3705,8 +3857,8 @@ function drawFailed(dt){
   if(endQuote) wrap(endQuote[1]+'  — '+SPK[endQuote[0]].name,LW/2,490,1100,19,'#d8ccb0',a,'italic');
   if(R.nPhases>1){ txt('FELL IN PHASE '+(R.phase+1)+' / '+R.nPhases+' — '+R.phaseName,LW/2,180,22,'#ffcf9a','center','bold',a);
     if(R.phases&&R.phases.length) txt('CLEARED: '+R.phases.map(function(p){ return p.name+' ('+p.grade+')'; }).join('  ·  '),LW/2,212,16,'#e9dfc8','center','bold',a); }
-  if(R.ck>0 && CK){ txt('R / SPACE — RETRY FROM PHASE '+(R.ck+1)+': '+MPH[R.ck].name+'  (−'+CKPT_PEN+')',LW/2,560,30,GOLD,'center','bold',0.55+0.45*Math.sin(rt*4)); txt('T — RESTART THE WHOLE FRONT   ·   ESC — TITLE',LW/2,612,20,'#cdbf9e','center','bold',a); }
-  else { txt('R / SPACE — RETRY THE FRONT',LW/2,560,34,GOLD,'center','bold',0.55+0.45*Math.sin(rt*4)); txt('ESC — TITLE',LW/2,612,20,'#cdbf9e','center','bold',a); }
+  if(R.ck>0 && CK){ txt(tw('R / SPACE — RETRY FROM PHASE '+(R.ck+1)+': '+MPH[R.ck].name+'  (−'+CKPT_PEN+')'),LW/2,560,30,GOLD,'center','bold',0.55+0.45*Math.sin(rt*4)); txt(tw('T — RESTART THE WHOLE FRONT   ·   ESC — TITLE'),LW/2,612,20,'#cdbf9e','center','bold',a); }
+  else { txt(tw('R / SPACE — RETRY THE FRONT'),LW/2,560,34,GOLD,'center','bold',0.55+0.45*Math.sin(rt*4)); txt(tw('ESC — TITLE'),LW/2,612,20,'#cdbf9e','center','bold',a); }
 }
 function drawMarch(){
   coverDraw('gnomean_legion',1.0,0.5,0.3+0.1*Math.sin(rt*0.05),0.28); ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,LW,LH);
@@ -3718,7 +3870,7 @@ function drawMarch(){
     txt((done?'✓  ':isNext?'▶  ':'·  ')+m.name,LW/2-440,y,21,col,'left','bold');
     txt(done?'HELD': m.f!=null?(isNext?'NEXT':'') : (sealedPast?'the march passes — DISPATCH SEALED':'SEALED · '+m.note),LW/2+440,y,14,m.f!=null?'#c9b27a':'#5f584a','right',m.f!=null?'bold':'italic'); }
   txt('SCORE  '+score+'      LOST TO THE BLUE  '+blueRun,LW/2,LH-70,22,GOLD,'center','bold','ui-monospace');
-  txt('SPACE — '+(nx<0?'ONWARD':'FLY '+FRONTS[nx].title),LW/2,LH-34,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
+  txt(tw('SPACE — '+(nx<0?'ONWARD':'FLY '+FRONTS[nx].title)),LW/2,LH-34,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
 }
 /* =====================================================================
    THE OUTRO (Claude 1113b) — after THE ANTONINE WALL, from either side, the same ending (Joe 13/11): the forum and the fall, the
@@ -3841,7 +3993,7 @@ function drawEnd(){
   txt('THE UNIVERSAL PROJECT · LOST TO HISTORY' /* DRAFT */,LW/2,380,18,'#c9b27a','center','bold');
   for(var i=0;i<END_LINES.length;i++) txt(END_LINES[i],LW/2,422+i*40,22,PARCH,'center','bold');
   wrap('"History says the frontier was secured. History also says Hadrian died in bed. I have QUESTIONS."  — DR. H. WOLFE',LW/2,580,1060,19,'#d8ccb0',1,'italic');
-  txt('SPACE — TITLE',LW/2,LH-50,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
+  txt(tw('SPACE — TITLE'),LW/2,LH-50,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
 }
 
 /* ---------- the frame loop ---------- */
@@ -3856,7 +4008,7 @@ function frame(ts){
   else if(state==='paused'){ ctx.save(); drawScene(0); ctx.restore(); drawHUD(); drawPause(); }
   else if(state==='attract') drawAttract(dt);
   else if(state==='title'){ drawTitle(dt); if(idleT>40) toAttract(); }
-  else if(state==='howto'){ backdrop(3,dt); howtoCard(1); txt('SPACE — BACK',LW/2,LH-60,20,GOLD,'center','bold'); }
+  else if(state==='howto'){ backdrop(3,dt); howtoCard(1); txt(TUI?'TAP — BACK':'SPACE — BACK',LW/2,LH-60,20,GOLD,'center','bold'); }
   else if(state==='select') drawSelect();
   else if(state==='brief') drawBrief(dt);
   else if(state==='results') drawResults(dt);
