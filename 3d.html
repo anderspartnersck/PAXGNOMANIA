@@ -1279,40 +1279,50 @@ var TUI=false, tch={left:0,right:0,up:0,down:0,ray:0,spin:0,spinTap:0};
   st.textContent=
     '#c{touch-action:none}'+
     '.tp{position:fixed;z-index:20;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}'+
+    /* (1119b, Joe: every selectable in the game's own arcade style -- no app pills / generic circles.) The column is the
+       cab's OFFICIUM deck: its dark metal, a gold frame line + rivets, the PAINTED gold arcade buttons (art/touch/, cut from
+       assets/cab/panel-1up-ref.png by tools/cut_touch_panel.py) lit when pressed, unlit while the SCREW cools; the words are
+       the game's own Georgia gold caps (its menus), never inside a box. */
     '#tcol{top:0;bottom:0;display:none;flex-direction:column;align-items:center;justify-content:flex-end;pointer-events:none;'+
-      'background:radial-gradient(120% 80% at 50% 100%,#1a1208,#050302)}'+
-    '#tcol.L{left:0;padding-left:env(safe-area-inset-left);box-shadow:inset -3px 0 0 #8a6a2a,inset -5px 0 0 #000}'+
-    '#tcol.R{right:0;padding-right:env(safe-area-inset-right);box-shadow:inset 3px 0 0 #8a6a2a,inset 5px 0 0 #000}'+
-    '.tb{pointer-events:auto;position:relative;width:var(--btn,110px);height:var(--btn,110px);border-radius:50%;'+
-      'background:radial-gradient(circle at 50% 40%,rgba(255,240,200,.16),rgba(30,20,8,.55) 62%,rgba(0,0,0,.65));'+
-      'border:2px solid var(--c);box-shadow:0 0 12px rgba(232,198,106,.25),inset 0 0 12px rgba(0,0,0,.6);transition:transform .08s,box-shadow .15s}'+
-    '.tb.down{transform:scale(.94);box-shadow:0 0 26px var(--c),inset 0 0 18px rgba(0,0,0,.5)}'+
-    '.tb .ring{position:absolute;inset:-6px;border-radius:50%;pointer-events:none;background:conic-gradient(var(--c) calc(var(--p,1)*360deg),rgba(255,255,255,.07) 0);'+
-      '-webkit-mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 4px));mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 4px))}'+
-    '.tb img{position:absolute;left:50%;top:50%;width:64%;height:64%;object-fit:contain;transform:translate(-50%,-50%);pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.7))}'+
-    '.tb .cone{position:absolute;left:50%;top:18%;width:46%;height:64%;transform:translateX(-50%);pointer-events:none;'+
-      'clip-path:polygon(38% 0,62% 0,100% 100%,0 100%);background:linear-gradient(#fff6d0,rgba(232,198,106,.85) 55%,rgba(232,198,106,.15))}'+
-    '.tb .lb{position:absolute;left:50%;bottom:-2px;transform:translate(-50%,100%);font:bold calc(var(--btn,110px)*.15)/1.3 Georgia,serif;letter-spacing:.06em;'+
-      'color:var(--c);text-shadow:0 1px 3px #000;white-space:nowrap;pointer-events:none}'+
-    '#tray{--c:#e8c66a} #tscrew{--c:#7fd8e8} #tscrew.cd img{opacity:.4;filter:grayscale(.7)}'+
-    '.tchip{top:max(10px,env(safe-area-inset-top));height:34px;padding:0 14px;border-radius:17px;display:none;border:1px solid rgba(232,198,106,.55);'+
-      'background:rgba(10,7,3,.72);color:#e8c66a;font:bold 13px/32px Georgia,serif;letter-spacing:.08em;white-space:nowrap}'+
+      'background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.1) 40%,rgba(0,0,0,.45)),url("art/touch/metal.jpg") center/180px auto repeat #070503}'+
+    '#tcol::before{content:"";position:absolute;inset:7px;border:1.5px solid rgba(201,162,74,.55);pointer-events:none;'+
+      'background:radial-gradient(circle at 7px 7px,#7a6438 0 2.5px,#1a1206 3px,transparent 3.5px) left top/16px 16px no-repeat,'+
+      'radial-gradient(circle at 9px 7px,#7a6438 0 2.5px,#1a1206 3px,transparent 3.5px) right top/16px 16px no-repeat,'+
+      'radial-gradient(circle at 7px 9px,#7a6438 0 2.5px,#1a1206 3px,transparent 3.5px) left bottom/16px 16px no-repeat,'+
+      'radial-gradient(circle at 9px 9px,#7a6438 0 2.5px,#1a1206 3px,transparent 3.5px) right bottom/16px 16px no-repeat}'+
+    '#tcol.L{left:0;padding-left:env(safe-area-inset-left);box-shadow:inset -3px 0 0 #000,inset -5px 0 0 #3a2a10}'+
+    '#tcol.R{right:0;padding-right:env(safe-area-inset-right);box-shadow:inset 3px 0 0 #000,inset 5px 0 0 #3a2a10}'+
+    '.tb{pointer-events:auto;position:relative;width:var(--btn,110px);height:var(--btn,110px);transition:transform .06s}'+
+    '.tb.down{transform:translateY(2px)}'+
+    '.tb .ring,.tb .cone{display:none}'+
+    '.tb img{position:absolute;left:50%;top:0;width:88%;height:88%;transform:translateX(-50%);pointer-events:none;filter:brightness(.9) drop-shadow(0 4px 5px rgba(0,0,0,.8));transition:filter .1s}'+
+    '.tb.down img{filter:brightness(1.4) saturate(1.2) drop-shadow(0 0 12px #ffcf5a) drop-shadow(0 0 4px #fff0b0)}'+
+    '.tb.cd img{filter:brightness(.4) saturate(.35) drop-shadow(0 4px 5px rgba(0,0,0,.8))}'+
+    '.tb .lb{position:absolute;left:50%;bottom:-4px;transform:translate(-50%,100%);font:bold calc(var(--btn,110px)*.17)/1.2 Georgia,serif;letter-spacing:.1em;'+
+      'color:#e8c66a;text-shadow:0 1px 0 #000,0 0 6px rgba(0,0,0,.9);white-space:nowrap;pointer-events:none}'+
+    '.tb.cd .lb{opacity:.5}'+
+    '.tchip{top:max(6px,env(safe-area-inset-top));padding:10px 10px;display:none;color:#e8c66a;font:bold 14px/1 Georgia,serif;letter-spacing:.1em;white-space:nowrap;'+
+      'text-shadow:0 1px 0 #000,0 0 6px rgba(0,0,0,.95)}'+
+    '.tchip:active{color:#fff6dc}'+
     '#tstk{position:fixed;z-index:19;pointer-events:none;display:none;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;'+
-      'border:2px solid rgba(239,227,196,.45);background:radial-gradient(circle,rgba(239,227,196,.08),rgba(0,0,0,.18))}'+
-    '#tstk i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;'+
-      'background:radial-gradient(circle at 40% 35%,#fff3c4,#c9a24a 60%,#5a4318);box-shadow:0 2px 8px rgba(0,0,0,.6)}'+
-    '#trot{position:fixed;inset:0;z-index:60;display:none;background:#070503;color:#e8c66a;flex-direction:column;align-items:center;justify-content:center;gap:16px;'+
-      'font:bold 22px/1.25 Georgia,serif;letter-spacing:.06em;text-align:center;padding:env(safe-area-inset-top) 24px env(safe-area-inset-bottom)}'+
-    '#trot .ph{width:46px;height:78px;border:3px solid #e8c66a;border-radius:9px;animation:tRot 1.6s ease-in-out infinite}'+
-    '@keyframes tRot{40%,100%{transform:rotate(-90deg)}}';
+      'background:radial-gradient(circle,rgba(0,0,0,.28) 0 34%,rgba(232,198,106,.10) 35% 60%,rgba(232,198,106,0) 70%)}'+
+    '#tstk i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;background:url("art/touch/knob.png") center/contain no-repeat;'+
+      'filter:drop-shadow(0 3px 6px rgba(0,0,0,.7))}'+
+    '#trot{position:fixed;inset:0;z-index:60;display:none;color:#e8c66a;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh;'+
+      'background:radial-gradient(90% 60% at 50% 45%,rgba(0,0,0,.2),rgba(0,0,0,.8)),url("art/touch/metal.jpg") center/180px auto repeat #070503;'+
+      'font:bold clamp(16px,5.4vw,24px)/1.2 Georgia,serif;letter-spacing:.06em;white-space:nowrap;text-align:center;padding:env(safe-area-inset-top) 24px env(safe-area-inset-bottom);text-shadow:0 2px 0 #000}'+
+    '#trot .tt{font:bold clamp(30px,10vw,44px)/1 Georgia,serif;letter-spacing:.04em;color:#e8c66a}'+
+    '#trot .eg{width:min(46vw,200px);animation:tRot 2.4s ease-in-out infinite;-webkit-mask:radial-gradient(closest-side,#000 70%,transparent);mask:radial-gradient(closest-side,#000 70%,transparent)}'+
+    '#trot .sb{font:bold 14px/1.3 Georgia,serif;letter-spacing:.14em;color:#cdbf9e}'+
+    '@keyframes tRot{0%,25%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}';
   document.head.appendChild(st);
   function el(tag,id,cls,html){ var e=document.createElement(tag); if(id) e.id=id; if(cls) e.className=cls; if(html) e.innerHTML=html; document.body.appendChild(e); return e; }
   var col=el('div','tcol','tp'),
-      bS=el('div','tscrew','tb','<div class="ring"></div><img src="art/screw_rotor.png" alt=""><span class="lb">SCREW</span>'),
-      bR=el('div','tray','tb','<div class="ring"></div><div class="cone"></div><span class="lb">RAY</span>'),
-      cPause=el('div','tpause','tp tchip','❚❚ PAUSE'), cBack=el('div','tback','tp tchip','‹ BACK'), cRetry=el('div','tretry','tp tchip','↻ AGAIN'),
+      bS=el('div','tscrew','tb','<div class="ring"></div><img src="art/touch/btn_a.png" alt=""><span class="lb">SCREW</span>'),
+      bR=el('div','tray','tb','<div class="ring"></div><img src="art/touch/btn_b.png" alt=""><span class="lb">RAY</span>'),
+      cPause=el('div','tpause','tp tchip','❚❚ PAUSE'), cBack=el('div','tback','tp tchip','&#9666; BACK'), cRetry=el('div','tretry','tp tchip','&#8635; AGAIN'),
       cHand=el('div','thand','tp tchip','⇄'), stk=el('div','tstk','','<i></i>'), knob=stk.firstChild,
-      rot=el('div','trot','','<div class="ph"></div>TURN YOUR PHONE<span style="font-size:14px;color:#cdbf9e">the Corps flies sideways</span>');
+      rot=el('div','trot','','<div class="tt">PAX GNOMANIA</div><img class="eg" src="art/touch/eagle.png" alt=""><div>&#9733; TURN YOUR PHONE &#9733;</div><div class="sb">THE CORPS FLIES SIDEWAYS</div>');
   col.appendChild(bS); col.appendChild(bR);   // top->bottom SCREW · RAY (RAY = the resting thumb)
   var gap=8;
   col.style.gap='calc(var(--btn,110px)*0.3)';
@@ -3425,7 +3435,7 @@ function drawHUD(){
   txt('FOR '+sideName(),LW-32,140,12,GN()?'#ff9a7a':GOLD,'right','bold',0.8);
   if(cardT>0) drawPhaseCard();
   if(msgT>0 && !(cardT>0 && cardPrev)) txt(msg,LW/2,170,26,msgCol,'center','bold',clamp(msgT,0,1));
-  if(tipNow){ var ty_=WW()>LW?252:LH-70; panel(LW/2-430,ty_,860,46,0.7); txt(tipNow,LW/2,ty_+23,18,'#fff3c4','center','bold'); }   // 1116: off the map strip on wide fronts
+  if(tipNow && !(cardT>0)){ var ty_=WW()>LW?252:LH-70; panel(LW/2-430,ty_,860,46,0.7); txt(tipNow,LW/2,ty_+23,18,'#fff3c4','center','bold'); }   // 1116: off the map strip on wide fronts; 1119: waits for the phase card (it sat on top of it, y 232-360)
   if(demo){ txt('DRAMATIZED RECONSTRUCTION',LW-30,LH-28,14,'#ffffff','right','bold',0.75); }
 }
 
