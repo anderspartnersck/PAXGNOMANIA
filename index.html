@@ -3035,28 +3035,29 @@ function ropeSwing(dt){
 }
 function drawRope(){
   // RENDER-ONLY swing: the logic end of the rope is always straight down; nothing here changes the game
-  var ax=P.x, ay=P.y+ANCHOR, th=ROPEVIS.th;
+  var S=shipPose(), hk=shipHook(S), ax=hk.x, ay=hk.y, th=ROPEVIS.th, RL=S.crash!=null?ROPE_LEN:Math.max(60,P.y+ANCHOR+ROPE_LEN-ay), TOP=-2;   // 1123: hung from the HULL HOOK; the end stays on the sim's rope end
   ctx.save(); ctx.translate(ax,ay); ctx.rotate(-th);
+  if(ROPEQA && window.__ropeqa){ var M=ctx.getTransform(), q=window.__ropeqa; q.rope={ x:M.e, y:M.f, top:TOP+(P.gear==='ladder'?0:2/219*(8/ar('rope'))), gear:P.gear||'rope', sc:Math.hypot(M.a,M.b) }; }
   if(P.gear==='ladder'){ var fade=ladderT<3&&!onLadder()?(Math.floor(rt*8)%2?0.45:1):1; ctx.globalAlpha=fade;
-    if(ok('ladder')){ var lw=30, seg=lw/ar('ladder'); for(var y=0;y<ROPE_LEN;y+=seg-6) ctx.drawImage(IMG.ladder,-lw/2,y,lw,Math.min(seg,ROPE_LEN-y+4)); }
+    if(ok('ladder')){ var lw=30, seg=lw/ar('ladder'); for(var y=TOP;y<RL;y+=seg-6) ctx.drawImage(IMG.ladder,-lw/2,y,lw,Math.min(seg,RL-y+4)); }
     ctx.globalAlpha=1;
-    for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.st!=='ladder') continue; var along=ROPE_LEN-f.prog*(ROPE_LEN-8);
+    for(var i=0;i<friends.length;i++){ var f=friends[i]; if(f.st!=='ladder') continue; var along=RL-f.prog*(RL-8);
       var art=f.w.gnome?((Math.floor(f.prog*12)%2)?'friend_climb_a':'friend_climb_b'):f.w.art; spr(art,0,along+f.w.h*0.2,f.w.h,{}); } }
   else {
-    if(ok('rope')){ var rw=8, sg=rw/ar('rope'); for(var y=0;y<ROPE_LEN;y+=sg-4) ctx.drawImage(IMG.rope,-rw/2,y,rw,Math.min(sg,ROPE_LEN-y)); }
-    else { ctx.strokeStyle='#c8a46a'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,ROPE_LEN); ctx.stroke(); }
-    ctx.fillStyle='#8a5a2b'; ctx.strokeStyle='#3a2410'; ctx.lineWidth=1; ctx.fillRect(-11,ROPE_LEN-3,22,6); ctx.strokeRect(-11,ROPE_LEN-3,22,6);   // the wooden TOGGLE — never a loop
+    if(ok('rope')){ var rw=8, sg=rw/ar('rope'); for(var y=TOP;y<RL;y+=sg-4) ctx.drawImage(IMG.rope,-rw/2,y,rw,Math.min(sg,RL-y)); }
+    else { ctx.strokeStyle='#c8a46a'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,TOP); ctx.lineTo(0,RL); ctx.stroke(); }
+    ctx.fillStyle='#8a5a2b'; ctx.strokeStyle='#3a2410'; ctx.lineWidth=1; ctx.fillRect(-11,RL-3,22,6); ctx.strokeRect(-11,RL-3,22,6);   // the wooden TOGGLE — never a loop
     var r=onRope();
     var engineerGrip=false;
     if(r && actorRig(r.w.art)==='engineer'){
       var er=CUTOUT_RIGS.engineer;
       if(er){ var key='rope_d'+('0'+(Math.floor(rt*er.fps)%er.cycles.rope)).slice(-2);
-        engineerGrip=rigDraw('engineer',key,0,ROPE_LEN,r.w.h/er.height,{},'grip'); }
+        engineerGrip=rigDraw('engineer',key,0,RL,r.w.h/er.height,{},'grip'); }
     }
-    if(r && !engineerGrip){ if(r.w.gnome && ok('friend_hang')) spr('friend_hang',0,ROPE_LEN+r.w.h*1.25,r.w.h*1.5,{});
+    if(r && !engineerGrip){ if(r.w.gnome && ok('friend_hang')) spr('friend_hang',0,RL+r.w.h*1.25,r.w.h*1.5,{});
       else { // a sling: two lines from the toggle to the waist, the figure hangs in it
-        ctx.strokeStyle='#c8a46a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-8,ROPE_LEN); ctx.lineTo(-r.w.h*0.25,ROPE_LEN+r.w.h*0.45); ctx.moveTo(8,ROPE_LEN); ctx.lineTo(r.w.h*0.25,ROPE_LEN+r.w.h*0.45); ctx.stroke();
-        spr(r.w.art,0,ROPE_LEN+r.w.h,r.w.h,{rot:Math.sin(rt*3)*0.08}); } } }
+        ctx.strokeStyle='#c8a46a'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-8,RL); ctx.lineTo(-r.w.h*0.25,RL+r.w.h*0.45); ctx.moveTo(8,RL); ctx.lineTo(r.w.h*0.25,RL+r.w.h*0.45); ctx.stroke();
+        spr(r.w.art,0,RL+r.w.h,r.w.h,{rot:Math.sin(rt*3)*0.08}); } } }
   ctx.restore();
 }
 function drawRay(){
@@ -3066,15 +3067,39 @@ function drawRay(){
   ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(P.x-16,top); ctx.lineTo(P.x+16,top); ctx.lineTo(P.x+RAY_REACH,gy); ctx.lineTo(P.x-RAY_REACH,gy); ctx.closePath(); ctx.fill();
   ctx.fillStyle='rgba(255,240,190,'+(0.25*pulse)+')'; ctx.beginPath(); ctx.ellipse(P.x,gy,RAY_REACH*1.2,10,0,0,6.283); ctx.fill(); ctx.restore();
 }
+// 1123 THE HULL HOOK (Joe: "the ladders and rope animations dont always go right up to your ship"). The rope/ladder hung
+// from a FIXED point (P.x, P.y+ANCHOR) while the hull is drawn by width, banked (rot), swapped for the six SCREW frames
+// (narrower, shorter, belly higher), the gnome hull (another sprite + scale) and the crash fall — so its top floated
+// 1–9 px under (or off to the side of) the belly. Now the top anchor comes from the hull as it is drawn THIS frame:
+// shipPose() is the one source for the hull draw, and shipHook() puts the hook at that sprite's own belly (the lowest
+// opaque row of its centre columns, measured once from the art), tucked HOOK_TUCK px inside the hull, rotated with it.
+// The rope/ladder draw from the hook in the same space as the hull, and the visual length stretches so the END stays on
+// the sim's rope end (the hands it reaches). Render-only: nothing in the sim moves. &ropeqa logs every frame's hook vs
+// rope top for tools/rope_attach_qa_1123.mjs.
+var HOOK_TUCK=3, HOOK_Y={}, ROPEQA=!NODE && qp('ropeqa')!==null;
+function hookFrac(n){ if(HOOK_Y[n]!==undefined) return HOOK_Y[n]; if(NODE || !ok(n)) return null;
+  try{ var im=IMG[n], W=im.naturalWidth, H=im.naturalHeight, c=document.createElement('canvas'); c.width=W; c.height=H; var x=c.getContext('2d'); x.drawImage(im,0,0);
+    var d=x.getImageData(Math.floor(W/2)-3,0,7,H).data, lo=-1;
+    for(var y=H-1;y>=0 && lo<0;y--) for(var k=0;k<7;k++) if(d[(y*7+k)*4+3]>=128){ lo=y; break; }
+    return (HOOK_Y[n]= lo<0 ? null : (lo+1-H/2)/H); }catch(e){ return (HOOK_Y[n]=null); } }
+function shipPose(){ var w=180, rot=P.bank*0.10, a=P.invuln>0?(Math.floor(rt*20)%2?0.45:1):1, flip=P.face>0, hull=GN()?'taken_thopter':'thopter';
+  if(state==='failed' && lastResult && lastResult.reason==='hull'){ var u=clamp(rt/2.4,0,1);
+    return { n:hull, x:P.x+(flip?1:-1)*u*160, y:P.y+u*150, w:w*(1-0.65*u), rot:0.5*u*(flip?1:-1)+Math.sin(rt*6)*0.08, flip:flip, a:1-0.5*u, crash:u }; }
+  if(spinning()){ var su=clamp(1-(P.spinU-simT)/SPIN_TIME,0,1), tri=su<0.4?su/0.4:su<0.6?1:(1-su)/0.4, f=Math.round(tri*5);
+    return GN() ? { n:'taken_thopter', x:P.x, y:P.y, w:w*1.05*(0.7+0.3*Math.abs(Math.cos(su*6.283))), rot:rot+su*6.283*0.15, flip:flip, a:1, spin:su }
+                : { n:'thopter_spin_'+f, x:P.x, y:P.y, w:w*(f===5?0.66:0.62), rot:rot, flip:flip, a:1, spin:su }; }
+  return { n:hull, x:P.x, y:P.y, w:GN()?w*1.05:w, rot:rot, flip:flip, a:a }; }
+function shipHook(S){ S=S||shipPose(); var f=hookFrac(S.n), h=ok(S.n)?S.w/ar(S.n):0, by=(f==null||!h)?ANCHOR:f*h-HOOK_TUCK*(S.crash!=null?1-0.65*S.crash:1);
+  return { x:S.x-Math.sin(S.rot)*by, y:S.y+Math.cos(S.rot)*by, rot:S.rot, by:by }; }
 function drawPlayer(){
-  var w=180, rot=P.bank*0.10, a=P.invuln>0?(Math.floor(rt*20)%2?0.45:1):1, flip=P.face>0;
-  if(state==='failed' && lastResult && lastResult.reason==='hull'){ var u=clamp(rt/2.4,0,1), sc=1-0.65*u;
-    for(var k=0;k<5;k++){ ctx.save(); ctx.globalAlpha=0.35*(1-k/5); ctx.fillStyle='#2a2a2a'; ctx.beginPath(); ctx.arc(P.x-(flip?1:-1)*k*26*u, P.y+u*140-k*18, 14+k*6, 0, 6.283); ctx.fill(); ctx.restore(); }
-    sprC(GN()?'taken_thopter':'thopter',P.x+(flip?1:-1)*u*160,P.y+u*150,w*sc,{rot:0.5*u*(flip?1:-1)+Math.sin(rt*6)*0.08,flip:flip,a:1-0.5*u}); return; }
-  if(spinning()){ var u=clamp(1-(P.spinU-simT)/SPIN_TIME,0,1), tri=u<0.4?u/0.4:u<0.6?1:(1-u)/0.4, f=Math.round(tri*5);
-    ctx.save(); ctx.globalAlpha=0.3; ctx.strokeStyle='#e8c66a'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(P.x,P.y,58,0,6.283); ctx.stroke(); ctx.restore();
-    if(GN()) sprC('taken_thopter',P.x,P.y,w*1.05*(0.7+0.3*Math.abs(Math.cos(u*6.283))),{rot:rot+u*6.283*0.15,flip:flip}); else sprC('thopter_spin_'+f,P.x,P.y,w*(f===5?0.66:0.62),{rot:rot,flip:flip}); }
-  else sprC(GN()?'taken_thopter':'thopter',P.x,P.y,GN()?w*1.05:w,{rot:rot,flip:flip,a:a});
+  var S=shipPose(), flip=S.flip;
+  if(S.crash!=null){ var u=S.crash;
+    for(var k=0;k<5;k++){ ctx.save(); ctx.globalAlpha=0.35*(1-k/5); ctx.fillStyle='#2a2a2a'; ctx.beginPath(); ctx.arc(P.x-(flip?1:-1)*k*26*u, P.y+u*140-k*18, 14+k*6, 0, 6.283); ctx.fill(); ctx.restore(); } }
+  else if(S.spin!=null){ ctx.save(); ctx.globalAlpha=0.3; ctx.strokeStyle='#e8c66a'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(P.x,P.y,58,0,6.283); ctx.stroke(); ctx.restore(); }
+  sprC(S.n,S.x,S.y,S.w,{rot:S.rot,flip:S.flip,a:S.a});
+  if(ROPEQA && window.__ropeqa){ var M=ctx.getTransform(); ctx.save(); ctx.translate(S.x,S.y); if(S.rot) ctx.rotate(S.rot); var T=ctx.getTransform(); ctx.restore();   // the hull's OWN draw transform (the QA finds the belly in the art itself)
+    window.__ropeqa.hull={ T:[T.a,T.b,T.c,T.d,T.e,T.f], n:S.n, w:S.w, h:ok(S.n)?S.w/ar(S.n):0, crash:S.crash, legacy:[M.a*P.x+M.c*(P.y+ANCHOR)+M.e, M.b*P.x+M.d*(P.y+ANCHOR)+M.f], sc:Math.hypot(M.a,M.b) }; }
+  if(S.crash!=null) return;
   var nr=riders().length; if(nr){ for(var k=0;k<nr;k++){ ctx.fillStyle=GN()?'#c8321e':'#b02a1e'; ctx.beginPath(); ctx.arc(P.x-14+k*14,P.y-26,6,0,6.283); ctx.fill(); } txt('ABOARD '+nr,P.x,P.y-44,12,'#fff3c4','center','bold'); }
 }
 function drawPickups(){ for(var i=0;i<pickups.length;i++){ var pk=pickups[i], y=pk.y+Math.sin(rt*2.4+i)*6, bl=pk.ttl<3?(Math.floor(rt*8)%2?0.35:1):1;
@@ -3814,31 +3839,89 @@ function comicCrop(n,mode,pw,ph){ var ek='comic_eyes_'+String(n).replace('comic_
 function comicPanel(p,R,t,big){ var x=R[0],y=R[1],w=R[2],h=R[3], pop=easeIO(clamp(t/0.38,0,1)); if(t<0) return;   // 1122: eased slide + fade (was a 0.22 s scale pop)
   ctx.save(); ctx.translate(0,(1-pop)*26); ctx.globalAlpha=pop;
   ctx.fillStyle='#0c0a0a'; ctx.fillRect(x-6,y-6,w+12,h+12);
+  var cmap=null;
   ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip(); var c=comicCrop(p.img,p.crop,w,h);
   if(c){ var z=1+0.014*t; c=[c[0]+c[2]*(1-1/z)/2, c[1]+c[3]*(1-1/z)/2, c[2]/z, c[3]/z, c[4]];   // 1122: a slow constant drift inside the panel (sub-pixel)
+    cmap={ n:c[4], c:c, x:x, y:y, w:w, h:h, dy:(1-pop)*26, prof:!!p.prof };
     if(p.prof){ ctx.translate(x*2+w,0); ctx.scale(-1,1); } ctx.drawImage(IMG[c[4]],c[0],c[1],c[2],c[3],x,y,w,h); } else { ctx.fillStyle='#c8553d'; ctx.fillRect(x,y,w,h); }
   ctx.restore();
   if(p.inv){ ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip(); ctx.globalCompositeOperation='difference'; ctx.fillStyle='#fff'; ctx.fillRect(x,y,w,h); ctx.restore(); }
   ctx.restore();
   var K=phoneView()?1.25:1, a=pop;
+  var capR=null;
   if(p.cap){ var cs=Math.round(22*K), cl=wrapLines(p.cap.toUpperCase(),Math.min(w-60,620),cs,'bold'), cw_=0; ctx.font='bold '+cs+'px Georgia,serif';
     cl.forEach(function(l){ cw_=Math.max(cw_,NODE?l.length*cs*0.6:ctx.measureText(l).width); });
+    capR=[x+14,y+14,cw_+28,cl.length*cs*1.3+18];
     ctx.save(); ctx.globalAlpha=a; ctx.fillStyle='#ffe14a'; ctx.strokeStyle='#0c0a0a'; ctx.lineWidth=4; ctx.fillRect(x+14,y+14,cw_+28,cl.length*cs*1.3+18); ctx.strokeRect(x+14,y+14,cw_+28,cl.length*cs*1.3+18); ctx.restore();
     cl.forEach(function(l,i){ txt(l,x+28,y+23+cs*1.3*(i+0.5),cs,'#1a1206','left','bold',a); }); }
-  if(p.bal) balloon(p.bal,x,y,w,h,clamp((t-0.3)/0.25,0,1),K);
-  if(p.sfx) sfxBurst(p.sfx,big?x+w*0.93:x+w*(p.bal?0.76:0.62),big?y+h*0.06:y+h*(p.bal?0.24:0.62),clamp((t-0.1)/0.18,0,1),K*(big?0.85:1)); }   // never on the face, never on the balloon
+  var sfxX=big?x+w*0.93:x+w*(p.bal?0.76:0.62), sfxY=big?y+h*0.06:y+h*(p.bal?0.24:0.62), sfxK=K*(big?0.85:1), sfxR=null;
+  if(p.sfx){ var sr=64*sfxK*2.1; sfxR=[sfxX-sr*1.38,sfxY-sr*0.98,sr*2.76,sr*1.96]; }   // the burst's box (rotated -0.16 rad, so a little slack)
+  if(p.bal) balloon(p.bal,[x,y,w,h],clamp((t-0.3)/0.25,0,1),K,balFace(cmap),[capR,sfxR],p.pi);
+  if(p.sfx) sfxBurst(p.sfx,sfxX,sfxY,clamp((t-0.1)/0.18,0,1),sfxK); }   // never on the face, never on the balloon
 var BAL_FONT='"Comic Sans MS","Chalkboard SE","Comic Neue","Marker Felt",sans-serif';   // cheap TV, cheap lettering (system fonts only — nothing off-box)
-function balloon(s,x,y,w,h,a,K){ if(a<=0) return; var sz=Math.round(27*K), mw=Math.min(w-80,540), ls=[], words=String(s).split(' '), line='';
-  ctx.font='bold '+sz+'px '+BAL_FONT; var mt=function(q){ return NODE?q.length*sz*0.55:ctx.measureText(q).width; };
+// 1123 THE SPEECH BALLOON (Joe: "speech bubbles in the comic stuff were often ill formed, line work was bad"). Was: an ellipse
+// stroked, a triangle tail stroked on top, a fillRect patch over the seam (doubled/jagged ink, text spilling past the ellipse,
+// the tail aimed at a fixed spot and the body parked on the chin). Now ONE closed vector path — a rounded (superellipse) body
+// with the tail merged into its outline, curving to a point — filled once and inked once (one stroke weight, round joins);
+// the text measured and fitted with padding (the body is sized so the padded text box sits inside it); the body placed OFF
+// the speaker's eyes + mouth, clear of the caption box and the SFX burst, inside the panel; the tail tip stops just short of
+// the speaker's MOUTH (FACE / FACE_F + the panel's crop map). &balqa logs every balloon for tools/comic_qa_1123.mjs.
+var BAL_N=2.5, BAL_KN=Math.pow(2,1/2.5), BAL_INK=4.5, BAL_PX=16, BAL_PY=11, BAL_MEMO={}, BALQA=!NODE && qp('balqa')!==null;
+function balIn(b,px,py){ return Math.pow(Math.abs(px-b.cx)/b.A,BAL_N)+Math.pow(Math.abs(py-b.cy)/b.B,BAL_N)<=1; }
+function balBody(b,N){ var pts=[]; N=N||144; for(var i=0;i<N;i++){ var t=i/N*6.283185, c=Math.cos(t), s=Math.sin(t);
+    pts.push([b.cx+b.A*(c<0?-1:1)*Math.pow(Math.abs(c),2/BAL_N), b.cy+b.B*(s<0?-1:1)*Math.pow(Math.abs(s),2/BAL_N)]); } return pts; }
+function balOutline(b,tip){ var P=balBody(b,144); if(!tip) return P; var N=P.length, ang=Math.atan2(tip[1]-b.cy,tip[0]-b.cx), k=0, best=9;
+  for(var i=0;i<N;i++){ var d=Math.abs(Math.atan2(Math.sin(Math.atan2(P[i][1]-b.cy,P[i][0]-b.cx)-ang),Math.cos(Math.atan2(P[i][1]-b.cy,P[i][0]-b.cx)-ang))); if(d<best){ best=d; k=i; } }
+  var half=Math.max(13,Math.min(24,Math.min(b.A,b.B)*0.32)), i1=k, i2=k, L=0;   // the tail's base: ~26–48 px of outline either side of the aim point
+  while(L<half){ var q=(i1-1+N)%N; L+=Math.hypot(P[q][0]-P[i1][0],P[q][1]-P[i1][1]); i1=q; } L=0;
+  while(L<half){ var q2=(i2+1)%N; L+=Math.hypot(P[q2][0]-P[i2][0],P[q2][1]-P[i2][1]); i2=q2; }
+  var out=[], b1=P[i1], b2=P[i2], lx=tip[0]-(b1[0]+b2[0])/2, ly=tip[1]-(b1[1]+b2[1])/2, len=Math.hypot(lx,ly)||1, nx=-ly/len, ny=lx/len, bend=len*0.14;
+  for(var j=i2;j!==i1;j=(j+1)%N) out.push(P[j]); out.push(b1);   // the body, the long way round, base to base
+  function quad(a,c,e,n0){ for(var u=1;u<=n0;u++){ var v=u/n0; out.push([(1-v)*(1-v)*a[0]+2*v*(1-v)*c[0]+v*v*e[0], (1-v)*(1-v)*a[1]+2*v*(1-v)*c[1]+v*v*e[1]]); } }
+  quad(b1,[(b1[0]+tip[0])/2+nx*bend,(b1[1]+tip[1])/2+ny*bend],tip,14);   // a gently swept tail (both edges bow the same way)
+  quad(tip,[(b2[0]+tip[0])/2+nx*bend*0.7,(b2[1]+tip[1])/2+ny*bend*0.7],b2,14);
+  return out; }
+// the speaker's face in panel coords (eyes, mouth, face width) from the panel's crop map
+function balFace(m){ if(!m) return null; var n=m.n, im=IMG[n]; if(!im) return null; var f=/^comic_face_/.test(n)?FACE_F:(FACE[n]||[0.5,0.4,0.2]), iw=im.naturalWidth, ih=im.naturalHeight;
+  var X=function(ix){ var v=m.x+(ix-m.c[0])/m.c[2]*m.w; return m.prof?2*m.x+m.w-v:v; }, Y=function(iy){ return m.y+(iy-m.c[1])/m.c[3]*m.h+m.dy; };
+  var fw=f[2]*iw/m.c[2]*m.w, ex=X(f[0]*iw), ey=Y(f[1]*ih); return { n:n, ex:ex, ey:ey, fw:fw, mx:ex, my:ey+0.50*fw }; }
+function balLines(s,sz,mw){ var T=balWrap(s,sz,mw), lo=60, hi=mw;   // BALANCED lines: the narrowest width that keeps the same line count (no one-word orphan)
+  if(T.ls.length>1){ for(var it=0;it<9;it++){ var mid=(lo+hi)/2, U=balWrap(s,sz,mid); if(U.ls.length<=T.ls.length) hi=mid; else lo=mid; } T=balWrap(s,sz,hi); } return T; }
+function balWrap(s,sz,mw){ ctx.font='bold '+sz+'px '+BAL_FONT; var mt=function(q){ return NODE?q.length*sz*0.55:ctx.measureText(q).width; }, ls=[], words=String(s).split(' '), line='';
   for(var i=0;i<words.length;i++){ var q=line?line+' '+words[i]:words[i]; if(mt(q)>mw&&line){ ls.push(line); line=words[i]; } else line=q; } if(line) ls.push(line);
-  var bw=0; ls.forEach(function(l){ bw=Math.max(bw,mt(l)); }); bw+=56; var bh=ls.length*sz*1.25+36, bx=Math.min(x+w-bw-16,x+w*0.06+20), by=y+h-bh-30;
-  ctx.save(); ctx.globalAlpha=a; ctx.fillStyle='#fffdf4'; ctx.strokeStyle='#0c0a0a'; ctx.lineWidth=5;
-  ctx.beginPath(); ctx.ellipse(bx+bw/2,by+bh/2,bw/2+10,bh/2+6,0,0,6.283); ctx.fill(); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bx+bw*0.62,by+6); ctx.lineTo(bx+bw*0.80,by-46); ctx.lineTo(bx+bw*0.74,by+8); ctx.closePath(); ctx.fill(); ctx.stroke();   // the tail, up to the face
-  ctx.fillStyle='#fffdf4'; ctx.fillRect(bx+bw*0.62+3,by+4,bw*0.12-4,12);
-  ctx.fillStyle='#0c0a0a'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  for(var i=0;i<ls.length;i++) ctx.fillText(ls[i],bx+bw/2,by+18+sz*1.25*(i+0.5));
-  ctx.restore(); }
+  var tw=0; ls.forEach(function(l){ tw=Math.max(tw,mt(l)); }); return { ls:ls, tw:tw, th:ls.length*sz*1.22, sz:sz }; }
+function balPlace(s,R,face,avoid,K){ var x=R[0], y=R[1], w=R[2], h=R[3], best=null;
+  var core=face?{ cx:face.ex, cy:face.ey+0.22*face.fw, rx:0.46*face.fw, ry:0.52*face.fw }:null;
+  var hit=function(r,b){ return !(b.cx+b.A+10<r[0] || b.cx-b.A-10>r[0]+r[2] || b.cy+b.B+10<r[1] || b.cy-b.B-10>r[1]+r[3]); };
+  var onCore=function(b){ if(!core) return false; for(var i=0;i<32;i++){ var t=i/32*6.2832, px=core.cx+core.rx*Math.cos(t), py=core.cy+core.ry*Math.sin(t); if(balIn(b,px,py)) return true; }
+    return balBody(b,48).some(function(q){ return Math.pow((q[0]-core.cx)/core.rx,2)+Math.pow((q[1]-core.cy)/core.ry,2)<=1; }) || balIn(b,core.cx,core.cy); };
+  var sizes=[27,25,23,21,19].map(function(v){ return Math.round(v*K); }), widths=[0.62,0.48,0.36,0.28];
+  for(var si=0;si<sizes.length && !best;si++) for(var wi=0;wi<widths.length;wi++){ var T=balLines(s,sizes[si],Math.max(150,Math.min(560,w*widths[wi])));
+    var A=(T.tw/2+BAL_PX)*BAL_KN, B=(T.th/2+BAL_PY)*BAL_KN, M=BAL_INK+10; if(2*A+2*M>w || 2*B+2*M>h) continue;
+    for(var cy=y+M+B; cy<=y+h-M-B; cy+=10) for(var cx=x+M+A; cx<=x+w-M-A; cx+=10){ var b={cx:cx,cy:cy,A:A,B:B};
+      if(avoid.some(function(r){ return r && hit(r,b); }) || onCore(b)) continue;
+      var sc; if(face){ var tx=face.mx-cx, ty=face.my-cy, d=Math.hypot(tx,ty)||1, rr=1/Math.pow(Math.pow(Math.abs(tx/d)/A,BAL_N)+Math.pow(Math.abs(ty/d)/B,BAL_N),1/BAL_N), tail=d-rr-0.2*face.fw;
+          if(tail<24) continue; sc=Math.abs(tail-Math.max(46,0.30*face.fw))+(cy<face.my?18:0); }   // a short, readable tail; a balloon below/beside the mouth reads first
+        else sc=Math.abs(cy-(y+h-M-B))+Math.abs(cx-(x+M+A))*0.2;   // no face (plate missing): bottom-left
+      if(!best || sc<best.sc){ best={ sc:sc, b:b, T:T }; } }
+    if(best) break; }
+  return best; }
+function balloon(s,R,a,K,face,avoid,pi){ if(a<=0) return; var key=s+'|'+R.join(',')+'|'+K+'|'+(face?face.n:'-')+'|'+avoid.map(function(r){ return r?r.map(Math.round).join(','):'-'; }).join(';');
+  var pl=BAL_MEMO[key]; if(pl===undefined){ pl=BAL_MEMO[key]=balPlace(s,R,face,avoid,K); }
+  if(!pl){ var T0=balLines(s,Math.round(19*K),R[2]*0.8); pl={ b:{ cx:R[0]+R[2]/2, cy:R[1]+R[3]-24-(T0.th/2+BAL_PY)*BAL_KN, A:(T0.tw/2+BAL_PX)*BAL_KN, B:(T0.th/2+BAL_PY)*BAL_KN }, T:T0 }; }
+  var b=pl.b, T=pl.T, tip=null;
+  if(face){ var vx=b.cx-face.mx, vy=b.cy-face.my, d=Math.hypot(vx,vy)||1; tip=[face.mx+vx/d*0.2*face.fw, face.my+vy/d*0.2*face.fw]; }   // stops just short of the mouth
+  else tip=[b.cx+b.A*0.35, b.cy-b.B-38];
+  var O=balOutline(b,tip);
+  ctx.save(); ctx.globalAlpha=a; ctx.beginPath(); ctx.moveTo(O[0][0],O[0][1]); for(var i=1;i<O.length;i++) ctx.lineTo(O[i][0],O[i][1]); ctx.closePath();
+  ctx.fillStyle='#fffdf4'; ctx.fill(); ctx.lineJoin='round'; ctx.lineCap='round'; ctx.lineWidth=BAL_INK; ctx.strokeStyle='#0c0a0a'; ctx.stroke();
+  ctx.font='bold '+T.sz+'px '+BAL_FONT; ctx.fillStyle='#0c0a0a'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(var j=0;j<T.ls.length;j++) ctx.fillText(T.ls[j],b.cx,b.cy-T.th/2+T.sz*1.22*(j+0.5));
+  ctx.restore();
+  if(BALQA && a>=1){ var L=window.__balqa=window.__balqa||[], tag=s+'@'+pi, ix=L.findIndex(function(e){ return e.tag===tag; }); if(ix<0 || (!L[ix].face && face)){ if(ix>=0) L.splice(ix,1);
+    var head=face?{ cx:face.ex, cy:face.ey+0.12*face.fw, rx:0.68*face.fw, ry:0.95*face.fw }:{ cx:tip[0], cy:tip[1], rx:1, ry:1 };
+    L.push({ tag:tag, s:s, pi:pi, lines:T.ls.length, size:T.sz, panel:R, paths:1, tip:tip, head:head, core:face?{ cx:face.ex, cy:face.ey+0.22*face.fw, rx:0.46*face.fw, ry:0.52*face.fw }:null,
+      text:[b.cx-T.tw/2, b.cy-T.th/2, T.tw, T.th], body:balBody(b,96), outline:O.filter(function(q,k){ return k%2===0; }), cap:avoid[0]||null, sfx:avoid[1]||null, face:!!face }); } } }
 function sfxBurst(s,cx,cy,a,K){ if(a<=0) return; var sz=Math.round(64*K*(0.7+0.3*Math.min(1,a*1.4)));
   ctx.save(); ctx.globalAlpha=Math.min(1,a*1.3); ctx.translate(cx,cy); ctx.rotate(-0.16);
   ctx.beginPath(); for(var i=0;i<22;i++){ var r=(i%2?0.55:1)*sz*2.1, an=i*Math.PI/11; ctx.lineTo(Math.cos(an)*r*1.35,Math.sin(an)*r*0.8); } ctx.closePath();
@@ -3846,7 +3929,7 @@ function sfxBurst(s,cx,cy,a,K){ if(a<=0) return; var sz=Math.round(64*K*(0.7+0.3
   ctx.font='900 '+sz+'px Impact,"Arial Black","Helvetica Neue",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.lineWidth=10; ctx.strokeStyle='#0c0a0a'; ctx.lineJoin='round'; ctx.strokeText(s,0,4); ctx.fillStyle='#e8322a'; ctx.fillText(s,0,4); ctx.restore(); }
 function shotComic(S,t){ paper(); var R=COMIC_LAY[S.lay]||COMIC_LAY.A;
-  for(var i=0;i<S.panels.length;i++) comicPanel(S.panels[i],R[i%R.length],t-0.15-i*0.85,false); }
+  for(var i=0;i<S.panels.length;i++){ S.panels[i].pi=i; comicPanel(S.panels[i],R[i%R.length],t-0.15-i*0.85,false); } }
 function shotReact(S,t){ var e=1-Math.pow(1-clamp(t/0.42,0,1),3), z=1.09-0.09*e+0.012*t; paper(); ctx.save(); ctx.translate(LW/2,LH*0.48); ctx.scale(z,z); ctx.translate(-LW/2,-LH*0.48);   // 1122: an eased crash-zoom (was a 120 rad/s shake = 3-frame aliasing jitter)   // the comic EYES strip: one wide panel across the page
   comicPanel({img:S.img,crop:S.crop,inv:S.inv,sfx:S.sfx},[40,LH*0.31,LW-80,LH*0.34],t+0.3,true); ctx.restore(); }   // round 3: a tighter strip (brow + both eyes), picked off the FACE box
 // a quote in a panel above the lower third; wraps, and grows UP from its bottom edge
@@ -4115,6 +4198,7 @@ function frame(ts){
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='#000'; ctx.fillRect(0,0,cv.width,cv.height);
   ctx.setTransform(SC,0,0,SC,OX,OY); ctx.save(); ctx.beginPath(); ctx.rect(0,0,LW,LH); ctx.clip();
   ctx.imageSmoothingEnabled=true;
+  if(ROPEQA && window.__ropeqaTick) window.__ropeqaTick(dt);
   if(state==='play'){ if(!FREEZE) update(dt); ropeSwing(dt); ctx.save(); if(shake>0) ctx.translate(vr(-shake,shake),vr(-shake,shake)); drawScene(dt); ctx.restore(); drawHUD(); }
   else if(state==='paused'){ ctx.save(); drawScene(0); ctx.restore(); drawHUD(); drawPause(); }
   else if(state==='attract') drawAttract(dt);
@@ -4578,6 +4662,26 @@ function selfTest(){
     var sp=[], lastC=null; for(var k=0;k<=240;k++){ var c=worldMove(k/240).cam; if(lastC!=null) sp.push(Math.abs(c-lastC)*60); lastC=c; }   // the stinger over a 4 s shot
     var spk=Math.max.apply(null,sp);
     okk('[float] the B-roll landscape move is slow and eased (≤ 120 px/s at 4 s, ~0 at both ends)', spk<=120 && sp[0]<4 && sp[sp.length-1]<4, 'peak '+Math.round(spk)+' px/s · ends '+sp[0].toFixed(2)+' / '+sp[sp.length-1].toFixed(2));
+  })();
+  // ---- 1123: THE SPEECH BALLOON + THE HULL HOOK (Joe: "speech bubbles … ill formed, line work was bad" · "the ladders and rope
+  //      animations dont always go right up to your ship"). The pixels are gated in a browser (tools/comic_qa_1123.mjs,
+  //      tools/rope_attach_qa_1123.mjs); here, the geometry every frame relies on.
+  (function(){ var Rp=[802,462,758,398], face={ n:'t', ex:Rp[0]+379, ey:Rp[1]+150, fw:210, mx:Rp[0]+379, my:Rp[1]+255 }, ok1=true, why='';
+    ['"Ropes! I SAID bring the ROPES!"','"Somebody drew them a map. I know maps. That was a GOOD map."','"Hi."'].forEach(function(t){
+      var pl=balPlace(t,Rp,face,[null,null],1); if(!pl){ ok1=false; why+=' no place for '+t; return; } var b=pl.b, T=pl.T;
+      var c4=[[-1,-1],[1,-1],[-1,1],[1,1]].every(function(q){ return balIn(b,b.cx+q[0]*(T.tw/2+8),b.cy+q[1]*(T.th/2+8)); });
+      var core=[0,1,2,3,4,5,6,7].some(function(i){ var a=i/8*6.283; return balIn(b,face.ex+0.46*face.fw*Math.cos(a),face.ey+0.22*face.fw+0.52*face.fw*Math.sin(a)); });
+      var vx=b.cx-face.mx, vy=b.cy-face.my, d=Math.hypot(vx,vy), tip=[face.mx+vx/d*0.2*face.fw, face.my+vy/d*0.2*face.fw], O=balOutline(b,tip);
+      var inside=O.every(function(q){ return q[0]>=Rp[0]+4 && q[0]<=Rp[0]+Rp[2]-4 && q[1]>=Rp[1]+4 && q[1]<=Rp[1]+Rp[3]-4; }), hasTip=O.some(function(q){ return q[0]===tip[0] && q[1]===tip[1]; });
+      var ls=T.ls.map(function(l){ return l.split(' ').length; }), orphan=ls.length>1 && ls[ls.length-1]===1;
+      if(!(c4 && !core && inside && hasTip && !orphan)){ ok1=false; why+=' '+t.slice(0,12)+(c4?'':' text-out')+(core?' on-face':'')+(inside?'':' off-panel')+(hasTip?'':' no-tip')+(orphan?' orphan':''); } });
+    okk('[balloon] ONE outline (body + tail), the padded text inside it, off the eyes/mouth, inside the panel, the tail ending at the mouth, no one-word last line', ok1, why.trim());
+    var keep=[P.x,P.y,P.bank,P.spinU,P.gear], ok2=true, w2='';
+    P.x=600; P.y=300; [0,1,-1].forEach(function(bk){ P.bank=bk; P.spinU=-1; var S=shipPose(), h=shipHook(S);
+      if(Math.abs(h.x-(S.x-Math.sin(S.rot)*h.by))>1e-9 || Math.abs(h.y-(S.y+Math.cos(S.rot)*h.by))>1e-9){ ok2=false; w2+=' bank '+bk; }
+      var RL=Math.max(60,P.y+ANCHOR+ROPE_LEN-h.y); if(Math.abs(h.y+RL-(P.y+ANCHOR+ROPE_LEN))>1e-6){ ok2=false; w2+=' end'; } });
+    P.x=keep[0]; P.y=keep[1]; P.bank=keep[2]; P.spinU=keep[3]; P.gear=keep[4];
+    okk('[rope] the rope/ladder hangs from the hull hook as drawn (banked with the hull) and its END stays on the sim rope end', ok2, w2.trim());
   })();
   campaign=false; state='title';
 
