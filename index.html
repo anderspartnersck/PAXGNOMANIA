@@ -1166,6 +1166,17 @@ var camX=0;
 function WW(){ return (F&&F.ww)||LW; }
 function camTarget(){ return clamp(P.x-LW/2+clamp(P.vx,-400,400)*0.35, 0, WW()-LW); }
 function camTick(dt){ camX += (camTarget()-camX)*Math.min(1,dt*3.2); camX=clamp(camX,0,WW()-LW); }
+// 1123 THE RENDER CAMERA (render-only; the sim's camX above is untouched, so seeds/selftest stay bit-exact). A critically damped
+// spring trails camX: the level moves SLOWER and longer, eased in and out, sub-pixel, never overshooting (no reversal of its own).
+// camW = the camera the world was drawn with this frame (every depth layer derives from it: layerOff / tileX0 / translate).
+var camR=0, camV=0, camW=0, camSnap=true, CAM_W=2.4, CAM_EDGE=110;
+function camRenderTick(dt){
+  if(camSnap){ camR=camX; camV=0; camSnap=false; return camR; } if(!(dt>0)) return camR;
+  var x=camR-camX, a=-CAM_W*CAM_W*x-2*CAM_W*camV; camV+=a*dt; camR+=camV*dt;
+  var lo=P?P.x-(LW-CAM_EDGE):-1e9, hi=P?P.x-CAM_EDGE:1e9, mx=Math.max(0,WW()-LW);   // the craft never leaves the screen
+  if(camR<lo){ camR=lo; camV=Math.max(camV,0); } if(camR>hi){ camR=hi; camV=Math.min(camV,0); }
+  if(camR<0){ camR=0; camV=Math.max(camV,0); } if(camR>mx){ camR=mx; camV=Math.min(camV,0); }
+  return camR; }
 function bandBot(){ return GY()-30-ANCHOR-ROPE_LEN; }
 function ropeEndY(){ return P.y+ANCHOR+ROPE_LEN; }
 function dropSurf(){ return GY()+(F.drop.surf||0); }
@@ -1195,7 +1206,7 @@ function startFront(idx, opt){
   F.drop={x:F.drop0.x, w:F.drop0.w, label:F.drop0.label, surf:F.drop0.surf}; depotStart();
   if(!opt.retry) scoreAtStart=score; else score=scoreAtStart;
   hp=HULL; simT=0; stageClock=F.clock; hornSet=false;
-  P=newPlayer(); camX=clamp(P.x-LW/2,0,WW()-LW); legion=[]; haz=[]; shots=[]; fx=[]; pickups=[]; F.barked_=0;
+  P=newPlayer(); camX=clamp(P.x-LW/2,0,WW()-LW); camSnap=true; legion=[]; haz=[]; shots=[]; fx=[]; pickups=[]; F.barked_=0;
   nf={left:0,right:0,up:0,down:0}; was={left:0,right:0,up:0,down:0};   // the key-repeat clock is sim time: reset it with the sim (a held arrow across a RETRY froze that direction)
   ladderT=0; ladderSpawned={}; tipDone={}; hzLog=[];
   friends=F.friends.map(function(d,i){ return mkFriend(d.x, d.who, i, d.rock); });
@@ -1486,7 +1497,7 @@ function update(dt){
   var el=F.clock-stageClock;
   gatherInput(); pump(dt);
   var px=P.x, py=P.y; spring(P,P.tx,P.ty,dt); P.spd=Math.hypot(P.x-px,P.y-py)/Math.max(dt,1e-6);
-  if(P.spd>SWOOP_SPD && !P.swoopOn && simT>=(P.swoopCd||0) && P.stun<=0){ sfx('swoop'); P.swoopCd=simT+SWOOP_CD; } P.swoopOn=P.spd>SWOOP_SPD*0.7;   // FLYER 3/4
+  if(P.spd>SWOOP_SPD && !P.swoopOn && simT>=(P.swoopCd||0) && P.stun<=0){ sfx('swoop'); smearDart(); P.swoopCd=simT+SWOOP_CD; } P.swoopOn=P.spd>SWOOP_SPD*0.7;   // FLYER 3/4
   P.bank += (clamp(P.vx/190,-1,1)-P.bank)*Math.min(1,7*dt);
   if(Math.abs(P.vx)>40) P.face = P.vx>0?1:-1;
   camTick(dt);
@@ -1682,7 +1693,7 @@ function warTick(dt, el){
       else if(P.invuln<=0) hitPlayer('volley'); }
     var r=onRope(); if(r && inCol(r.x)) releaseFriend(r,'CAUGHT UNDER THE VOLLEY — THEY LET GO');
     for(var q=0;q<friends.length;q++){ var f=friends[q]; if(f.st==='ladder' && inCol(f.x)){ releaseFriend(f,'CAUGHT UNDER THE VOLLEY — THEY LET GO'); } }
-    if(v.rome!==GN() && !v.thinned){ v.thinned=true; for(var q=0;q<legion.length;q++){ var g=legion[q]; if(!g.gone && !g.lifting && !g.k.ram && inCol(g.x) && g.y>=GY()-2){ g.gone=true; war.coverKills++; fxAdd(g.x,GY()-30,'dust',null,0.5); } } }
+    if(v.rome!==GN() && !v.thinned){ v.thinned=true; for(var q=0;q<legion.length;q++){ var g=legion[q]; if(!g.gone && !g.lifting && !g.k.ram && inCol(g.x) && g.y>=GY()-2){ g.gone=true; war.coverKills++; fxAdd(g.x,GY()-30,'dust',null,0.5); smearKnock(g); } } }
     if(v.t>=WAR_VOLLEY_FALL){ if(!v.hitP) stats.dodged++; war.volleys.splice(i,1); }
   }
   // WAR MACHINES roll out of the gnome reserves to the seam and SHOVE the line until something stops them
@@ -1709,7 +1720,7 @@ function warTick(dt, el){
   if(W.cover){ war.coverT-=dt; if(war.coverT<=0){ war.coverT=WAR_COVER_EVERY*(0.8+0.4*wrng());
     if(usShare()>0.55){ var bx=-1, bd=1e9; for(var q=0;q<legion.length;q++){ var g=legion[q]; if(g.gone||g.lifting||g.climb||g.k.ram) continue;
         var romeSide=(g.x-warX())*toEnemy()<0; if(romeSide){ var dd=Math.abs(g.x-F.drop.x); if(dd<bd){ bd=dd; bx=q; } } }
-      if(bx>=0){ var g=legion[bx]; g.gone=true; war.coverKills++; fxAdd(g.x,GY()-34,'dust',null,0.5); flash(GN()?'THE CROSSBOWS COVER YOU':'ROME\'S ARCHERS COVER YOU','#9fe08a',0.8); } } } }
+      if(bx>=0){ var g=legion[bx]; g.gone=true; smearKnock(g); war.coverKills++; fxAdd(g.x,GY()-34,'dust',null,0.5); flash(GN()?'THE CROSSBOWS COVER YOU':'ROME\'S ARCHERS COVER YOU','#9fe08a',0.8); } } } }
   // THE WALL: the breach fills while red hats stand on the walk and the line at the foot gives way
   if(F.wall){ var up=0; for(var q=0;q<legion.length;q++){ var g=legion[q]; if(!g.gone && !g.climb && !g.lifting) up++; }
     war.breach=clamp(war.breach + dt*(W.breachPer||0.012)*up + dt*(PK()==='push'?0:1)*Math.max(0,0.5-usShare())*(W.breachLine||0.03) - dt*(up?0:0.004) + (F.supply&&!GN()?dt*SILENT_BREACH*silentN():0), 0, 1); }   // 1113b: a silent scorpio lets the tide up
@@ -1894,7 +1905,7 @@ function shotTick(dt){
   for(var s=shots.length-1;s>=0;s--){ var sh=shots[s]; sh.t+=dt; sh.x+=sh.vx*dt; sh.y+=sh.vy*dt;
     if(!sh.harmless && Math.hypot(sh.x-P.x,sh.y-P.y) < (spinning()?58:40)){
       if(spinning() && D8_SPIN_DEFLECTS){ var dx=sh.x-P.x, dy=sh.y-P.y, L=Math.hypot(dx,dy)||1, sp=Math.hypot(sh.vx,sh.vy);
-        sh.vx=dx/L*sp*0.9; sh.vy=dy/L*sp*0.9-80; sh.harmless=true; fxAdd(sh.x,sh.y,'ring','#9fe08a',0.35); sfx('clank'); score+=50; if(war){ warThem(-1); war.turned++; } }
+        sh.vx=dx/L*sp*0.9; sh.vy=dy/L*sp*0.9-80; sh.harmless=true; smear({kind:'bolt', x0:sh.x, y0:sh.y, x1:sh.x+sh.vx*0.05, y1:sh.y+sh.vy*0.05, bl:sh.kind==='arrow'?34:46}); fxAdd(sh.x,sh.y,'ring','#9fe08a',0.35); sfx('clank'); score+=50; if(war){ warThem(-1); war.turned++; } }
       else if(P.invuln>0){ shots.splice(s,1); continue; }
       else { hitPlayer(sh.type); shots.splice(s,1); continue; }
     }
@@ -1923,7 +1934,7 @@ function rayTick(dt){
     for(var i=0;i<legion.length;i++){ var g=legion[i]; if(g.gone) continue; var d=Math.abs(g.x-P.x); if(d<best && g.y>P.y){ best=d; bi=i; } }
     if(war && war.mach.some(function(m){ return m.st!=='lifted' && Math.abs(m.x-P.x)<RAY_REACH+24; })){ warRay(dt); P.keep=P.lock; return; }   // a war machine outranks a passing red hat
     if(bi>=0){ var g=legion[bi]; if(!g.lifting) sfx('ray_on'); P.lock=g; g.lifting=true; g.lock=clamp(g.lock+dt/g.k.lock,0,1);
-      if(g.lock>=1){ g.gone=true; score+=g.k.val; stats.beamed++; fxAdd(P.x,P.y+30,'ring','#ffe9a8',0.5); sfx('ray_take'); } }
+      if(g.lock>=1){ g.gone=true; smear({n:g.k.art, h:g.k.h, x0:g.x, y0:g.y-(g.y-(P.y+ANCHOR+30))*0.85-g.k.h/2, x1:P.x, y1:P.y+10, flip:g.dir<0}); score+=g.k.val; stats.beamed++; fxAdd(P.x,P.y+30,'ring','#ffe9a8',0.5); sfx('ray_take'); } }
     else warRay(dt);
   } else if(war) war.lift=Math.max(0,war.lift-dt*2);
   P.keep=P.lock;
@@ -2241,7 +2252,7 @@ function giveLadder(){ P.gear='ladder'; ladderT=LADDER_SECS; var r=onRope(); if(
   sfx('ladder_get'); flash('LADDER! HOVER SO THEY CAN CLIMB · '+LADDER_CAP+' AT ONCE · NOT GOATS','#e8c66a',1.6); }
 function rescueTick(dt, el){
   for(var i=0;i<(F.ladders||[]).length;i++){ var ld=F.ladders[i];
-    if(!ladderSpawned[i] && el>=ld.at){ ladderSpawned[i]=1; pickups.push({ x:ld.x, y:BAND_TOP+(bandBot()-BAND_TOP)*0.4, ttl:LADDER_PICK_TTL }); flash('A LADDER CRATE DRIFTS IN','#e8c66a',1.0); } }
+    if(!ladderSpawned[i] && el>=ld.at){ ladderSpawned[i]=1; pickups.push({ x:ld.x, y:BAND_TOP+(bandBot()-BAND_TOP)*0.4, ttl:LADDER_PICK_TTL }); smear({kind:'crate', x0:ld.x, y0:BAND_TOP-160, x1:ld.x, y1:BAND_TOP+(bandBot()-BAND_TOP)*0.4}); flash('A LADDER CRATE DRIFTS IN','#e8c66a',1.0); } }
   for(var i=pickups.length-1;i>=0;i--){ var pk=pickups[i]; pk.ttl-=dt;
     if(Math.hypot(pk.x-P.x,pk.y-P.y)<70){ pickups.splice(i,1); giveLadder(); continue; } if(pk.ttl<=0) pickups.splice(i,1); }
   musterTick(el); armouryTick(el); riderTick(dt);
@@ -2261,7 +2272,7 @@ function rescueTick(dt, el){
       if(setDownAtEmp(f) && empAt(f.x) && (f.escort||F.escort.main||emps.some(function(e){ return e.st==='sighting'; }))) continue;   // at their post: they stay put until it is manned
       var top=stand-f.w.h;
       if(Math.abs(f.x-ex)<GRAB_R && ey>=top-14 && ey<=stand){
-        if(P.gear==='rope' && !onRope()){ f.st='rope'; sfx('grab'); flash(f.ammo?'BOLTS ON THE ROPE — SET THEM DOWN LOW AT A SCORPIO':f.w.animal?'GOT ONE — IN THE SLING. FLY IT TO '+F.drop.label:'GOT ONE — HANG ON! FLY THEM TO '+F.drop.label,'#7fe7ff',1.0); }
+        if(P.gear==='rope' && !onRope()){ f.st='rope'; smear({n:f.w.art, h:f.w.h, x0:f.x, y0:standY(f)-f.w.h/2, x1:P.x, y1:P.y+ANCHOR+ROPE_LEN+f.w.h/2}); sfx('grab'); flash(f.ammo?'BOLTS ON THE ROPE — SET THEM DOWN LOW AT A SCORPIO':f.w.animal?'GOT ONE — IN THE SLING. FLY IT TO '+F.drop.label:'GOT ONE — HANG ON! FLY THEM TO '+F.drop.label,'#7fe7ff',1.0); }
         else if(P.gear==='ladder' && !f.w.animal && onLadder()+riders().length<LADDER_CAP){ f.st='ladder'; f.prog=0; sfx('grab'); flash('ON THE LADDER — HOVER SO THEY CAN CLIMB','#7fe7ff',1.0); }
       }
       continue;
@@ -2357,7 +2368,7 @@ function empTick(dt){
     if(war) for(var q=0;q<war.mach.length;q++){ var m=war.mach[q]; if(m.st!=='lifted' && Math.abs(m.x-e.x)<td){ td=Math.abs(m.x-e.x); tgt=m; } }
     if(tgt){ tgt.bolts=(tgt.bolts||0)+1; e.tx=tgt.x; e.ty=warRowY()-30; if(tgt.bolts>=2){ tgt.st='lifted'; tgt.t=0; war.machLifted++; warThem(-3); flash('THE '+empName()+' BREAKS '+tgt.M.name.replace(/^AN? /,'THE '),'#ffe27a',1.2); } continue; }
     var g=null, gdist=620; for(var q=0;q<legion.length;q++){ var h=legion[q]; if(!h.gone && !h.climb && !h.lifting && Math.abs(h.x-e.x)<gdist){ gdist=Math.abs(h.x-e.x); g=h; } }
-    if(g){ g.gone=true; if(war) war.coverKills++; e.tx=g.x; e.ty=g.y-30; fxAdd(g.x,g.y-30,'dust',null,0.5); continue; }
+    if(g){ g.gone=true; smearKnock(g); if(war) war.coverKills++; e.tx=g.x; e.ty=g.y-30; fxAdd(g.x,g.y-30,'dust',null,0.5); continue; }
     if(war){ warThem(-1); warPush(0.008); e.tx=warX()+toEnemy()*120; e.ty=warRowY()-20; } }
 }
 
@@ -2624,38 +2635,46 @@ var SKIES={
   aurora:{stops:['#000104','#02060f','#04121c','#081c20'], haze:'#0e2228', amb:'snow', aurora:true}
 };
 var LAYERS={  // far -> near: art, bottom y offset from GY, drawn height, parallax speed, mode
-  dover:[ {n:'hz_dover', dy:-70, h:330, sp:3, haze:0.10}, {n:'dover_downs', dy:22, h:300, sp:7} ],   // the cliffs + pharos ridge, then Joe's chalk downs (1014) in front
+  dover:[ {n:'hz_dover', dy:-70, h:330, sp:3, haze:0.10}, {n:'dover_downs', dy:22, h:300, sp:7, lock:1} ],   // the cliffs + pharos ridge, then Joe's chalk downs (1014) in front
   nottingham:[ {n:'vale_far_hills', dy:-120, h:230, sp:2, sil:'#2b3a2c'}, {n:'hills_white_horse', dy:-70, h:170, sp:4, haze:0.55},
-               {n:'forest_edge', dy:-40, h:150, sp:6, haze:0.42}, {n:'tree_line', dy:14, h:270, sp:10, haze:0.22} ],
+               {n:'forest_edge', dy:-40, h:150, sp:6, haze:0.42, lock:1}, {n:'tree_line', dy:14, h:270, sp:10, haze:0.22} ],
   wash:[ {n:'wash_far_hills', dy:-90, h:250, sp:2, sil:'#5e130c'}, {n:'wash_far_ruins', dy:-50, h:190, sp:4, sil:'#3a0a07'},
-         {n:'wash_mid_camp', dy:-14, h:200, sp:7, sil:'#220505'}, {n:'wash_battle_line', dy:8, h:150, sp:11, sil:'#100202'} ],
+         {n:'wash_mid_camp', dy:-14, h:200, sp:7, sil:'#220505', lock:1}, {n:'wash_battle_line', dy:8, h:150, sp:11, sil:'#100202'} ],
   wall:[ {n:'snow_hills', dy:-110, h:160, sp:2, haze:0.62}, {n:'wall_thin', dy:-70, h:70, sp:4, haze:0.55},
          {n:'wall_siege', dy:-8, h:130, sp:7, haze:0.42} ],
   // Blender plates (3D PIPELINE games/hadrian/blender/white_horse.py): the far downs, WHITE HORSE HILL, the half-struck camp
-  vale:[ {n:'wh_far', dy:-160, h:240, sp:1.5}, {n:'wh_hill', dy:-60, h:340, sp:3}, {n:'wh_near', dy:24, h:170, sp:7} ],
+  vale:[ {n:'wh_far', dy:-160, h:240, sp:1.5}, {n:'wh_hill', dy:-60, h:340, sp:3}, {n:'wh_near', dy:24, h:170, sp:7, lock:1} ],
   // LONDON CALLING: low hills beyond the city, Londinium on the far bank (stand-in props, signal fires), the river behind the bridge
-  london:[ {n:'hills_b', dy:-176, h:96, sp:1.2, sil:'#1a1d36'}, {fn:'londinium'}, {fn:'thamesBack'} ],
-  forum:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#2a2020'}, {n:'colonnade', dy:-70, h:170, sp:2.5, haze:0.55}, {n:'villa', dy:-26, h:150, sp:4, haze:0.42} ],
-  docks:[ {n:'hills_b', dy:-120, h:110, sp:1.2, sil:'#4a3a50'}, {n:'palisade_fort', dy:-58, h:118, sp:2.5, haze:0.55}, {n:'camp_tents', dy:-14, h:110, sp:5, haze:0.35} ],
-  scorpio:[ {n:'vale_far_hills', dy:-130, h:220, sp:1.5, sil:'#26301f'}, {n:'hills_white_horse', dy:-70, h:160, sp:3, haze:0.5}, {n:'camp_tents', dy:-6, h:120, sp:5, haze:0.4}, {n:'wh_near', dy:24, h:150, sp:7, haze:0.45} ],
-  york:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#1a1020'}, {n:'fort_strip', dy:-62, h:140, sp:2.5, haze:0.5}, {n:'palisade_fort', dy:-8, h:120, sp:5, haze:0.32} ],
+  london:[ {n:'hills_b', dy:-176, h:96, sp:1.2, sil:'#1a1d36'}, {fn:'londinium', lock:1}, {fn:'thamesBack'} ],
+  forum:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#2a2020'}, {n:'colonnade', dy:-70, h:170, sp:2.5, haze:0.55, lock:1}, {n:'villa', dy:-26, h:150, sp:4, haze:0.42} ],
+  docks:[ {n:'hills_b', dy:-120, h:110, sp:1.2, sil:'#4a3a50'}, {n:'palisade_fort', dy:-58, h:118, sp:2.5, haze:0.55, lock:1}, {n:'camp_tents', dy:-14, h:110, sp:5, haze:0.35} ],
+  scorpio:[ {n:'vale_far_hills', dy:-130, h:220, sp:1.5, sil:'#26301f'}, {n:'hills_white_horse', dy:-70, h:160, sp:3, haze:0.5}, {n:'camp_tents', dy:-6, h:120, sp:5, haze:0.4, lock:1}, {n:'wh_near', dy:24, h:150, sp:7, haze:0.45} ],
+  york:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#1a1020'}, {n:'fort_strip', dy:-62, h:140, sp:2.5, haze:0.5, lock:1}, {n:'palisade_fort', dy:-8, h:120, sp:5, haze:0.32} ],
   // THE WALL ARC (Claude 1113) — HADRIAN library strips only; dedicated plates are OWED (docs/PAX-LEVELS-1113.md)
-  dere:[ {n:'vale_far_hills', dy:-130, h:220, sp:1.5, sil:'#3a302c'}, {n:'wa_dere', dy:-34, h:160, sp:3, haze:0.3}, {n:'vale_near_ruins', dy:14, h:160, sp:6, haze:0.42} ],   // 1116: the Blender Dere Street plate (pax_wallarc.py)
-  coria:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#180c12'}, {n:'wa_coria', dy:-36, h:150, sp:2.5, haze:0.25}, {n:'vale_supply', dy:-10, h:150, sp:5, haze:0.45} ],   // 1116: Coria by night (Blender)
-  tyne:[ {n:'snow_hills', dy:-178, h:120, sp:1.2, sil:'#141c2a'}, {n:'wa_tyne', dy:-104, h:140, sp:2.2, haze:0.35}, {fn:'thamesBack'} ],   // 1116: Cilurnum + the Tyne bridge (Blender)
+  dere:[ {n:'vale_far_hills', dy:-130, h:220, sp:1.5, sil:'#3a302c'}, {n:'wa_dere', dy:-34, h:160, sp:3, haze:0.3, lock:1}, {n:'vale_near_ruins', dy:14, h:160, sp:6, haze:0.42} ],   // 1116: the Blender Dere Street plate (pax_wallarc.py)
+  coria:[ {n:'hills_b', dy:-150, h:110, sp:1.2, sil:'#180c12'}, {n:'wa_coria', dy:-36, h:150, sp:2.5, haze:0.25, lock:1}, {n:'vale_supply', dy:-10, h:150, sp:5, haze:0.45} ],   // 1116: Coria by night (Blender)
+  tyne:[ {n:'snow_hills', dy:-178, h:120, sp:1.2, sil:'#141c2a'}, {n:'wa_tyne', dy:-104, h:140, sp:2.2, haze:0.35, lock:1}, {fn:'thamesBack'} ],   // 1116: Cilurnum + the Tyne bridge (Blender)
   crags:[ {n:'snow_hills', dy:-190, h:110, sp:0.9, sil:'#141c34'}, {n:'wa_crags', dy:-64, h:260, sp:1.6, haze:0.22}, {n:'snow_siege', dy:4, h:100, sp:5, haze:0.55} ],   // 1116: the Whin Sill + turrets (Blender)
   turf:[ {n:'snow_hills', dy:-150, h:160, sp:1.2, haze:0.8}, {n:'wa_turf', dy:-66, h:180, sp:2.4, haze:0.32}, {n:'wall_siege', dy:-8, h:110, sp:6, haze:0.66} ],   // 1116: the Turf Wall in fog (Blender)
   summit:[ {n:'wash_far_hills', dy:-150, h:220, sp:1.2, sil:'#3a0a07'}, {n:'wa_summit', dy:-66, h:250, sp:2, haze:0.18}, {n:'wall_siege', dy:-8, h:110, sp:6, haze:0.5} ],   // 1116: Winshields summit (Blender)
   // THE ANTONINE WALL (1113b): black Caledonian hills, the turf line running away north-west, the host massing at the ditch
   antonine:[ {n:'snow_hills', dy:-150, h:200, sp:1.2, sil:'#03080c'}, {n:'wa_antonine', dy:-66, h:200, sp:2.2, haze:0.28}, {n:'snow_siege', dy:-12, h:110, sp:5.5, haze:0.66} ]   // 1116: turf on stone + the fort (Blender)
 };
-var drift=0;
+// 1123: everything IN FRONT of a locked band rides the world too (a nearer layer never moves slower than one behind it)
+Object.keys(LAYERS).forEach(function(k){ var on=0; LAYERS[k].forEach(function(L){ if(L.lock) on=1; else if(on) L.lock=1; }); });
+var drift=0;   // AIR + WATER only since 1123 (smoke, fog, river flow) and the title flyover camera — never a ground layer
+// 1123 THE FLOATING FIX — ONE camera per depth layer. Every landscape layer's offset is a pure function of the world camera
+// camW (layerPar = its parallax share); nothing standing on a layer ever moves on its own timer. The band the battle rows stand
+// on (lock) rides the world at 1:1 with the ground, the people and the play, and so does every strip in front of it.
+function layerPar(L){ return L.lock ? 1 : (L.sp||14)/14; }
+function layerOff(L, period){ var o=-((camW*layerPar(L))%period); return o>0 ? o-period : o; }
+function tileX0(cam, period){ var r=cam%period; if(r<0) r+=period; return cam-r; }   // a world-anchored tile phase: the camera's only, never time
 function drawStrip(L, gy){
   if(L.fn){ STRIPFN[L.fn](gy, L); return; }
   var img = L.sil ? tinted(L.n, L.sil, 1, true) : (L.haze ? tinted(L.n, SKIES[F.time].haze, L.haze, false) : IMG[L.n]);
   if(!img || (!L.sil && !L.haze && !ok(L.n))) return;
   var iw=img.width||img.naturalWidth, ih=img.height||img.naturalHeight; if(!iw) return;
-  var h=L.h, w=h*iw/ih, y=gy+L.dy-h, off=-((drift*L.sp+camX*L.sp/14)%(w*2));
+  var h=L.h, w=h*iw/ih, y=gy+L.dy-h, off=layerOff(L, w*2);
   for(var x=off, k=0; x<LW; x+=w, k++){ if(x+w<0) continue;
     ctx.save(); if(k%2){ ctx.translate(x+w,y); ctx.scale(-1,1); ctx.drawImage(img,0,0,w,h); } else ctx.drawImage(img,x,y,w,h); ctx.restore(); }
 }
@@ -2686,40 +2705,40 @@ function drawGround(){
   if(F.wall){ drawWallFace(); return; }
   if(F.bridge){ drawBridge(); return; }
   var tile = F.key==='dover'||F.key==='nottingham'||F.key==='vale' ? 'ground_grass' : (F.key==='forum'||F.key==='docks') ? 'ground_flag' : 'ground_dirt';
-  ctx.fillStyle = F.time==='blood' ? '#1a0806' : F.time==='dusk' ? '#1c2414' : (F.key==='forum'||F.key==='docks') ? '#4a4038' : F.key==='york' ? '#2a1c16' : '#33401f'; ctx.fillRect(camX,gy,LW,LH-gy);
+  ctx.fillStyle = F.time==='blood' ? '#1a0806' : F.time==='dusk' ? '#1c2414' : (F.key==='forum'||F.key==='docks') ? '#4a4038' : F.key==='york' ? '#2a1c16' : '#33401f'; ctx.fillRect(camW,gy,LW,LH-gy);
   if(ok(tile)){ var th=LH-gy+20, tw=th*ar(tile);
     var src = F.time==='blood' ? tinted(tile,'#2a0805',0.62,false) : F.time==='dusk' ? tinted(tile,'#14200f',0.38,false) : IMG[tile];
-    var x0=camX-((camX+drift*14)%(tw*2));   // mirror every other tile so the seams vanish (world-anchored)
-    for(var x=x0,k=0; x<camX+LW; x+=tw,k++){ ctx.save(); if(k%2){ ctx.translate(x+tw,gy-6); ctx.scale(-1,1); ctx.drawImage(src,0,0,tw,th); } else ctx.drawImage(src,x,gy-6,tw,th); ctx.restore(); } }
-  var lip=ctx.createLinearGradient(0,gy-8,0,gy+26); lip.addColorStop(0,'rgba(0,0,0,0)'); lip.addColorStop(1,'rgba(0,0,0,0.35)'); ctx.fillStyle=lip; ctx.fillRect(camX,gy-8,LW,34);
+    var x0=tileX0(camW, tw*2);   // mirror every other tile so the seams vanish (world-anchored: 1123 — was +drift*14, the ground slid 14 px/s under standing people)
+    for(var x=x0,k=0; x<camW+LW; x+=tw,k++){ ctx.save(); if(k%2){ ctx.translate(x+tw,gy-6); ctx.scale(-1,1); ctx.drawImage(src,0,0,tw,th); } else ctx.drawImage(src,x,gy-6,tw,th); ctx.restore(); } }
+  var lip=ctx.createLinearGradient(0,gy-8,0,gy+26); lip.addColorStop(0,'rgba(0,0,0,0)'); lip.addColorStop(1,'rgba(0,0,0,0.35)'); ctx.fillStyle=lip; ctx.fillRect(camW,gy-8,LW,34);
 }
 function drawWallFace(){
   var gy=GY(), WL_=F.wallLook, ant=WL_==='antonine', turf=WL_==='turf'||ant, crag=WL_==='crag';   // THE WALL ARC: stone (W1) · crag (W3/W5: the Whin Sill under the stone) · turf (W4: cut sods)
   var src = turf ? (ok('ground_grass') ? tinted('ground_grass','#26241a',0.62,false) : null) : (ok('ground_flag') ? tinted('ground_flag',crag?'#151a26':'#1b2438',crag?0.58:0.45,false) : null);
-  var X0=camX-(camX%240), X1=camX+LW;
-  ctx.fillStyle=turf?'#2c2a1c':crag?'#1f2330':'#2b3140'; ctx.fillRect(camX,gy,LW,LH-gy);
-  if(src){ var th=96, tw=th*ar('ground_flag'); X0=camX-(camX%(tw-1)); for(var y=gy+14; y<LH; y+=th-2) for(var x=X0+((y/th)%2)*tw*0.5-tw; x<X1; x+=tw-1) ctx.drawImage(src,x,y,tw,th); }
-  var sh=ctx.createLinearGradient(0,gy,0,LH); sh.addColorStop(0,'rgba(8,10,20,0.05)'); sh.addColorStop(1,'rgba(4,6,12,0.75)'); ctx.fillStyle=sh; ctx.fillRect(camX,gy,LW,LH-gy);
+  var X0=camW-(camW%240), X1=camW+LW;
+  ctx.fillStyle=turf?'#2c2a1c':crag?'#1f2330':'#2b3140'; ctx.fillRect(camW,gy,LW,LH-gy);
+  if(src){ var th=96, tw=th*ar('ground_flag'); X0=camW-(camW%(tw-1)); for(var y=gy+14; y<LH; y+=th-2) for(var x=X0+((y/th)%2)*tw*0.5-tw; x<X1; x+=tw-1) ctx.drawImage(src,x,y,tw,th); }
+  var sh=ctx.createLinearGradient(0,gy,0,LH); sh.addColorStop(0,'rgba(8,10,20,0.05)'); sh.addColorStop(1,'rgba(4,6,12,0.75)'); ctx.fillStyle=sh; ctx.fillRect(camW,gy,LW,LH-gy);
   // the walkway: paving + crenellated parapet on the outer (far) edge
   if(turf){ // the turf rampart: a sod walk, a timber breastwork on top, and the sods burning in places (hashed, render-only)
-    ctx.fillStyle='#4a4430'; ctx.fillRect(camX,gy-4,LW,18); ctx.fillStyle='#6a6040'; ctx.fillRect(camX,gy-4,LW,4);
-    for(var x=camX-((camX+drift*14)%44); x<X1; x+=44){ ctx.fillStyle='#3a2a18'; ctx.fillRect(x,gy-30,8,28); } ctx.fillStyle='#4a3420'; ctx.fillRect(camX,gy-28,LW,5);
-    for(var n=Math.floor(camX/520)-1; n<=Math.floor(X1/520)+1; n++){ if(bh(n*97+13)<0.45) continue; var fx_=n*520+bh(n*31+7)*380, fl=0.7+0.3*Math.sin(rt*10+n);
+    ctx.fillStyle='#4a4430'; ctx.fillRect(camW,gy-4,LW,18); ctx.fillStyle='#6a6040'; ctx.fillRect(camW,gy-4,LW,4);
+    for(var x=tileX0(camW,44); x<X1; x+=44){ ctx.fillStyle='#3a2a18'; ctx.fillRect(x,gy-30,8,28); } ctx.fillStyle='#4a3420'; ctx.fillRect(camW,gy-28,LW,5);
+    for(var n=Math.floor(camW/520)-1; n<=Math.floor(X1/520)+1; n++){ if(bh(n*97+13)<0.45) continue; var fx_=n*520+bh(n*31+7)*380, fl=0.7+0.3*Math.sin(rt*10+n);
       sprC('fireball', fx_, gy-22, 56*fl, {a:0.8, rot:-1.57}); var ph=((rt*0.4+bh(n*5))%1); sprC('smoke_puff', fx_+ph*20, gy-60-ph*120, 50+ph*60, {a:0.3*(1-ph)}); } }
   else {
-  ctx.fillStyle=crag?'#4a4f5c':'#545a68'; ctx.fillRect(camX,gy-4,LW,18); ctx.fillStyle=crag?'#666e7e':'#727a8a'; ctx.fillRect(camX,gy-4,LW,4);
-  for(var x=camX-((camX+drift*14)%60); x<X1; x+=60){ ctx.fillStyle='#3d4352'; ctx.fillRect(x,gy-34,36,30); ctx.fillStyle='#5c6475'; ctx.fillRect(x,gy-34,36,5); }
-  if(crag) for(var n=Math.floor(camX/300)-1; n<=Math.floor(X1/300)+1; n++){ var cx_=n*300+bh(n*53+3)*160; ctx.fillStyle='rgba(8,10,16,0.32)';   // the Whin Sill showing through the face: dark columnar rock
+  ctx.fillStyle=crag?'#4a4f5c':'#545a68'; ctx.fillRect(camW,gy-4,LW,18); ctx.fillStyle=crag?'#666e7e':'#727a8a'; ctx.fillRect(camW,gy-4,LW,4);
+  for(var x=tileX0(camW,60); x<X1; x+=60){ ctx.fillStyle='#3d4352'; ctx.fillRect(x,gy-34,36,30); ctx.fillStyle='#5c6475'; ctx.fillRect(x,gy-34,36,5); }
+  if(crag) for(var n=Math.floor(camW/300)-1; n<=Math.floor(X1/300)+1; n++){ var cx_=n*300+bh(n*53+3)*160; ctx.fillStyle='rgba(8,10,16,0.32)';   // the Whin Sill showing through the face: dark columnar rock
     ctx.beginPath(); ctx.moveTo(cx_-60,LH); ctx.lineTo(cx_-30,gy+40+bh(n*11)*60); ctx.lineTo(cx_+10,gy+30+bh(n*17)*40); ctx.lineTo(cx_+50,gy+70); ctx.lineTo(cx_+80,LH); ctx.closePath(); ctx.fill(); }
   }
   if(ant){ // 1113b THE ANTONINE WALL: the turf rampart sits on a dressed STONE BASE (bands of ashlar low on the face), and the forum stands on the walk
     var sb=ok('ground_flag')?tinted('ground_flag','#141a24',0.6,false):null, by=gy+150;
-    if(sb){ var th2=70, tw2=th2*ar('ground_flag'); for(var y=by; y<LH; y+=th2-2) for(var x=camX-(camX%(tw2-1))-tw2; x<X1; x+=tw2-1) ctx.drawImage(sb,x,y,tw2,th2); }
-    else { ctx.fillStyle='#262c38'; ctx.fillRect(camX,by,LW,LH-by); }
-    ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.fillRect(camX,by-4,LW,6);
+    if(sb){ var th2=70, tw2=th2*ar('ground_flag'); for(var y=by; y<LH; y+=th2-2) for(var x=camW-(camW%(tw2-1))-tw2; x<X1; x+=tw2-1) ctx.drawImage(sb,x,y,tw2,th2); }
+    else { ctx.fillStyle='#262c38'; ctx.fillRect(camW,by,LW,LH-by); }
+    ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.fillRect(camW,by-4,LW,6);
     if(F.forum!=null) drawForum(F.forum, gy); }
   // the army at the foot of the Wall (render-only)
-  if(ok('battle_frieze')){ var img=tinted('battle_frieze','#0b1222',0.45,false); var h=120, w=h*ar('battle_frieze'); for(var x=camX-((camX+drift*20)%w); x<X1; x+=w) ctx.drawImage(img,x,LH-h+16,w,h); }
+  if(ok('battle_frieze')){ var img=tinted('battle_frieze','#0b1222',0.45,false); var h=120, w=h*ar('battle_frieze'); for(var x=tileX0(camW,w); x<X1; x+=w) ctx.drawImage(img,x,LH-h+16,w,h); }
   drawBattle(); drawWar();   // the live battle line at the foot of the Wall, in front of the frieze
 }
 // THE FORUM ON THE WALL (1113b): the Emperor's command platform — a plinth, six columns, an entablature and a pediment, braziers.
@@ -2741,9 +2760,9 @@ function drawForum(x, gy){
 function drawWater(){
   if(!F.water) return; var wy=waterY; if(wy>LH) return;
   var g=ctx.createLinearGradient(0,wy,0,LH); g.addColorStop(0,'rgba(120,24,12,0.78)'); g.addColorStop(1,'rgba(20,3,2,0.95)');
-  var W0=camX-(camX%20); ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(W0,LH); for(var x=W0;x<=W0+LW+40;x+=20) ctx.lineTo(x, wy+Math.sin(x*0.02+rt*2)*3); ctx.lineTo(W0+LW+40,LH); ctx.closePath(); ctx.fill();
+  var W0=camW-(camW%20); ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(W0,LH); for(var x=W0;x<=W0+LW+40;x+=20) ctx.lineTo(x, wy+Math.sin(x*0.02+rt*2)*3); ctx.lineTo(W0+LW+40,LH); ctx.closePath(); ctx.fill();
   ctx.strokeStyle='rgba(255,170,110,0.45)'; ctx.lineWidth=2; ctx.beginPath(); for(var x=W0;x<=W0+LW+40;x+=20){ var y=wy+Math.sin(x*0.02+rt*2)*3; if(x>W0) ctx.lineTo(x,y); else ctx.moveTo(x,y);} ctx.stroke();
-  ctx.fillStyle='rgba(255,190,140,0.35)'; for(var i=0;i<24;i++){ var gx=camX+((i*137+rt*30)%LW), gyy=wy+10+((i*53)%60); ctx.fillRect(gx,gyy,18,1.5); }
+  ctx.fillStyle='rgba(255,190,140,0.35)'; for(var i=0;i<24;i++){ var gx=camW+((i*137+rt*30)%LW), gyy=wy+10+((i*53)%60); ctx.fillRect(gx,gyy,18,1.5); }
 }
 /* ---------- LONDON CALLING: Londinium, the Thames, the bridge, THE PRESS (all render-only; hashes, no rng) ----------
    Joe's painted London environment set (1027; tools/cut_london.py): the lit waterfront on its quay (two hazed depths),
@@ -2758,28 +2777,29 @@ var LON_DECK=0.4106, LON_POSTS=[0.0347,0.9653];   // lon_bridge: the painted pla
 var LON_BRAZ=[0.249,0.547,0.900];                 // the bridge's three painted braziers (x fractions) — the lamp glows sit on them
 var LON_EMB_S=0.52, LON_EMB_QUAY=[172,75,375];   // lon_embankment: drawn scale; its quay walk row + x span in the cut (px)
 var LON_PAD={lon_far_bank:16};   // cut_london.py's clear border: skipped when tiling, or every join shows a 32 px gap
-function lonTile(n, y, h, sp, haze, col){   // tile a wide strip across the stage, every other copy mirrored (seamless)
+function lonTile(n, y, h, par, haze, col, flow){   // tile a wide strip across the stage, every other copy mirrored (seamless). 1123: par = its share of the world camera; flow = WATER drift only
   var img = haze ? tinted(n, col||SKIES[F.time].haze, haze, false) : (ok(n)?IMG[n]:null); if(!img) return;
-  var iw=img.width||img.naturalWidth, ih=img.height||img.naturalHeight; if(!iw) return; var pd=LON_PAD[n]||0, sw=iw-2*pd, w=h*sw/ih, off=-((drift*sp)%(w*2));
+  var iw=img.width||img.naturalWidth, ih=img.height||img.naturalHeight; if(!iw) return; var pd=LON_PAD[n]||0, sw=iw-2*pd, w=h*sw/ih, off=-((camW*par+drift*(flow||0))%(w*2)); if(off>0) off-=w*2;
   for(var x=off,k=0; x<LW; x+=w,k++){ if(x+w<0) continue; ctx.save(); if(k%2){ ctx.translate(x+w,y); ctx.scale(-1,1); ctx.drawImage(img,pd,0,sw,ih,0,0,w,h); } else ctx.drawImage(img,pd,0,sw,ih,x,y,w,h); ctx.restore(); }
 }
 var STRIPFN={
-  londinium:function(gy){
+  londinium:function(gy,L){
     var wl=gy+LON_BANK;
     // the far quarter: smaller, deeper in the haze, slower, set higher on the bank (it shows over the waterfront's roofs)
-    lonTile('lon_far_bank', wl-40-LON_FAR_H*LON_FB_BASE, LON_FAR_H, 1.4, 0.58, '#1c1a34');
+    var pn=L&&L.lock?1:3/14;   // the waterfront is the band the battle line stands on (its quay walk): it rides the world with them
+    lonTile('lon_far_bank', wl-40-LON_FAR_H*LON_FB_BASE, LON_FAR_H, 1.4/14, 0.58, '#1c1a34');
     // the waterfront: nearer, a touch of the night haze only
-    lonTile('lon_far_bank', wl-LON_NEAR_H*LON_FB_BASE, LON_NEAR_H, 3, 0.12);
+    lonTile('lon_far_bank', wl-LON_NEAR_H*LON_FB_BASE, LON_NEAR_H, pn, 0.12);
     // THE SIGNAL FIRES — a beacon glow on the quay, every few hundred feet
     var qy=gy+LON_QUAY;
-    for(var n=-1;n<6;n++){ var x=n*340-((drift*3)%340)+120, ph=Math.sin(rt*7+n*1.7)*0.5+0.5;
+    var bo=-((camW*pn)%340); if(bo>0) bo-=340; for(var n=-1;n<7;n++){ var x=n*340+bo+120, ph=Math.sin(rt*7+n*1.7)*0.5+0.5;
       var gg=ctx.createRadialGradient(x,qy-12,2,x,qy-12,56); gg.addColorStop(0,'rgba(255,150,60,'+(0.28+0.16*ph)+')'); gg.addColorStop(1,'rgba(255,120,40,0)');
       ctx.fillStyle=gg; ctx.fillRect(x-56,qy-68,112,112); spr('brazier',x,qy+2,20,{a:0.9});
       var sp=((rt*0.35+n*0.29)%1); sprC('smoke_puff', x+sp*16, qy-24-sp*66, 24+sp*36, {a:0.3*(1-sp)}); }
   },
-  thamesBack:function(gy){   // the river behind the bridge: the painted water, darker with the distance
+  thamesBack:function(gy,L){   // the river behind the bridge: the painted water, darker with the distance
     var y0=gy+LON_BANK-4; ctx.fillStyle='#0c0f20'; ctx.fillRect(0,y0,LW,gy-y0);
-    lonTile('lon_water', y0, gy-y0+30, 2, 0.48, '#0e1226');
+    lonTile('lon_water', y0, gy-y0+30, L&&L.lock?1:2/14, 0.48, '#0e1226', 2);
   }
 };
 function lonBridgeBox(){ var B=F.bridge, span=LON_POSTS[1]-LON_POSTS[0], w=(B.x1-B.x0)/span, h=w*(ok('lon_bridge')?IMG.lon_bridge.naturalHeight/IMG.lon_bridge.naturalWidth:0.174);
@@ -2790,7 +2810,7 @@ function drawBridge(){
   var gy=GY(), B=F.bridge, x0=B.x0;
   // the river in front of / under the deck (it shows through the arches)
   ctx.fillStyle='#070915'; ctx.fillRect(0,gy,LW,LH-gy);
-  lonTile('lon_water', gy-6, 112, 3.2, 0.10, '#0a0c1c'); lonTile('lon_water', gy+100, 112, 4.1, 0.22, '#0a0c1c');   // the patch is 105 px tall: two rows
+  ctx.save(); ctx.translate(camW,0); lonTile('lon_water', gy-6, 112, 1, 0.10, '#0a0c1c', 3.2); lonTile('lon_water', gy+100, 112, 1, 0.22, '#0a0c1c', 4.1); ctx.restore();   // 1123: the river under the deck rides the world (+ its own flow)   // the patch is 105 px tall: two rows
   var sh=ctx.createLinearGradient(0,gy,0,LH); sh.addColorStop(0,'rgba(4,5,14,0)'); sh.addColorStop(1,'rgba(4,5,14,0.55)'); ctx.fillStyle=sh; ctx.fillRect(0,gy,LW,LH-gy);
   // the south bank (left, the gnomes' side): earth + reeds
   var paintedBank=qp('southbank')!=='0' && ok('lon_south_bank');
@@ -2848,10 +2868,10 @@ function drawFirePress(gy,px){
 // smoke columns off the burning farms / stores on the horizon (S.smoke), drifting fog banks (S.fog)
 function drawAtmos(){
   var S=SKIES[F.time]; if(!S) return; var gy=GY();
-  if(S.smoke){ for(var c=0;c<5;c++){ var cx=((c*389+90)-(drift*2.4+camX*0.12))%(LW+400); if(cx<-200) cx+=LW+400;
+  if(S.smoke){ for(var c=0;c<5;c++){ var cx=((c*389+90)-(drift*2.4+camW*0.12))%(LW+400); if(cx<-200) cx+=LW+400;
       for(var k=0;k<6;k++){ var ph=((rt*0.06+k/6+c*0.13)%1); sprC('smoke_puff', cx-200+ph*60+Math.sin(rt*0.3+k)*8, gy-150-ph*380, 40+ph*110, {a:0.14*(1-ph)}); }
       ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle='rgba(255,120,50,'+(0.06+0.03*Math.sin(rt*3+c))+')'; ctx.beginPath(); ctx.ellipse(cx-200,gy-150,90,26,0,0,6.283); ctx.fill(); ctx.restore(); } }
-  if(S.fog){ for(var b=0;b<4;b++){ var y=gy-260+b*90, sp=6+b*4, w=900, x0=-((drift*sp+camX*(0.2+b*0.1))%w);
+  if(S.fog){ for(var b=0;b<4;b++){ var y=gy-260+b*90, sp=6+b*4, w=900, x0=-((drift*sp+camW*(0.2+b*0.1))%w);
       for(var x=x0-w; x<LW+w; x+=w){ var g=ctx.createRadialGradient(x+w/2,y,10,x+w/2,y,w*0.55); g.addColorStop(0,'rgba(190,198,198,'+(0.20+0.05*b)+')'); g.addColorStop(1,'rgba(190,198,198,0)');
         ctx.fillStyle=g; ctx.fillRect(x,y-160,w,320); } } }
 }
@@ -2903,12 +2923,16 @@ function wallLedges(){ if(!F.wall||roofs.length) return; var seen={};   // THE W
 var _tags=[];
 function tagY(x,y,w){ for(var n=0;n<8;n++){ var hit=false; for(var i=0;i<_tags.length;i++){ var t=_tags[i]; if(Math.abs(t.x-x)<(t.w+w)/2+4 && Math.abs(t.y-y)<17){ hit=true; y=t.y-18; break; } } if(!hit) break; }
   _tags.push({x:x,y:y,w:w}); return y; }
+// 1123 FEET: a standing figure is drawn from ONE foot point — its stand surface — with a contact shadow planted there.
+// (The 3 px "help" hop is gone: with no shadow it read as floating; the HELP flag + the idle rig carry the life.)
+function standY(f){ return GY()-(f.rock||0); }
+function footShadow(x,y,w,a){ ctx.save(); ctx.globalAlpha=0.30*(a==null?1:a); ctx.fillStyle='#000'; ctx.beginPath(); ctx.ellipse(x,y+1,Math.max(6,w),Math.max(2.5,w*0.16),0,0,6.283); ctx.fill(); ctx.restore(); }
 function drawFriends(){
   wallLedges(); _tags=[]; var gy0=GY();
   for(var i=0;i<emps.length;i++){ var e_=emps[i]; if(e_.supply){ _tags.push({x:e_.x,y:gy0-146,w:200},{x:e_.x,y:gy0-126,w:F.supply.cap*10+10}); } else _tags.push({x:e_.x,y:gy0-118,w:e_.st==='empty'?380:150}); }
   if(F.supply) _tags.push({x:F.supply.armoury.x,y:gy0-96,w:150});
   for(var i=0;i<friends.length;i++){ var f=friends[i], w=f.w;
-    if(f.st==='ground'){ var yb=GY()-f.rock, flip=f.x>F.drop.x;
+    if(f.st==='ground'){ var yb=standY(f), flip=f.x>F.drop.x;
       if(w.vip){ wtxt(w.name,f.x,tagY(f.x,yb-w.h-52,w.name.length*9+10),15,'#ffe27a'); }
       else if(f.escort) wtxt('ESCORT',f.x,tagY(f.x,yb-w.h-14,60),12,'#ffe27a',0.9);
       else if(f.muster) wtxt('▲ FOR THE LINE',f.x,tagY(f.x,yb-w.h-14,110),12,'#e8c66a',0.8);
@@ -2916,13 +2940,13 @@ function drawFriends(){
       if(f.rock>0 && !roofs.length && F.wall){}   // (the turret is drawn by wallLedges, rescued or not)
       else if(f.rock>0 && !roofs.length){ ctx.fillStyle=F.time==='blood'?'#1d0605':'#4a4a3a'; ctx.beginPath(); ctx.ellipse(f.x,yb+f.rock*0.5+4,40,f.rock*0.5+6,0,0,6.283); ctx.fill(); spr('boulders',f.x,yb+6,f.rock+14,{a:0.85}); }
       figGlow(f.x,yb,w.h,1); if(objF(f) && !(f.w.vip && atPost(f.x))) helpFlag(f.x,yb,w.h, F.press && f.x-pressX<150);
-      var bob = w.animal?0:Math.max(0,Math.sin(rt*6+f.ph))*3;
-      if(F.water && f.sink>0){ ctx.save(); ctx.beginPath(); ctx.rect(f.x-80,0,160,waterY+2); ctx.clip(); actorSpr(w.art,f.x,yb-bob,w.h,{flip:flip,a:f.cd>0?0.6:1}); ctx.restore(); }
-      else actorSpr(w.art,f.x,yb-bob,w.h,{flip:flip,a:f.cd>0?0.6:1}); }
+      if(!(F.water && f.sink>0)) footShadow(f.x,yb,w.h*(w.animal?0.42:0.3),f.cd>0?0.6:1);
+      if(F.water && f.sink>0){ ctx.save(); ctx.beginPath(); ctx.rect(f.x-80,0,160,waterY+2); ctx.clip(); actorSpr(w.art,f.x,yb,w.h,{flip:flip,a:f.cd>0?0.6:1}); ctx.restore(); }
+      else actorSpr(w.art,f.x,yb,w.h,{flip:flip,a:f.cd>0?0.6:1}); }
     else if(f.st==='fall'){ actorSpr(w.art,f.x,f.y,w.h,{rot:Math.sin(rt*14)*0.5}); }
     else if(f.st==='safe' && f.how==='drop' && depot){ continue; }
-    else if(f.st==='safe' && f.how==='line'){ if(f.fade>0) actorSpr(w.art,f.x+toEnemy()*(1-f.fade)*80,GY(),w.h,{flip:toEnemy()<0,a:clamp(f.fade,0,1)},'walk'); continue; }
-    else if(f.st==='safe' && f.how==='emp'){ actorSpr(w.art,f.x,GY(),w.h,{flip:f.x>WW()/2},'brace'); continue; }
+    else if(f.st==='safe' && f.how==='line'){ if(f.fade>0){ footShadow(f.x+toEnemy()*(1-f.fade)*80,GY(),w.h*0.3,clamp(f.fade,0,1)); } if(f.fade>0) actorSpr(w.art,f.x+toEnemy()*(1-f.fade)*80,GY(),w.h,{flip:toEnemy()<0,a:clamp(f.fade,0,1)},'walk'); continue; }
+    else if(f.st==='safe' && f.how==='emp'){ footShadow(f.x,GY(),w.h*0.3,1); actorSpr(w.art,f.x,GY(),w.h,{flip:f.x>WW()/2},'brace'); continue; }
     else if(f.st==='ride'){ continue; }
     else if(f.st==='safe' && f.how==='drop'){ var sx=f.x; if(F.bridge){ var E=lonEmbBox(); sx=lerp(E.q0+14,E.q1-14,clamp((f.x-(F.drop.x-F.drop.w*0.4))/(F.drop.w*0.8),0,1)); }   // LONDON: render them on the painted quay walk
       actorSpr(w.art,sx,f.y,w.h,{flip:sx>F.drop.x,a:0.95}); }
@@ -2933,6 +2957,7 @@ function drawLegion(){
   for(var i=0;i<legion.length;i++){ var g=legion[i]; if(g.gone) continue; var art=g.k.art, h=g.k.h;
     if(g.climb){ art = GN() ? 'legionary_b' : (Math.floor(g.y/14)%2)?'gnome_climber_a':'gnome_climber_b'; h=86; }
     var y=g.y; if(g.lifting){ y = g.y - (g.y-(P.y+ANCHOR+30))*g.lock*0.85; }
+    if(!g.climb) footShadow(g.x, g.y, h*0.3*(1-0.6*(g.lifting?g.lock:0)), 1-0.7*(g.lifting?g.lock:0));   // 1123: planted on the ground even while the ray lifts them
     actorSpr(art,g.x,y,h,{flip:g.dir<0,rot:g.lifting?Math.sin(rt*9)*0.25*g.lock:0},g.grabbing||g.lifting?'brace':'walk');
     if(g.grabbing && g.grab>0){ var u=g.grab/CAPTURE_TIME; ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(g.x-30,y-h-24,60,8); ctx.fillStyle=u>0.6?'#ff3b2a':'#ffb347'; ctx.fillRect(g.x-30,y-h-24,60*u,8);
       txt('!',g.x,y-h-38,22,'#ff5a3a','center','bold',Math.floor(rt*8)%2?1:0.4); }
@@ -2979,13 +3004,13 @@ function drawHazards(){
         ctx.beginPath(); ctx.moveTo(h.x,h.y); ctx.lineTo(h.x+dx/L*2200,h.y+dy/L*2200); ctx.stroke(); ctx.restore();
         var gg=ctx.createRadialGradient(h.x,h.y,2,h.x,h.y,70); gg.addColorStop(0,'rgba(255,80,50,'+(0.3+0.5*lp)+')'); gg.addColorStop(1,'rgba(255,80,50,0)'); ctx.fillStyle=gg; ctx.fillRect(h.x-70,h.y-70,140,140); } }
     else if(h.k==='thopter'){
-      if(h.st==='warn'){ var p=clamp(h.t/THOPTER_TELE,0,1), on=Math.floor(rt*(6+14*p))%2?1:0.35, ex=camX+(h.dir>0?30:LW-30);
-        ctx.save(); ctx.globalAlpha=0.14+0.22*p; ctx.fillStyle='#ff3b2a'; ctx.fillRect(camX,h.y-THOPTER_HH,LW,THOPTER_HH*2);
+      if(h.st==='warn'){ var p=clamp(h.t/THOPTER_TELE,0,1), on=Math.floor(rt*(6+14*p))%2?1:0.35, ex=camW+(h.dir>0?30:LW-30);
+        ctx.save(); ctx.globalAlpha=0.14+0.22*p; ctx.fillStyle='#ff3b2a'; ctx.fillRect(camW,h.y-THOPTER_HH,LW,THOPTER_HH*2);
         ctx.globalAlpha=on; ctx.fillStyle='#ff4a3a'; for(var c=0;c<3;c++){ var cx=ex+h.dir*c*20; ctx.beginPath(); ctx.moveTo(cx,h.y-16); ctx.lineTo(cx+h.dir*14,h.y); ctx.lineTo(cx,h.y+16); ctx.closePath(); ctx.fill(); }
         ctx.restore(); txt('THEY\'RE FLYING OUR OWN BIRDS', ex+h.dir*80, h.y-30, 15, '#ffb3a6', h.dir>0?'left':'right', 'bold', on); }
       else { var sc=h.sc||1, a=h.st==='retreat'?clamp(1-h.t/2.2,0,1):1; sprC(h.art,h.x,h.y,250*sc,{flip:h.dir<0,a:a,rot:h.st==='retreat'?-0.25*h.dir:0}); } }
     else if(h.k==='glider'){
-      if(h.st==='warn'){ var on=Math.floor(rt*14)%2?1:0.4, ex=camX+(h.dir>0?30:LW-30); ctx.save(); ctx.globalAlpha=on; ctx.fillStyle='#ffb347';
+      if(h.st==='warn'){ var on=Math.floor(rt*14)%2?1:0.4, ex=camW+(h.dir>0?30:LW-30); ctx.save(); ctx.globalAlpha=on; ctx.fillStyle='#ffb347';
         ctx.beginPath(); ctx.moveTo(ex,h.y-12); ctx.lineTo(ex+h.dir*16,h.y); ctx.lineTo(ex,h.y+12); ctx.closePath(); ctx.fill(); ctx.restore(); txt('GLIDER',ex+h.dir*26,h.y,13,'#ffd29a',h.dir>0?'left':'right','bold',on); }
       else { var sc=h.sc||1; sprC(h.art,h.x,h.y,130*sc,{flip:h.dir<0,a:h.st==='retreat'?clamp(1-h.t/2,0,1):1}); } }
     else if(h.k==='stone'){
@@ -3035,6 +3060,7 @@ function drawRope(){
   ctx.restore();
 }
 function drawRay(){
+  if(P.raying && !rayWas && state==='play') smear({kind:'beam', x0:P.x, y0:P.y+ANCHOR-4, x1:P.x, y1:GY()+6}); rayWas=!!P.raying;
   if(!P.raying) return; var gy=GY()+6, top=P.y+ANCHOR-4, pulse=0.75+0.25*Math.sin(rt*18);
   var g=ctx.createLinearGradient(0,top,0,gy); g.addColorStop(0,'rgba(255,246,200,'+(0.75*pulse)+')'); g.addColorStop(1,'rgba(255,214,120,'+(0.25*pulse)+')');
   ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(P.x-16,top); ctx.lineTo(P.x+16,top); ctx.lineTo(P.x+RAY_REACH,gy); ctx.lineTo(P.x-RAY_REACH,gy); ctx.closePath(); ctx.fill();
@@ -3055,6 +3081,36 @@ function drawPickups(){ for(var i=0;i<pickups.length;i++){ var pk=pickups[i], y=
   ctx.save(); ctx.globalAlpha=bl; ctx.fillStyle='rgba(232,198,106,0.18)'; ctx.beginPath(); ctx.arc(pk.x,y,46,0,6.283); ctx.fill();
   ctx.fillStyle='#5a3c1c'; ctx.strokeStyle='#e8c66a'; ctx.lineWidth=2; ctx.fillRect(pk.x-24,y-18,48,36); ctx.strokeRect(pk.x-24,y-18,48,36); ctx.restore();
   sprC('ladder',pk.x,y,14,{a:bl,sc:1}); txt('LADDER',pk.x,y-32,13,'#e8c66a','center','bold',bl); } }
+/* ---------- 1123 SMEAR FRAMES: every one-off fast motion gets 2 frames of a stretched, motion-blurred in-between along its travel
+   (the dart, the RAY snap-on, a rescue whipped up the rope, the SCREW deflect, a red hat / legionary knocked down or ray-taken,
+   the ladder crate popping in). Render-only: the sim drops a note (no state, no rng; a no-op headless); the blur is BAKED once
+   per sprite + axis into an offscreen canvas (no per-frame filter), stretched along the direction with the sprite kept upright. */
+var SMEARS=[], SMEAR_BAKE={}, rayWas=false;
+function smear(o){ if(NODE) return; o.f=0; SMEARS.push(o); if(SMEARS.length>24) SMEARS.shift(); }
+function smearKnock(g){ var d=(g.x<P.x?-1:1); smear({n:g.k.art, h:g.k.h, x0:g.x, y0:g.y-g.k.h/2, x1:g.x+d*g.k.h*0.6, y1:g.y-g.k.h*0.22, flip:g.dir<0, rot:d*0.9}); }
+function smearDart(){ var n=GN()?'taken_thopter':'thopter', w=GN()?189:180, v=Math.hypot(P.vx,P.vy)||1, L=Math.min(150,v*0.09);
+  smear({n:n, h:w/ar(n), x0:P.x-P.vx/v*L, y0:P.y-P.vy/v*L, x1:P.x, y1:P.y, flip:P.face>0, under:1}); }
+function smearBake(n,axis){ var key=n+'|'+axis; if(SMEAR_BAKE[key]!==undefined) return SMEAR_BAKE[key]; if(!ok(n)) return null;
+  var im=IMG[n], W=Math.min(220,im.naturalWidth), H=Math.max(1,Math.round(W*im.naturalHeight/im.naturalWidth)), ext=axis==='x'?Math.round(W*0.3):Math.round(H*0.3);
+  var c=document.createElement('canvas'); c.width=W+(axis==='x'?ext*2:0); c.height=H+(axis==='y'?ext*2:0); var x=c.getContext('2d');
+  for(var i=0;i<9;i++){ x.globalAlpha=0.16+0.08*(4-Math.abs(i-4))/4; var o=(i-4)*ext/4; x.drawImage(im, (axis==='x'?ext+o:0), (axis==='y'?ext+o:0), W, H); }   // a 9-tap box blur along the axis, once
+  SMEAR_BAKE[key]={c:c, sx:c.width/W, sy:c.height/H}; return SMEAR_BAKE[key]; }
+function drawSmears(under){
+  for(var i=SMEARS.length-1;i>=0;i--){ var m=SMEARS[i]; if(m.f>=2){ SMEARS.splice(i,1); continue; } if(!!m.under!==!!under) continue;
+    var k=m.f? 0.5 : 1, a=m.f? 0.32 : 0.62, dx=m.x1-m.x0, dy=m.y1-m.y0, dist=Math.hypot(dx,dy)||1, ang=Math.atan2(dy,dx);
+    var cx=lerp(m.x0,m.x1,m.f?0.75:0.5), cy=lerp(m.y0,m.y1,m.f?0.75:0.5);   // frame 2 sits nearer the end of the travel
+    ctx.save();
+    if(m.kind==='bolt'){ ctx.globalCompositeOperation='lighter'; ctx.translate(m.x0,m.y0); ctx.rotate(ang); var len=m.bl*(1.6+1.4*k)+dist;
+      var g=ctx.createLinearGradient(-len,0,10,0); g.addColorStop(0,'rgba(159,224,138,0)'); g.addColorStop(1,'rgba(220,255,190,'+a+')'); ctx.fillStyle=g; ctx.fillRect(-len,-3*k-1,len+10,6*k+2); }
+    else if(m.kind==='beam'){ ctx.globalCompositeOperation='lighter'; var top=m.y0, bot=m.y1, w=m.f?16:6;   // the ray SNAPS on: a thin hot streak the full drop, then it widens into the cone
+      var g=ctx.createLinearGradient(0,top,0,bot); g.addColorStop(0,'rgba(255,250,220,'+(a+0.2)+')'); g.addColorStop(1,'rgba(255,220,140,'+(a*0.4)+')'); ctx.fillStyle=g; ctx.fillRect(m.x0-w/2,top,w,bot-top); }
+    else if(m.kind==='crate'){ ctx.globalAlpha=a; var hh=36+dist*0.5*k; ctx.fillStyle='rgba(232,198,106,0.5)'; ctx.fillRect(cx-22,cy-hh/2,44,hh); ctx.fillStyle='rgba(90,60,28,0.8)'; ctx.fillRect(cx-18,cy-hh/2+4,36,hh-8); }
+    else { var axis=Math.abs(dx)>=Math.abs(dy)?'x':'y', B=smearBake(m.n,axis); if(B){ var h=m.h, w=h*ar(m.n), along=axis==='x'?w:h, st=Math.min(4,1+k*dist/along);   // capped: a long whip reads as a streak, not a column
+      ctx.globalAlpha=a; ctx.translate(cx,cy); if(m.rot) ctx.rotate(m.rot*(m.f?0.8:0.4));
+      if(axis==='x') ctx.scale(st,1-0.1*k); else ctx.scale(1-0.1*k,st); if(m.flip) ctx.scale(-1,1);
+      ctx.drawImage(B.c,-w*B.sx/2,-h*B.sy/2,w*B.sx,h*B.sy); } }
+    ctx.restore(); m.f++; }
+}
 function drawFx(){
   for(var i=0;i<fx.length;i++){ var e=fx[i], p=e.t/e.life, a=1-p;
     if(e.kind==='boom'){ sprC('fireball',e.x,e.y,90+p*60,{a:a}); }
@@ -3098,7 +3154,7 @@ var BATTLE={
                 rows:[ {dy:LON_QUAY-6, h:15, haze:0.45, keep:0.45}, {dy:LON_QUAY+2, h:20, haze:0.30, keep:0.5} ] },   // on the far quay's walk
   forum:      { rows:[ {dy:-196, h:17, haze:0.42, keep:0.55}, {dy:-184, h:24, haze:0.26, keep:0.6} ] },   // the street battle, between and behind the roofs
   docks:      { rows:[ {dy:-140, h:18, haze:0.35, keep:0.55}, {dy:-102, h:25, haze:0.20, keep:0.6} ] },
-  scorpio:    { rows:[ {dy:-140, h:18, haze:0.40, keep:0.55}, {dy:-104, h:25, haze:0.24, keep:0.6} ] },
+  scorpio:    { rows:[ {dy:-120, h:18, haze:0.40, keep:0.55}, {dy:-104, h:25, haze:0.24, keep:0.6} ] },
   york:       { rows:[ {dy:-140, h:18, haze:0.42, keep:0.55}, {dy:-104, h:25, haze:0.26, keep:0.6} ] },
   // THE WALL ARC (Claude 1113)
   dere:       { rows:[ {dy:-150, h:17, haze:0.40, keep:0.55}, {dy:-112, h:24, haze:0.24, keep:0.6} ] },
@@ -3129,7 +3185,7 @@ function drawBattle(){
   var fx0=btFront, romeRight=ft.romeRight, hz=SKIES[F.time].haze, base = B.foot ? LH : GY();
   for(var ri=0; ri<B.rows.length; ri++){
     var R=B.rows[ri], h=R.h, yb=base+R.dy, slot=h*0.62, clash=h*1.9, fr=fx0 + (ri?0:-h*0.6)*(romeRight?-1:1);   // the far row's front lags: depth
-    var n0=Math.floor((camX-slot*2)/slot), n1=Math.ceil((camX+LW+slot*2)/slot);
+    var n0=Math.floor((camW-slot*2)/slot), n1=Math.ceil((camW+LW+slot*2)/slot);
     for(var n=n0; n<=n1; n++){
       var hs=n*7919+ri*104729+(F.key.length*31), j=bh(hs), x=n*slot+(j-0.5)*slot*0.5, d=x-fr, ad=Math.abs(d);
       var romeSide = romeRight ? d>0 : d<0, dirToFront = d<0 ? 1 : -1;
@@ -3151,6 +3207,7 @@ function drawBattle(){
       if(a<=0.01) continue;
       var img = tinted(art, hz, R.haze, false); if(!img) continue;
       var w=hh*(img.width/img.height);
+      ctx.save(); ctx.globalAlpha=a*0.26*(1-R.haze); ctx.fillStyle='#000'; ctx.beginPath(); ctx.ellipse(xx,yb,hh*0.32,Math.max(1.2,hh*0.06),0,0,6.283); ctx.fill(); ctx.restore();   // 1123: planted on their band
       ctx.save(); ctx.globalAlpha=a; ctx.translate(xx, yb-hh/2); if(rot) ctx.rotate(rot); if(dirToFront<0) ctx.scale(-1,1);
       ctx.drawImage(img,-w/2,-hh/2,w,hh); ctx.restore();
       if(wiz && art==='gn_wizard_cast'){ var wp=0.5+0.5*Math.sin(rt*(2.2+bh(hs+15))+hs);   // the staff orb breathes (render-only glow over the lit relief)
@@ -3299,12 +3356,13 @@ function drawWarBar(){
 
 function drawScene(dt){
   drift += (state==='play'?dt:dt*0.5)*1.0;
+  camW=camRenderTick(dt);   // 1123: ONE camera for every layer this frame (was: the world on Math.round(camX), the strips on camX + a clock)
   drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i], GY());
-  WL.length=0; ctx.save(); ctx.translate(-Math.round(camX),0);   // THE WORLD (wide fronts scroll; the sky and far strips parallax above)
+  WL.length=0; ctx.save(); ctx.translate(-camW,0);   // THE WORLD (wide fronts scroll; the sky and far strips parallax above) — sub-pixel, same value as the strips
   if(F.key==='dover'){ spr('chalk_boulder',420,GY()+14,34,{}); spr('chalk_boulder',1150,GY()+12,30,{flip:true}); }
-  if(!F.wall){ drawBattle(); drawWar(); } drawGround(); ctx.save(); ctx.translate(Math.round(camX),0); drawAmbient(); drawAtmos(); ctx.restore();
+  if(!F.wall){ drawBattle(); drawWar(); } drawGround(); ctx.save(); ctx.translate(camW,0); drawAmbient(); drawAtmos(); ctx.restore();
   drawRoofs(); drawDrop(); drawEmps(); drawSiege(); drawGear(); drawPress(); drawFriends(); drawLegion(); drawWater();
-  drawRay(); drawHazards(); drawShots(); drawPickups(); drawRope(); drawPlayer(); drawFx();
+  drawRay(); drawHazards(); drawShots(); drawPickups(); drawRope(); drawSmears(true); drawPlayer(); drawFx(); drawSmears(false);
   ctx.restore();
   drawBlue();
 }
@@ -3339,7 +3397,7 @@ function drawEmps(){
 function drawMinimap(){
   if(WW()<=LW) return; var mw=620, x0=LW/2-mw/2, y0=LH-74, mh=26, k=mw/WW(), m=function(x){ return x0+x*k; };
   panel(x0-10,y0-8,mw+20,mh+16,0.55);
-  ctx.fillStyle='rgba(255,255,255,0.10)'; ctx.fillRect(m(camX),y0,LW*k,mh); ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=1; ctx.strokeRect(m(camX),y0,LW*k,mh);
+  ctx.fillStyle='rgba(255,255,255,0.10)'; ctx.fillRect(m(camW),y0,LW*k,mh); ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=1; ctx.strokeRect(m(camW),y0,LW*k,mh);
   if(war){ var rr_=warRomeRight(), sx=m(warX()); ctx.fillStyle='rgba(201,162,74,0.35)'; if(rr_) ctx.fillRect(sx,y0+mh-5,x0+mw-sx,5); else ctx.fillRect(x0,y0+mh-5,sx-x0,5);
     ctx.fillStyle='rgba(176,40,28,0.45)'; if(rr_) ctx.fillRect(x0,y0+mh-5,sx-x0,5); else ctx.fillRect(sx,y0+mh-5,x0+mw-sx,5);
     ctx.fillStyle=war.surge?'#ff8a5a':'#ffe9a8'; ctx.fillRect(sx-1.5,y0-3,3,mh+6); }
@@ -3356,7 +3414,7 @@ function drawMinimap(){
   var v=vipF(); if(F.escort && v && v.st==='ground') marks.push([v.x, v.w.name, '#ffe27a']);
   if(F.muster){ var mt=friends.some(function(f){ return f.muster && f.st==='ground'; }); if(mt) marks.push([F.muster.x,'TROOPS','#e8c66a']); }
   if(F.supply){ if(carryingAmmo()){ var nd_=supplyNeedy(); if(nd_) marks.push([nd_.x,'HUNGRIEST SCORPIO','#ffe27a']); } else if(friends.some(function(f){ return f.ammo && f.st==='ground'; })) marks.push([F.supply.armoury.x,'BOLTS','#ffe27a']); }
-  var ay=GY()-260; for(var j=0;j<marks.length;j++){ var mx=marks[j][0]-camX; if(mx>20 && mx<LW-20) continue; var left=mx<=20, ex=left?24:LW-24, yy=ay+j*34, dist=Math.round(Math.abs(marks[j][0]-P.x)/10)*10;
+  var ay=GY()-260; for(var j=0;j<marks.length;j++){ var mx=marks[j][0]-camW; if(mx>20 && mx<LW-20) continue; var left=mx<=20, ex=left?24:LW-24, yy=ay+j*34, dist=Math.round(Math.abs(marks[j][0]-P.x)/10)*10;
     ctx.fillStyle=marks[j][2]; ctx.beginPath(); if(left){ ctx.moveTo(ex-14,yy); ctx.lineTo(ex+4,yy-11); ctx.lineTo(ex+4,yy+11); } else { ctx.moveTo(ex+14,yy); ctx.lineTo(ex-4,yy-11); ctx.lineTo(ex-4,yy+11); } ctx.closePath(); ctx.fill();
     txt(marks[j][1]+' · '+dist+' paces', left?ex+12:ex-12, yy, 12, marks[j][2], left?'left':'right', 'bold', 0.9); }
 }
@@ -3561,7 +3619,10 @@ function howtoCard(a){
   for(var i=0;i<L.length;i++){ txt(L[i][0],LW/2-470,240+i*58,20,PARCH,'left','bold',a); txt(L[i][1],LW/2-170,240+i*58,18,'#d8ccb0','left','',a); }
   txt('Every danger warns you first: a dotted line turns RED · a red lane flashes · a ring marks where the stone lands.',LW/2,720,15,'#bfa77a','center','italic',a);
 }
-function backdrop(idx,dt){ var keep=F, kc=camX; F=FRONTS[idx]; camX=0; drift+=dt*0.6; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); drawGround(); F=keep; camX=kc; }
+// the title / how-to / select flyover: the slow drift IS a camera (14 px per drift unit, the old ground rate), so the ground, the
+// locked band and every parallax strip move as one rig (1123: they each ran their own clock before)
+function backdrop(idx,dt){ var keep=F; F=FRONTS[idx]; drift+=dt*0.6; camW=drift*14; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY());
+  ctx.save(); ctx.translate(-camW,0); drawGround(); ctx.restore(); F=keep; }
 var titleFly=0;
 function drawTitle(dt){
   titleFly+=dt; backdrop(2,dt);
@@ -3602,11 +3663,17 @@ function drawSelect(){
 }
 // THE LOADING SEQUENCE + OBJECTIVES (Joe 1117; the data + the rules readers sit with LOAD above). state stays 'brief' throughout.
 // THE LOADING SEQUENCE (Joe 1117 + 1117b): the POD shots (SEQ, built by buildPod) › THE RULES › OBJECTIVES (holds). state stays 'brief'.
+// 1123 THE LANDSCAPE MOVE (the B-roll stinger / the V.O. 'world' shot): SLOWER and eased — a third of the front's travel (was 80%,
+// linear, ~180 px/s), an ease-in-out over the whole shot, a gentler push. It zooms about the GROUND LINE so feet never ride up or
+// down the frame, and the battle line is in it, standing on its band (one transform for the set + the people).
+var PAN_SPAN=0.34, PAN_ZOOM=0.05;
+function worldMove(pan){ var e=easeIO(pan), mx=Math.max(0,WW()-LW); return { cam:clamp(lerp(0.5-PAN_SPAN/2,0.5+PAN_SPAN/2,F.mir?1-e:e)*mx,0,mx), z:1+PAN_ZOOM*e, oy:GY() }; }
 function drawWorld(dt, pan){   // the front's own set (the stinger/reenactment pans it; the rules + objectives hold it)
-  var kc=camX; ctx.save();
-  if(pan!=null){ var z=1.0+0.12*pan; camX=clamp(lerp(0.1,0.9,F.mir?1-pan:pan)*(WW()-LW),0,Math.max(0,WW()-LW)); ctx.translate(LW/2,LH*0.6); ctx.scale(z,z); ctx.translate(-LW/2,-LH*0.6); }
-  drift+=dt*0.5; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY()); ctx.save(); ctx.translate(-camX,0); drawGround(); ctx.restore();
-  ctx.restore(); camX=kc; }
+  ctx.save(); camW=camX;
+  if(pan!=null){ var M=worldMove(pan); camW=M.cam; ctx.translate(LW/2,M.oy); ctx.scale(M.z,M.z); ctx.translate(-LW/2,-M.oy); }
+  drift+=dt*0.5; drawSky(F.time); var Ls=LAYERS[F.key]||[]; for(var i=0;i<Ls.length;i++) drawStrip(Ls[i],GY());
+  ctx.save(); ctx.translate(-camW,0); if(!F.wall) drawBattle(); drawGround(); ctx.restore();
+  ctx.restore(); if(state!=='play') camSnap=true; }
 function drawBrief(dt){
   if(ldFreeze) dt=0;   // the shot rig (&load=K&lt=S) holds the frame
   ldT+=dt; ldAll+=dt;
@@ -4482,6 +4549,36 @@ function selfTest(){
   okk('[pod] Uffington cold-opens on the Wolfe V.O.; the traitor stays UNNAMED', vk[0]==='vo' && !/traitor is|betrayed by [A-Z]/i.test(JSON.stringify(LOAD.vale)), vk.join('/'));
   var onScr=''; [FRONTS,PHASES,LOAD].forEach(function(o){ try{ var seen=[]; onScr+=JSON.stringify(o,function(k,v){ if(v&&typeof v==='object'){ if(seen.indexOf(v)>=0) return; seen.push(v); } return v; }); }catch(e){ onScr+='!ERR'; } });
   okk('[copy] no on-screen GRAPPLE or JINK (the web verbs are THE RAY / THE ROPE)', onScr.length>1000 && !/GRAPPL|JINK/i.test(onScr), (onScr.match(/.{30}(GRAPPL|JINK).{30}/i)||[''])[0]);
+  // ---- 1123 THE FLOATING FIX: feet on the ground, layers on one camera, through every move + transition ----
+  (function(){
+    var badFeet=[], badZoom=[], n0=0;
+    FRONTS.forEach(function(Fr,i){ startFront(i,{go:true,seed:31+i}); autopilot=makePilot();
+      for(var k=0;k<60*4 && state==='play';k++){ hp=HULL; update(dt);   // a live camera move: the craft flies, the camera follows
+        if(k%15) continue;
+        friends.forEach(function(f){ if(f.st!=='ground') return; n0++; if(Math.abs(standY(f)-f.y)>0.5 || Math.abs(standY(f)-(GY()-(f.rock||0)))>0.5) badFeet.push(Fr.key+':'+f.who+' '+standY(f).toFixed(1)+' vs '+f.y.toFixed(1)); });
+        legion.forEach(function(g){ if(g.gone||g.climb||g.lifting) return; n0++; if(Math.abs(g.y-GY())>0.5) badFeet.push(Fr.key+':'+g.kind+' '+g.y.toFixed(1)); }); }
+      autopilot=null;
+      for(var u=0;u<=1.0001;u+=0.125){ var M=worldMove(u), sy=function(y){ return M.oy+(y-M.oy)*M.z; };   // the B-roll landscape move (the zoom + pan)
+        if(Math.abs(sy(GY())-GY())>0.01) badZoom.push(Fr.key+' ground '+sy(GY()).toFixed(2)+' @'+u);
+        friends.forEach(function(f){ if(f.st==='ground' && Math.abs(sy(standY(f))-sy(GY()-(f.rock||0)))>0.01) badZoom.push(Fr.key+':'+f.who+' @'+u); }); } });
+    okk('[float] every standing figure is drawn from its stand surface, frame by frame through 4 s of live camera moves on every front (foot y = ground y)', !badFeet.length && n0>500, n0+' feet checked · '+badFeet.slice(0,3).join(' | '));
+    okk('[float] the landscape move zooms about the GROUND LINE: the ground and every standing foot hold their screen y through the whole push', !badZoom.length, badZoom.slice(0,3).join(' | '));
+    var badBand=[];
+    FRONTS.forEach(function(Fr){ var B=BATTLE[Fr.key]; if(!B||B.foot) return; var Ls=LAYERS[Fr.key]||[];
+      B.rows.forEach(function(Rw){ var fy=Fr.gy+Rw.dy, under=null; Ls.forEach(function(L){ var sp=L.fn==='londinium'?[Fr.gy+LON_BANK-LON_NEAR_H*LON_FB_BASE, Fr.gy+LON_BANK]:L.fn==='thamesBack'?[Fr.gy+LON_BANK-4,Fr.gy]:[Fr.gy+L.dy-L.h, Fr.gy+L.dy];
+        if(fy>sp[0] && fy<=sp[1]+0.5) under=L; }); if(under && layerPar(under)!==1) badBand.push(Fr.key+' row '+Rw.dy+' on '+(under.n||under.fn)+' x'+layerPar(under).toFixed(2)); }); });
+    okk('[float] the battle rows ride the band they stand on (it moves 1:1 with the world, the ground and the play)', !badBand.length, badBand.join(' | '));
+    var kw=camW, kd=drift, drifted=[]; camW=437.25; var o1=FRONTS.map(function(Fr){ return (LAYERS[Fr.key]||[]).map(function(L){ return layerOff(L,1000); }).join(',')+'|'+tileX0(camW,612); });
+    drift+=123.4; var o2=FRONTS.map(function(Fr){ return (LAYERS[Fr.key]||[]).map(function(L){ return layerOff(L,1000); }).join(',')+'|'+tileX0(camW,612); });
+    o1.forEach(function(v,j){ if(v!==o2[j]) drifted.push(FRONTS[j].key); }); camW=kw; drift=kd;
+    okk('[float] no landscape layer or ground tile runs on its own clock (offsets are a function of the camera only)', !drifted.length, drifted.join(','));
+    startFront(0,{go:true,seed:3}); camSnap=true; camX=0; camRenderTick(1/60); camX=WW()-LW; P.x=1000; var mono=true, over=0, pk=0, prev=camR;
+    for(var k=0;k<60*4;k++){ camRenderTick(1/60); if(camR<prev-1e-6) mono=false; over=Math.max(over,camR-camX); pk=Math.max(pk,(camR-prev)*60); prev=camR; }
+    okk('[float] the render camera eases (critically damped): one direction, no overshoot, settles — the level moves slower than the sim camera', mono && over<0.5 && Math.abs(camR-camX)<4 && pk<WW(), 'peak '+Math.round(pk)+' px/s · left '+(camX-camR).toFixed(1)+' px');
+    var sp=[], lastC=null; for(var k=0;k<=240;k++){ var c=worldMove(k/240).cam; if(lastC!=null) sp.push(Math.abs(c-lastC)*60); lastC=c; }   // the stinger over a 4 s shot
+    var spk=Math.max.apply(null,sp);
+    okk('[float] the B-roll landscape move is slow and eased (≤ 120 px/s at 4 s, ~0 at both ends)', spk<=120 && sp[0]<4 && sp[sp.length-1]<4, 'peak '+Math.round(spk)+' px/s · ends '+sp[0].toFixed(2)+' / '+sp[sp.length-1].toFixed(2));
+  })();
   campaign=false; state='title';
 
   var pass=R.every(function(r){return r.ok;});
