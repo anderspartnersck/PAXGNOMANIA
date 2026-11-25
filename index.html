@@ -82,7 +82,7 @@ var ART={
   thopter:'art/thopter.png', thopter_spin_0:'art/thopter_spin_0.png', thopter_spin_1:'art/thopter_spin_1.png',
   thopter_spin_2:'art/thopter_spin_2.png', thopter_spin_3:'art/thopter_spin_3.png', thopter_spin_4:'art/thopter_spin_4.png',
   thopter_spin_5:'art/thopter_spin_5.png', screw_rotor:'art/screw_rotor.png',
-  rope:'art/rope.png', ladder:'art/ladder.png',
+  rope:'art/rope.png', ladder:'art/ladder.png', ladder_crate:'art/ladder_crate.png',   // 1124 pc PAX-3585: the roped plank crate (Cycles, painted over)
   friend_hang:'art/friend_hang.png', friend_stand:'art/friend_stand.png', friend_climb_a:'art/friend_climb_a.png', friend_climb_b:'art/friend_climb_b.png',
   gnome_engineer:'art/gnome_engineer.png', villager_mother:'art/villager_mother.png', villager_hood:'art/villager_hood.png',
   villager_man:'art/villager_man.png', villager_elder:'art/villager_elder.png', villager_runner:'art/villager_runner.png',
@@ -458,7 +458,7 @@ var FRONTS=[
     newThing:'THE AMBUSH — the host is already on the camp, out of the EAST. Red hats HUNT the stranded on open ground; the catapult, the ballista and the cart hold them while they hack through. THE RAY lifts them off.' /* DRAFT */,
     barks:['FROM THE EAST! THE FORT\'S NOT UP — COVER THE LINE!','CAUGHT IN THE OPEN UNDER THAT BLASTED HORSE — FLY!','NO WALLS, NO DITCH, NO TIME! ROPE THEM OFF THE CAMP!' /* 1117b: was GRAPPLE (no such verb on web) */],
     subs:['The chalk horse has watched this hill a thousand years. It is watching now.','Survey stakes. Half a ditch. No wall. And the ground to the east is MOVING.',
-          'The legion mustered to BUILD a fort — not to fight for their lives in the open.','DR. WOLFE: \'They struck before the wall. They struck what was not yet NAMED.\''],
+          'The legion mustered to BUILD a fort — not to fight for their lives in the open.','H. WOLFE: \'They struck before the wall. They struck what was not yet NAMED.\''],
     endAll:'THE CAMP HELD.', endHorn:'The legion lives to raise the wall. Barely.',
     friends:[{x:330,who:'groma'},{x:450,who:'leg_camp'},{x:575,who:'sack'},{x:720,who:'leg_a'},{x:850,who:'logs'},{x:990,who:'signifer'},{x:1110,who:'hammer'}],
     need:5, drop:{x:150,w:230,label:'THE FORT LINE' /* DRAFT */},
@@ -483,7 +483,7 @@ var FRONTS=[
     subs:['London was calling — a signal-fire relay screaming north that the south had fallen, and the city was next.',
           'Panic, not battle. The bridge is choked. The press is coming up the deck.' /* DRAFT */,
           'DAVIUS: \'Never liked the city. Too many people, not enough goats.\'',
-          'DR. WOLFE: \'A bridge is a road with nowhere to run. They built a whole city at the end of one. Ask yourself why.\'' /* DRAFT: the new Wolfe beat */],
+          'H. WOLFE: \'A bridge is a road with nowhere to run. They built a whole city at the end of one. Ask yourself why.\'' /* DRAFT: the new Wolfe beat */],
     endAll:'THE BRIDGE IS CLEAR.' /* DRAFT */, endHorn:'Londinium has its people. Next, it will want its river.' /* DRAFT */,
     friends:[{x:285,who:'c_bundle'},{x:368,who:'c_old'},{x:452,who:'c_tool'},{x:535,who:'mother'},{x:618,who:'c_child'},{x:700,who:'c_brown'},
              {x:783,who:'c_eng'},{x:866,who:'c_youth'},{x:950,who:'c_basket'},{x:1033,who:'c_scribe'},{x:1116,who:'c_woman'},{x:1200,who:'man'}],
@@ -507,7 +507,7 @@ var FRONTS=[
     newThing:'ROOFTOPS — hover HIGHER to reach them. A roof that falls behind the red hats\' line SMOKES, then BURNS. Ray the SIEGE TOWER and the RAM off the line before they shove it over the roofs. GLIDERS weave in.' /* DRAFT */,
     barks:['THEY\'RE ON THE ROOFS — GET HIGH, GET THEM OFF!' /* DRAFT */,'A TOWER ON THE LINE! LIFT IT BEFORE IT PUSHES US BACK!' /* DRAFT */,'THE ROOFS ARE SMOKING ON THEIR SIDE — CLEAR THOSE FIRST!' /* DRAFT */],
     subs:['London Proper: the forum, the basilica, and a street battle in between.' /* DRAFT */,'Every roof behind the red hats\' line gets a fire pot.' /* DRAFT */,
-          'DR. WOLFE: \'They say Londinium burned in a rebellion. Which one? There were SO many.\'' /* DRAFT */],
+          'H. WOLFE: \'They say Londinium burned in a rebellion. Which one? There were SO many.\'' /* DRAFT */],
     endAll:'THE ROOFS ARE CLEAR.' /* DRAFT */, endHorn:'The basilica stands. Londinium keeps its forum — for tonight.' /* DRAFT */,
     roofs:[{x:250,w:200,h:150},{x:525,w:200,h:112},{x:800,w:200,h:176},{x:1075,w:210,h:126}],
     friends:[{x:195,who:'c_bundle',rock:150},{x:255,who:'c_old',rock:150},{x:315,who:'c_scribe',rock:150},{x:490,who:'mother',rock:112},{x:565,who:'c_tool',rock:112},
@@ -601,7 +601,7 @@ var FRONTS=[
     wolfe:'"Dere Street. A road so straight you could see the war coming for three days. They saw it. They came ANYWAY."' /* DRAFT */,
     newThing:'TOTAL WAR — the farms burn behind the red hats\' line: get the roofs nearest the seam first. CATAPULT STONES and GLIDERS over the road. Fresh cohorts muster at the baggage train: drop them on the line.' /* DRAFT */,
     barks:['THE FARMS ARE GOING UP — GET THEM OFF THE ROOFS!' /* DRAFT */,'THE COLUMN NEEDS MEN ON THE LINE — FLY THE COHORTS UP!' /* DRAFT */,'STONES ON THE ROAD! OUT OF THE RING!' /* DRAFT */],
-    subs:['Dere Street: the road from Eboracum to the Wall. Every farm on it is burning.' /* DRAFT */,'DR. WOLFE: \'They called it total war. The farmers called it Thursday.\'' /* DRAFT */],
+    subs:['Dere Street: the road from Eboracum to the Wall. Every farm on it is burning.' /* DRAFT */,'H. WOLFE: \'They called it total war. The farmers called it Thursday.\'' /* DRAFT */],
     endAll:'THE ROAD IS OPEN.' /* DRAFT */, endHorn:'The column marches on. Behind it, the smoke.' /* DRAFT */,
     roofs:[{x:820,w:210,h:120},{x:1260,w:200,h:150},{x:1700,w:220,h:110},{x:2150,w:200,h:140},{x:2620,w:200,h:120}],
     friends:[{x:780,who:'mother',rock:120},{x:860,who:'c_child',rock:120},{x:1220,who:'man',rock:150},{x:1300,who:'elder',rock:150},
@@ -661,7 +661,7 @@ var FRONTS=[
     wolfe:'"They built a wall on top of a cliff. The cliff was ALREADY a wall. They built a wall on a wall. Ask yourself who that was for."' /* DRAFT */,
     newThing:'THE CRAGS — the crews are on the ledges, HIGH: hover higher to reach them, and mind THE BLUE. Ladders up the face all along the line; BOLTS from the foot; GLIDERS off the cliffs.' /* DRAFT */,
     barks:['THEY\'RE ON THE LEDGES — GET HIGH, NOT TOO HIGH!' /* DRAFT */,'LADDERS ON THE CRAGS — LIFT THE CLIMBERS!' /* DRAFT */,'BOLTS FROM THE FOOT OF THE CLIFF!' /* DRAFT */],
-    subs:['Vercovicium: the fort on the cliffs.' /* DRAFT */,'DR. WOLFE: \'The highest fort on the Wall. Coincidence? Everything up here is a coincidence. That is what makes it SUSPICIOUS.\'' /* DRAFT */],
+    subs:['Vercovicium: the fort on the cliffs.' /* DRAFT */,'H. WOLFE: \'The highest fort on the Wall. Coincidence? Everything up here is a coincidence. That is what makes it SUSPICIOUS.\'' /* DRAFT */],
     endAll:'THE CRAGS ARE CLEAR.' /* DRAFT */, endHorn:'The crews are down. The cliffs are the red hats\' problem now.' /* DRAFT */,
     friends:[{x:420,who:'leg_a',rock:60},{x:640,who:'cornicen',rock:120},{x:900,who:'leg_c',rock:160},{x:1150,who:'leg_b',rock:40},{x:1400,who:'signifer',rock:140},
              {x:1650,who:'leg_a',rock:90},{x:1900,who:'engineer'},{x:2150,who:'leg_b',rock:170},{x:2400,who:'leg_c',rock:70}],
@@ -1965,9 +1965,9 @@ function loseFriend(f,how){ if(f.st==='safe'||f.st==='lost') return;
   flash(how==='raided'?'THE RED HATS RAIDED '+depotNow()+' — ONE TAKEN': how==='burned'?'THE ROOF WENT UP — ONE LOST': how==='captured'?'THE LEGION TOOK ONE OF OURS': how==='drowned'?'THE WASH TOOK ONE': how==='swept'?(F.press&&F.press.fire?'THE FIRE PUT ONE IN THE RIVER':'THE PRESS PUT ONE IN THE RIVER'):'LOST IN THE FALL','#ff8a5a',1.2); }
 /* ---------- THE LORE — Hadrian / Davius / Dr. H. Wolfe (Joe 1112: ALL NEW COPY HERE IS DRAFT — Cunk-on-History deadpan) ---------- */
 var SPK={ davius:{name:'DAVIUS DAVUS OF EBORACUM', p:'davius_4', fx:0.585, fy:0.33, z:0.30},
-          wolfe:{name:'DR. H. WOLFE', p:'wolfe_1', fx:0.47, fy:0.33, z:0.32},
+          wolfe:{name:'H. WOLFE', p:'wolfe_1', fx:0.47, fy:0.33, z:0.32},
           // Joe 1112: Hadrian never speaks. When someone talks ABOUT him the card cuts away to his marble BUST (b-roll).
-          onHadrian:{name:'DR. H. WOLFE, ON HADRIAN', p:'wolfe_1', fx:0.925, fy:0.13, z:0.2, bust:true},
+          onHadrian:{name:'H. WOLFE, ON HADRIAN', p:'wolfe_1', fx:0.925, fy:0.13, z:0.2, bust:true},
           // 1113b — THE ANTONINE WALL: Joe asked for Hadrian's own lament. He speaks ONLY here, and the card is still his BUST, never a face.
           hadrian:{name:'HADRIAN, ON THE ANTONINE WALL' /* DRAFT */, p:'wolfe_1', fx:0.925, fy:0.13, z:0.2, bust:true} };
 var HADRIAN_BUST='hadrian_bust';   // 1117b: the TruthJunket kit's marble bust b-roll landed (3D PIPELINE games/truthjunket/renders/broll/bust_front_museum_16x9)
@@ -2016,7 +2016,7 @@ function frontLore(){ return GN() ? GN_LORE[fi%GN_LORE.length] : FRONT_LORE[F.ke
    &go skips the lot (the test rig); a RETRY never replays it. &load=K opens on beat K (0–4, the shot rig), &lt=S S s in.
    w: Wolfe's lines AFTER the front's own wolfe quote · wp: his frame · d: Davius's line · dp: his frame · s: the narrator
    stinger · rule: the special, one line. EVERY LINE IN LOAD IS DRAFT copy for Joe (Q1170–1179). On screen he is
-   "H. WOLFE" as Joe wrote it (Q1171: the rest of the game says DR. H. WOLFE). */
+   "H. WOLFE" as Joe wrote it (Q1171; 1124 pc PAX-A4: the whole web game now says H. WOLFE). */
 var LOAD={
   dover:{ wp:'wolfe_1', dp:'davius_1',
     w:['"Dover. The front door of Britannia. And somebody left it OPEN."' /* DRAFT */],
@@ -2191,7 +2191,7 @@ function buildPod(){
 }
 var loadQ=0, LOAD_MIN=1.0, LOAD_MAXWAIT=6.0, LOAD_FADE=0.45;   // 1117b: the beats are the per-front SEQ (buildPod), not a fixed list
 var ldK=0, ldT=0, ldAll=0, ldFreeze=false, ldMusOk=true, ldWolfe=[];
-function wolfeName(){ return 'H. WOLFE'; }   // Q1171: Joe wrote "H. Wolfe"; the attract + barks still say DR. H. WOLFE
+function wolfeName(){ return 'H. WOLFE'; }   // Q1171 / 1124 pc PAX-A4: Joe wrote "H. Wolfe" - every on-screen credit, bark + sub now says H. WOLFE
 function lineDur(t){ return clamp(1.7+String(t).length*0.045, 2.4, 5.2); }
 function loadStart(){   // called by startFront when the briefing sequence will play
   var L=LOAD[F.key]||{}; ldK=0; ldT=0; ldAll=0; ldFreeze=false;
@@ -3104,14 +3104,17 @@ function drawPlayer(){
 }
 function drawPickups(){ for(var i=0;i<pickups.length;i++){ var pk=pickups[i], y=pk.y+Math.sin(rt*2.4+i)*6, bl=pk.ttl<3?(Math.floor(rt*8)%2?0.35:1):1;
   ctx.save(); ctx.globalAlpha=bl; ctx.fillStyle='rgba(232,198,106,0.18)'; ctx.beginPath(); ctx.arc(pk.x,y,46,0,6.283); ctx.fill();
-  ctx.fillStyle='#5a3c1c'; ctx.strokeStyle='#e8c66a'; ctx.lineWidth=2; ctx.fillRect(pk.x-24,y-18,48,36); ctx.strokeRect(pk.x-24,y-18,48,36); ctx.restore();
+  if(ok('ladder_crate')) ctx.drawImage(IMG.ladder_crate,pk.x-24,y-18,48,48/ar('ladder_crate'));   // PAX-3585: the crate sprite (same 48 px footprint)
+  else { ctx.fillStyle='#5a3c1c'; ctx.strokeStyle='#e8c66a'; ctx.lineWidth=2; ctx.fillRect(pk.x-24,y-18,48,36); ctx.strokeRect(pk.x-24,y-18,48,36); } ctx.restore();
   sprC('ladder',pk.x,y,14,{a:bl,sc:1}); txt('LADDER',pk.x,y-32,13,'#e8c66a','center','bold',bl); } }
 /* ---------- 1123 SMEAR FRAMES: every one-off fast motion gets 2 frames of a stretched, motion-blurred in-between along its travel
    (the dart, the RAY snap-on, a rescue whipped up the rope, the SCREW deflect, a red hat / legionary knocked down or ray-taken,
    the ladder crate popping in). Render-only: the sim drops a note (no state, no rng; a no-op headless); the blur is BAKED once
    per sprite + axis into an offscreen canvas (no per-frame filter), stretched along the direction with the sprite kept upright. */
 var SMEARS=[], SMEAR_BAKE={}, rayWas=false;
-function smear(o){ if(NODE) return; o.f=0; SMEARS.push(o); if(SMEARS.length>24) SMEARS.shift(); }
+function smear(o){ if(NODE) return; o.f=0;
+  if(o.kind==='crate' && ok('ladder_crate')){ o.kind=undefined; o.n='ladder_crate'; o.h=48/ar('ladder_crate'); }   // PAX-3585: the crate pops in as a baked SPRITE smear (was a stretched box)
+  SMEARS.push(o); if(SMEARS.length>24) SMEARS.shift(); }
 function smearKnock(g){ var d=(g.x<P.x?-1:1); smear({n:g.k.art, h:g.k.h, x0:g.x, y0:g.y-g.k.h/2, x1:g.x+d*g.k.h*0.6, y1:g.y-g.k.h*0.22, flip:g.dir<0, rot:d*0.9}); }
 function smearDart(){ var n=GN()?'taken_thopter':'thopter', w=GN()?189:180, v=Math.hypot(P.vx,P.vy)||1, L=Math.min(150,v*0.09);
   smear({n:n, h:w/ar(n), x0:P.x-P.vx/v*L, y0:P.y-P.vy/v*L, x1:P.x, y1:P.y, flip:P.face>0, under:1}); }
@@ -3524,14 +3527,14 @@ var ATTRACT=[
   {k:'card', d:10, cutOut:true, lines:['FOR HADRIAN THERE WERE NO MORE LANDS TO CONQUER.','I SAW THEN CAESAR GAZE AT THE SKY AND SAY,','WHAT OF THE BLUE, MY FRIEND?']},
   {k:'plate', p:'davius_4', d:6.5, cutIn:true, baked:true, kb:[1.0,0.5,0.62, 1.04,0.52,0.64], sub:'"I KNEW THEN IT WOULD BE TOTAL WAR. FOR BRITANNIA. YEAH."'},
   {k:'plate', p:'pax_gnomania', d:7, kb:[1.0,0.5,0.5, 1.08,0.5,0.48], press:true},
-  {k:'plate', p:'wolfe_1', d:8, kb:[1.05,0.55,0.4, 1.2,0.5,0.42], who:'DR. H. WOLFE', role:'OCCULT ROMAN HISTORY · PETER UNIVERSITY', q:'"Hadrian built a wall. But did he build it... or did it already KNOW?"'},
+  {k:'plate', p:'wolfe_1', d:8, kb:[1.05,0.55,0.4, 1.2,0.5,0.42], who:'H. WOLFE', role:'OCCULT ROMAN HISTORY · PETER UNIVERSITY', q:'"Hadrian built a wall. But did he build it... or did it already KNOW?"'},
   {k:'plate', p:'gnomean_legion', d:9, kb:[1.0,0.5,0.15, 1.06,0.5,0.85]},
   {k:'plate', p:'wall_for_them', d:8, kb:[1.12,0.35,0.4, 1.0,0.5,0.5]},
-  {k:'plate', p:'wolfe_4', d:7, kb:[1.1,0.45,0.45, 1.22,0.55,0.38], who:'DR. H. WOLFE', role:'AUTHOR, "GNOMEAN WARFARE IN LATE ROMAN BRITAIN"', q:'"They had flight in AD 122. We do not. Are we, in fact, going BACKWARDS?"'},
+  {k:'plate', p:'wolfe_4', d:7, kb:[1.1,0.45,0.45, 1.22,0.55,0.38], who:'H. WOLFE', role:'AUTHOR, "GNOMEAN WARFARE IN LATE ROMAN BRITAIN"', q:'"They had flight in AD 122. We do not. Are we, in fact, going BACKWARDS?"'},
   {k:'plate', p:'turning_screw', d:8, kb:[1.0,0.5,0.5, 1.15,0.6,0.42]},
   {k:'demo', d:15},
   {k:'plate', p:'legion_wolfe', d:7, kb:[1.0,0.5,0.5, 1.1,0.42,0.48]},
-  {k:'plate', p:'wolfe_6', d:7, kb:[1.06,0.5,0.4, 1.2,0.5,0.36], who:'DR. H. WOLFE', role:'TRUTHJUNKET TV', q:'"If the machines never existed, then WHO kept the sky safe? Checkmate."'},
+  {k:'plate', p:'wolfe_6', d:7, kb:[1.06,0.5,0.4, 1.2,0.5,0.36], who:'H. WOLFE', role:'TRUTHJUNKET TV', q:'"If the machines never existed, then WHO kept the sky safe? Checkmate."'},
   {k:'plate', p:'pax_gnomania', d:9, kb:[1.0,0.5,0.5, 1.08,0.5,0.48], press:true},
   {k:'howto', d:6, p:'pax_open'}
 ];
@@ -3657,7 +3660,7 @@ function drawTitle(dt){
   for(var i=0;i<MENU.length;i++){ var sel=i===menuI, y=540+i*54; if(sel){ panel(LW/2-260,y-24,520,48,0.65); }
     txt((sel?'▶  ':'')+MENU[i],LW/2,y,sel?28:24,sel?'#fff3c4':'#cdbf9e','center','bold'); }
   txt(TUI?'TAP A LINE TO GO   ·   ‹ BACK  the special':'↑ ↓  choose   ·   SPACE / ENTER  go   ·   ESC  the special',LW/2,LH-40,TUI?20:15,'#bba98a','center','bold',0.85);
-  txt('A CASTLE KILLSCREEN GAME · ANDERS & PARTNERS',LW/2,LH-16,12,'#8a7a5a','center','bold',0.7);
+  txt('Created by Joseph Coleman, Claude, ChatGPT, and Blender · Castle Killscreen · Anders & Partners',LW/2,LH-16,12,'#8a7a5a','center','bold',0.7);
 }
 function drawPause(){ // UI-AUDIT 1110
   ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,LW,LH);
@@ -3832,9 +3835,11 @@ function paper(){ ctx.fillStyle='#f1e4c2'; ctx.fillRect(0,0,LW,LH); if(NODE) ret
   if(PAPERPAT){ ctx.fillStyle=PAPERPAT; ctx.fillRect(0,0,LW,LH); } }
 var FACE_F=[0.5,0.36,1/3.6];   // 1117c: the comic_face_* plates (the face box, comicized at full detail) — eyes 36% down, 3.6 face-widths wide
 function comicCrop(n,mode,pw,ph){ var ek='comic_eyes_'+String(n).replace('comic_',''); if(mode==='eyes' && ok(ek)){ var ei=IMG[ek], ew=ei.naturalWidth, eh=Math.min(ei.naturalHeight, ew*ph/pw); return [0,(ei.naturalHeight-eh)/2,ew,eh,ek]; }   // the EYES strip is its own plate
-  var fk='comic_face_'+String(n).replace('comic_',''); if(mode!=='mid' && ok(fk)){ n=fk; }   // close-ups come off the face plate
+  var wide=mode==='cu' && pw/ph>2.5 && ok(n);   // 1124 pc PAX-A2: the WIDE panel (1520x404) took its 'cu' off the face plate = a ~540 px slice of the
+  // 1254 master upscaled x2 at bake, then x1.4 again on screen (soft). It now crops the FULL-RES plate, at least pw/1.3 source px wide (<= x1.3 on screen)
+  var fk='comic_face_'+String(n).replace('comic_',''); if(mode!=='mid' && !wide && ok(fk)){ n=fk; }   // close-ups come off the face plate
   var im=IMG[n], f=n===fk?FACE_F:(FACE[n]||[0.5,0.4,0.2]); if(!ok(n)) return null; var iw=im.naturalWidth, ih=im.naturalHeight;
-  var k={eyes:2.6,ecu:2.8,cu:3.6,mid:5.6}[mode]||3, sw=Math.min(iw,f[2]*iw*k), sh=sw*ph/pw; if(sh>ih){ sh=ih; sw=sh*pw/ph; }
+  var k={eyes:2.6,ecu:2.8,cu:3.6,mid:5.6}[mode]||3, sw=Math.min(iw,Math.max(f[2]*iw*k, wide?pw/1.3:0)), sh=sw*ph/pw; if(sh>ih){ sh=ih; sw=sh*pw/ph; }
   var cy=f[1]*ih+(mode==='eyes'?-sh*0.06:mode==='ecu'?sh*0.12:mode==='cu'?sh*0.14:sh*0.26); return [clamp(f[0]*iw-sw/2,0,iw-sw), clamp(cy-sh/2,0,ih-sh), sw, sh, n]; }
 function comicPanel(p,R,t,big){ var x=R[0],y=R[1],w=R[2],h=R[3], pop=easeIO(clamp(t/0.38,0,1)); if(t<0) return;   // 1122: eased slide + fade (was a 0.22 s scale pop)
   ctx.save(); ctx.translate(0,(1-pop)*26); ctx.globalAlpha=pop;
@@ -3854,10 +3859,37 @@ function comicPanel(p,R,t,big){ var x=R[0],y=R[1],w=R[2],h=R[3], pop=easeIO(clam
     capR=[x+14,y+14,cw_+28,cl.length*cs*1.3+18];
     ctx.save(); ctx.globalAlpha=a; ctx.fillStyle='#ffe14a'; ctx.strokeStyle='#0c0a0a'; ctx.lineWidth=4; ctx.fillRect(x+14,y+14,cw_+28,cl.length*cs*1.3+18); ctx.strokeRect(x+14,y+14,cw_+28,cl.length*cs*1.3+18); ctx.restore();
     cl.forEach(function(l,i){ txt(l,x+28,y+23+cs*1.3*(i+0.5),cs,'#1a1206','left','bold',a); }); }
-  var sfxX=big?x+w*0.93:x+w*(p.bal?0.76:0.62), sfxY=big?y+h*0.06:y+h*(p.bal?0.24:0.62), sfxK=K*(big?0.85:1), sfxR=null;
-  if(p.sfx){ var sr=64*sfxK*2.1; sfxR=[sfxX-sr*1.38,sfxY-sr*0.98,sr*2.76,sr*1.96]; }   // the burst's box (rotated -0.16 rad, so a little slack)
-  if(p.bal) balloon(p.bal,[x,y,w,h],clamp((t-0.3)/0.25,0,1),K,balFace(cmap),[capR,sfxR],p.pi);
-  if(p.sfx) sfxBurst(p.sfx,sfxX,sfxY,clamp((t-0.1)/0.18,0,1),sfxK); }   // never on the face, never on the balloon
+  var face=balFace(cmap), sp=p.sfx?sfxPlace([x,y,w,h],face,capR,big,!!p.bal,K,!!(cmap&&/^comic_eyes_/.test(cmap.n))):null, sfxR=sp?sp.B:null;
+  if(p.bal) balloon(p.bal,[x,y,w,h],clamp((t-0.3)/0.25,0,1),K,face,[capR,sfxR],p.pi);
+  if(sp) sfxBurst(p.sfx,sp.cx,sp.cy,clamp((t-0.1)/0.18,0,1),sp.k); }   // never on the face, never on the balloon
+// 1124 pc PAX-A3 (Joe: SKRUNCH sat on Davius's mouth): the burst was a FIXED spot (0.62w/0.62h, or 0.76w/0.24h with a balloon),
+// so on every Davius close-up it landed on his face (51 of 85 bursts across the 17 fronts, 34 on the mouth). Now it is PLACED:
+// the old spot first (a clear panel is unchanged), then clear spots, then the panel corners half over the gutter (the classic
+// burst for a full-face ECU), a step smaller if nothing clears. Scored by how much of the burst's box covers the speaker's head
+// INSIDE the panel (the balqa head ellipse), the mouth weighted heavily, the caption box a hard no. The balloon still avoids it.
+function sfxHead(face,R,eyes){ if(eyes) return { cx:R[0]+R[2]/2, cy:R[1]+R[3]*0.5, rx:R[2]*0.30, ry:R[3]*0.55 };
+  return face?{ cx:face.ex, cy:face.ey+0.12*face.fw, rx:0.68*face.fw, ry:0.95*face.fw }:null; }
+function sfxBox(cx,cy,k){ var sr=64*k*2.1; return [cx-sr*1.38,cy-sr*0.98,sr*2.76,sr*1.96]; }   // the burst's box (rotated -0.16 rad, so a little slack)
+function sfxCost(B,E,R,face,capR){ var o=0;
+  if(E){ var h=0; for(var i=0;i<=8;i++) for(var j=0;j<=8;j++){ var px=B[0]+B[2]*i/8, py=B[1]+B[3]*j/8;
+      if(px>=R[0]&&px<=R[0]+R[2]&&py>=R[1]&&py<=R[1]+R[3] && Math.pow((px-E.cx)/E.rx,2)+Math.pow((py-E.cy)/E.ry,2)<=1.2) h++; } o=h/81; }   // 1.2: a margin round the head
+  if(face && face.mx>=B[0]&&face.mx<=B[0]+B[2]&&face.my>=B[1]&&face.my<=B[1]+B[3]) o+=1;   // the MOUTH: never
+  if(capR && B[0]<capR[0]+capR[2] && B[0]+B[2]>capR[0] && B[1]<capR[1]+capR[3] && B[1]+B[3]>capR[1]) o+=2;
+  var ix=Math.max(0,Math.min(B[0]+B[2],LW-8)-Math.max(B[0],8)), iy=Math.max(0,Math.min(B[1]+B[3],LH-8)-Math.max(B[1],8));
+  o+=3*(1-ix*iy/(B[2]*B[3]));                                            // OFF THE SCREEN: never (the word must read whole)
+  function ov(Q){ return Math.max(0,Math.min(B[0]+B[2],Q[0]+Q[2])-Math.max(B[0],Q[0]))*Math.max(0,Math.min(B[1]+B[3],Q[1]+Q[3])-Math.max(B[1],Q[1]))/(B[2]*B[3]); }
+  o+=0.1*(1-ov(R));                                                      // over its own border / the page margin: fine (the classic ECU burst)
+  sfxPeers(R).forEach(function(Q){ o+=1.5*ov(Q); });                     // over ANOTHER panel (its face): no
+  return o; }
+function sfxPeers(R){ for(var k in COMIC_LAY){ var L=COMIC_LAY[k], i=L.findIndex(function(q){ return q[0]===R[0]&&q[1]===R[1]&&q[2]===R[2]&&q[3]===R[3]; }); if(i>=0) return L.filter(function(_,j){ return j!==i; }); } return []; }
+function sfxPlace(R,face,capR,big,hasBal,K,eyes){ var x=R[0],y=R[1],w=R[2],h=R[3], E=sfxHead(face,R,eyes), best=null,
+    C=(big?[[0.93,0.06],[0.07,0.06],[0.93,0.94],[0.07,0.94]]:hasBal?[[0.76,0.24],[0.24,0.20],[0.80,0.82],[0.22,0.84],[0.50,0.12]]:[[0.62,0.62],[0.80,0.80],[0.22,0.80],[0.78,0.20],[0.22,0.20]])
+      .concat([[0.84,0.88],[0.16,0.88],[0.84,0.12],[0.16,0.12],[0.97,0.97],[0.03,0.97],[0.97,0.03],[0.03,0.03]]);
+  [1,0.82,0.68,0.56].forEach(function(s,si){ var k=K*(big?0.85:1)*s;
+    C.forEach(function(c,ci){ if(best&&best.o===0) return; var B0=sfxBox(0,0,k), cx=clamp(x+w*c[0],8-B0[0],LW-8-B0[0]-B0[2]), cy=clamp(y+h*c[1],8-B0[1],LH-8-B0[1]-B0[3]), B=sfxBox(cx,cy,k), o=sfxCost(B,E,R,eyes?null:face,capR);   // kept whole on the screen (the EYES strip has no mouth in it)
+      if(o>0) o+=0.06*si+0.001*ci;                                       // ties: the bigger burst, then the earlier (designed) spot
+      if(!best||o<best.o-1e-9) best={ o:o, cx:cx, cy:cy, k:k, B:B }; }); });
+  return best; }
 var BAL_FONT='"Comic Sans MS","Chalkboard SE","Comic Neue","Marker Felt",sans-serif';   // cheap TV, cheap lettering (system fonts only — nothing off-box)
 // 1123 THE SPEECH BALLOON (Joe: "speech bubbles in the comic stuff were often ill formed, line work was bad"). Was: an ellipse
 // stroked, a triangle tail stroked on top, a fillRect patch over the seam (doubled/jagged ink, text spilling past the ellipse,
@@ -4171,7 +4203,7 @@ function drawOutro(dt){
     talkCam(S.p, otT, S.d, fade);   // 1122: the interview camera (medium push, dissolve to the close-up on the beat)
     var vg=ctx.createRadialGradient(LW/2,LH/2,LH*0.4,LW/2,LH/2,LH); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.6)'); ctx.fillStyle=vg; ctx.fillRect(0,0,LW,LH);
     txt('EXPERT ANALYSIS · THE MYSTERIOUS END OF HADRIAN' /* DRAFT */,LW/2,90,20,'#ffd25a','center','bold',fade);
-    lowerThird('DR. H. WOLFE',S.role,fade); var qa=clamp((otT-1.0)/0.8,0,1)*fade; panel(LW/2-600,LH-300,1200,120,0.62*qa); wrap(S.q,LW/2,LH-262,1140,23,'#fff6dc',qa,'italic bold');
+    lowerThird(wolfeName(),S.role,fade); var qa=clamp((otT-1.0)/0.8,0,1)*fade; panel(LW/2-600,LH-300,1200,120,0.62*qa); wrap(S.q,LW/2,LH-262,1140,23,'#fff6dc',qa,'italic bold');
     tjBug(); return; }
   if(S.k==='glitch'){ // TJTV does what it always does when someone gets too close (coda §VII). No red REC dot (Joe 1112).
     var bars=['#c0c0c0','#c0c000','#00c0c0','#00c000','#c000c0','#c00000','#0000c0'], gl=Math.floor(otT*14)%3;
@@ -4186,7 +4218,7 @@ function drawEnd(){
   txt('DOVER TO THE ANTONINE WALL · '+MARCH.length+' FRONTS · THE MARCH IS OVER' /* DRAFT */,LW/2,330,22,'#c9b27a','center','bold');
   txt('THE UNIVERSAL PROJECT · LOST TO HISTORY' /* DRAFT */,LW/2,380,18,'#c9b27a','center','bold');
   for(var i=0;i<END_LINES.length;i++) txt(END_LINES[i],LW/2,422+i*40,22,PARCH,'center','bold');
-  wrap('"History says the frontier was secured. History also says Hadrian died in bed. I have QUESTIONS."  — DR. H. WOLFE',LW/2,580,1060,19,'#d8ccb0',1,'italic');
+  wrap('"History says the frontier was secured. History also says Hadrian died in bed. I have QUESTIONS."  — H. WOLFE',LW/2,580,1060,19,'#d8ccb0',1,'italic');
   txt(tw('SPACE — TITLE'),LW/2,LH-50,22,GOLD,'center','bold',0.6+0.4*Math.sin(rt*4));
 }
 
