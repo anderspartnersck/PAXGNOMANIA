@@ -160,8 +160,7 @@ fly it for Rome or, from the far side, for the gnomes.
 
 ## Credits
 
-Created by **Joseph Coleman**, with Claude, ChatGPT, and Blender.
-A Castle Killscreen game by Anders & Partners LLC.
+Created by **Joseph Coleman**, Claude, ChatGPT, and Blender. Castle Killscreen · Anders & Partners.
 
 Main theme: *Britannia — Theme from PAX GNOMANIA*.
 
